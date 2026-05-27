@@ -82,27 +82,33 @@ export default function GalleryPage() {
     } catch { window.open(url, "_blank"); }
   };
 
+  const [jsonLd, setJsonLd] = useState("");
+
+  useEffect(() => {
+    if (items.length > 0) {
+      setJsonLd(JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "ImageGallery",
+        name: "AI Painting Community Gallery",
+        description: "Explore AI-generated artwork shared by the community.",
+        url: `${window.location.origin}/${locale}/gallery`,
+        image: items.slice(0, 20).map((item) => ({
+          "@type": "ImageObject",
+          contentUrl: item.image_url,
+          name: item.prompt,
+          author: { "@type": "Person", name: item.user_name },
+          dateCreated: item.created_at,
+        })),
+      }));
+    }
+  }, [items, locale]);
+
   return (
     <div className="min-h-screen pt-24 pb-12">
-      {typeof window !== "undefined" && (
+      {jsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "ImageGallery",
-              name: "AI Painting Community Gallery",
-              description: "Explore AI-generated artwork shared by the community.",
-              url: `${window.location.origin}/${locale}/gallery`,
-              image: items.slice(0, 20).map((item) => ({
-                "@type": "ImageObject",
-                contentUrl: item.image_url,
-                name: item.prompt,
-                author: { "@type": "Person", name: item.user_name },
-                dateCreated: item.created_at,
-              })),
-            }),
-          }}
+          dangerouslySetInnerHTML={{ __html: jsonLd }}
         />
       )}
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
