@@ -1,0 +1,17 @@
+-- Gallery seed data for AI Painting
+-- Run in Supabase SQL Editor
+
+INSERT INTO public.generations (id, user_id, prompt, model, image_url, is_public, created_at)
+VALUES
+  (gen_random_uuid(), 'd08f6c0a-c911-461f-9271-1692d2eb6579', 'A majestic dragon soaring through neon-lit clouds over a cyberpunk city at night', 'flux-dev', 'https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?w=600&h=600&fit=crop', true, now() - interval '1 hour'),
+  (gen_random_uuid(), 'd08f6c0a-c911-461f-9271-1692d2eb6579', 'Peaceful Japanese garden with cherry blossoms falling, koi pond, golden hour sunlight', 'schnell', 'https://images.unsplash.com/photo-1522383225653-ed111181a951?w=600&h=600&fit=crop', true, now() - interval '2 hours'),
+  (gen_random_uuid(), 'd08f6c0a-c911-461f-9271-1692d2eb6579', 'Astronaut playing electric guitar on the moon with Earth in the background', 'sdxl', 'https://images.unsplash.com/photo-1614728263952-84ea256f9679?w=600&h=600&fit=crop', true, now() - interval '3 hours'),
+  (gen_random_uuid(), 'd08f6c0a-c911-461f-9271-1692d2eb6579', 'Steampunk owl made of brass and copper gears, intricate clockwork details', 'flux-dev', 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&h=600&fit=crop', true, now() - interval '4 hours'),
+  (gen_random_uuid(), 'd08f6c0a-c911-461f-9271-1692d2eb6579', 'Underwater city with bioluminescent jellyfish floating between glass domes', 'schnell', 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=600&fit=crop', true, now() - interval '5 hours'),
+  (gen_random_uuid(), 'd08f6c0a-c911-461f-9271-1692d2eb6579', 'Crystal fox spirit with nine tails running through a snowy bamboo forest at night', 'sdxl', 'https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=600&h=600&fit=crop', true, now() - interval '6 hours'),
+  (gen_random_uuid(), 'd08f6c0a-c911-461f-9271-1692d2eb6579', 'Medieval castle floating among fluffy clouds with a rainbow waterfall cascading down', 'flux-dev', 'https://images.unsplash.com/photo-1449034446853-66c86144b0ad?w=600&h=600&fit=crop', true, now() - interval '7 hours'),
+  (gen_random_uuid(), 'd08f6c0a-c911-461f-9271-1692d2eb6579', 'Cute baby panda eating bamboo in a magical bamboo forest with glowing fireflies', 'schnell', 'https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=600&h=600&fit=crop', true, now() - interval '8 hours'),
+  (gen_random_uuid(), 'd08f6c0a-c911-461f-9271-1692d2eb6579', 'Ancient tree of life with glowing golden leaves, roots reaching deep into the earth', 'sdxl', 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&h=600&fit=crop', true, now() - interval '9 hours'),
+  (gen_random_uuid(), 'd08f6c0a-c911-461f-9271-1692d2eb6579', 'Cyberpunk samurai warrior with neon katana standing in rainy Tokyo street', 'flux-dev', 'https://images.unsplash.com/photo-1545632217-1cd03c3c5bde?w=600&h=600&fit=crop', true, now() - interval '10 hours'),
+  (gen_random_uuid(), 'd08f6c0a-c911-461f-9271-1692d2eb6579', 'Enchanted forest library with floating books and glowing crystal lamps', 'schnell', 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=600&h=600&fit=crop', true, now() - interval '11 hours'),
+  (gen_random_uuid(), 'd08f6c0a-c911-461f-9271-1692d2eb6579', 'Golden phoenix rising from flames, wings spread wide against a stormy sky', 'sdxl', 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&h=600&fit=crop', true, now() - interval '12 hours');

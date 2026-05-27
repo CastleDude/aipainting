@@ -26,15 +26,15 @@ if (process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_DEV_MOCK_US
 
 const cspHeader = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
-  "font-src 'self'",
+  "font-src 'self' data:",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
-  "connect-src 'self' https://*.supabase.co https://*.runware.ai https://*.novita.ai https://*.openrouter.ai https://api.creem.io",
+  "connect-src 'self' https://*.supabase.co https://*.runware.ai https://*.novita.ai https://*.openrouter.ai https://api.creem.io https://static.cloudflareinsights.com",
   "media-src 'none'",
 ].join("; ");
 
