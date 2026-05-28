@@ -64,7 +64,6 @@ export async function POST(req: NextRequest) {
     const payload: Record<string, unknown> = {
       product_id: productId,
       success_url: `${siteUrl}/${locale}/dashboard?checkout=success`,
-      cancel_url: `${siteUrl}/${locale}/pricing?checkout=cancelled`,
       customer: {
         email: user.email,
       },
