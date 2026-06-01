@@ -138,7 +138,7 @@ async function generateWithNovita(
 // ── OpenRouter (universal fallback) ─────────────────────
 
 const OPENROUTER_FALLBACK: Record<string, { id: string; modalities: string[] }> = {
-  "schnell":   { id: "bytedance-seed/seedream-4.5", modalities: ["image"] },
+  "schnell":   { id: "google/gemini-2.5-flash-image", modalities: ["image", "text"] },
   "sdxl":      { id: "google/gemini-2.5-flash-image", modalities: ["image", "text"] },
   "flux-dev":  { id: "google/gemini-3-pro-image-preview", modalities: ["image", "text"] },
 };
@@ -173,8 +173,8 @@ async function generateWithOpenRouter(
       messages: [{ role: "user", content: userContent }],
       max_tokens: 8192,
     };
-    // Seedream supports native width/height
-    if (model === "schnell") {
+    // Only Seedream uses native width/height
+    if (model === "seedream") {
       params.width = dims.width;
       params.height = dims.height;
     }
