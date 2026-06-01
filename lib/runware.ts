@@ -138,9 +138,9 @@ async function generateWithNovita(
 // ── OpenRouter (universal fallback) ─────────────────────
 
 const OPENROUTER_FLUX: Record<string, string> = {
-  "schnell":   "black-forest-labs/flux.2-klein-4b",
-  "sdxl":      "stabilityai/stable-diffusion-xl-base-1.0",
-  "flux-dev":  "black-forest-labs/flux.2-dev",
+  "schnell":   "google/gemini-2.5-flash-image",
+  "sdxl":      "google/gemini-2.5-flash-image",
+  "flux-dev":  "google/gemini-3-pro-image-preview",
 };
 
 let _openrouter: OpenAI | null = null;
