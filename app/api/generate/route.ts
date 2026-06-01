@@ -146,7 +146,8 @@ function classifyError(status: number, message: string) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { prompt, negativePrompt, model = "schnell", aspectRatio = "1:1", numImages = 4, speedMode, imageBase64, isPublic, async: asyncMode } = body;
+    const { prompt, negativePrompt, model = "schnell", aspectRatio = "1:1", numImages = 4, speedMode, imageBase64, isPublic, async: asyncMode, multiplier } = body;
+    const creditMultiplier: number = typeof multiplier === "number" && multiplier > 0 ? multiplier : 1;
 
     if (!prompt?.trim()) {
       return NextResponse.json({ error: "Please enter a prompt", code: "empty_prompt" }, { status: 400 });
@@ -168,11 +169,12 @@ export async function POST(req: NextRequest) {
     // Dev mock mode — request-scoped credit tracking via cookie
     if (process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_DEV_MOCK_USER === "true") {
       const numToGenerate = speedMode === "fast" ? 1 : (numImages || 1);
+      const deductCount = numToGenerate * creditMultiplier;
       // Read current daily_used from cookie to persist across requests
       const cookieName = "mock_daily_used";
       const cookieVal = req.cookies.get(cookieName)?.value;
       let dailyUsed = parseInt(cookieVal || "0", 10) || 0;
-      dailyUsed += numToGenerate;
+      dailyUsed += deductCount;
       creditResult = { daily_used: dailyUsed };
       // Will set cookie in response
     }
@@ -203,6 +205,7 @@ export async function POST(req: NextRequest) {
       if (profile) {
         const tier = profile.tier as SubscriptionTier;
         const numToGenerate = speedMode === "fast" ? 1 : (numImages || 1);
+        const deductCount = numToGenerate * creditMultiplier;
         let currentCredits = profile.credits;
         let currentDailyUsed = profile.daily_used;
 
@@ -224,7 +227,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Deduct before generating to prevent double-spend
-        const deduct = getDeductFields(tier, numToGenerate);
+        const deduct = getDeductFields(tier, deductCount);
         if (Object.keys(deduct).length > 0) {
           const updates: Record<string, number> = {};
           if (deduct.daily_used) {
@@ -242,7 +245,7 @@ export async function POST(req: NextRequest) {
               id: `gen_${Date.now()}_${user.id.slice(0, 8)}`,
               user_id: user.id,
               amount: deduct.credits,
-              reason: `Generate ${numToGenerate} image(s) — tier: ${tier}`,
+              reason: `Generate ${numToGenerate} image(s) ×${creditMultiplier} — tier: ${tier}`,
             });
           }
         }
@@ -377,7 +380,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const result: { images: string[]; daily_used?: number; credits?: number; saved?: number; generationIds?: string[] } = { images };
+    const result: { images: string[]; daily_used?: number; credits?: number; saved?: number; generationIds?: string[]; multiplier?: number } = { images };
+    if (creditMultiplier > 1) result.multiplier = creditMultiplier;
     if (creditResult) {
       if (creditResult.daily_used !== undefined) result.daily_used = creditResult.daily_used;
       if (creditResult.credits !== undefined) result.credits = creditResult.credits;

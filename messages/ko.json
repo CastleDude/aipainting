@@ -115,7 +115,45 @@
     "shared_to_gallery": "갤러리에 공유됨",
     "reference_image_added": "참조 이미지 추가됨",
     "reference_image_hint": "AI가 이 이미지의 스타일과 내용을 참조하여 생성합니다",
-    "switch_to_seedream": "Flux Schnell로 전환 (무료, 전 세계 사용 가능)"
+    "switch_to_seedream": "Flux Schnell로 전환 (무료, 전 세계 사용 가능)",
+    "presets": {
+      "title": "빠른 프리셋",
+      "credit_multiplier": "[[COUNT]]배 크레딧",
+      "photo_restoration": {
+        "name": "오래된 사진 복원",
+        "desc": "오래되거나 손상된 사진을 복원하고 개선합니다"
+      },
+      "cartoon_avatar": {
+        "name": "만화 아바타",
+        "desc": "사진을 만화/애니메이션 스타일 아바타로 변환합니다"
+      },
+      "greeting_card": {
+        "name": "인사말 카드",
+        "desc": "어떤 행사에도 어울리는 축하 카드를 만듭니다",
+        "fields": {
+          "recipient": "받는 사람",
+          "recipient_placeholder": "예: 엄마, 철수...",
+          "message": "축하 메시지",
+          "message_placeholder": "예: 생일 축하합니다! 행복하세요...",
+          "holiday": "행사",
+          "holiday_placeholder": "행사 선택"
+        },
+        "holidays": {
+          "christmas": "크리스마스",
+          "new_year": "새해",
+          "birthday": "생일",
+          "valentine": "발렌타인 데이",
+          "mothers_day": "어버이날",
+          "fathers_day": "아버지의 날",
+          "easter": "부활절",
+          "halloween": "할로윈",
+          "thanksgiving": "추수감사절",
+          "wedding": "결혼식",
+          "graduation": "졸업",
+          "general": "일반 축하"
+        }
+      }
+    }
   },
   "image_tools": {
     "browser_hint": "최적의 사용을 위해 Chrome 또는 Edge 브라우저를 권장합니다",

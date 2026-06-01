@@ -119,6 +119,46 @@ export default async function HomePage() {
           reference_image_hint: t("generate.reference_image_hint"),
           switch_to_seedream: t("generate.switch_to_seedream"),
         }}
+        presetMessages={{
+          title: t("generate.presets.title"),
+          credit_multiplier: t("generate.presets.credit_multiplier"),
+          presets: {
+            photo_restoration: {
+              name: t("generate.presets.photo_restoration.name"),
+              desc: t("generate.presets.photo_restoration.desc"),
+            },
+            cartoon_avatar: {
+              name: t("generate.presets.cartoon_avatar.name"),
+              desc: t("generate.presets.cartoon_avatar.desc"),
+            },
+            greeting_card: {
+              name: t("generate.presets.greeting_card.name"),
+              desc: t("generate.presets.greeting_card.desc"),
+              fields: {
+                recipient: t("generate.presets.greeting_card.fields.recipient"),
+                recipient_placeholder: t("generate.presets.greeting_card.fields.recipient_placeholder"),
+                message: t("generate.presets.greeting_card.fields.message"),
+                message_placeholder: t("generate.presets.greeting_card.fields.message_placeholder"),
+                holiday: t("generate.presets.greeting_card.fields.holiday"),
+                holiday_placeholder: t("generate.presets.greeting_card.fields.holiday_placeholder"),
+              },
+              holidays: {
+                christmas: t("generate.presets.greeting_card.holidays.christmas"),
+                new_year: t("generate.presets.greeting_card.holidays.new_year"),
+                birthday: t("generate.presets.greeting_card.holidays.birthday"),
+                valentine: t("generate.presets.greeting_card.holidays.valentine"),
+                mothers_day: t("generate.presets.greeting_card.holidays.mothers_day"),
+                fathers_day: t("generate.presets.greeting_card.holidays.fathers_day"),
+                easter: t("generate.presets.greeting_card.holidays.easter"),
+                halloween: t("generate.presets.greeting_card.holidays.halloween"),
+                thanksgiving: t("generate.presets.greeting_card.holidays.thanksgiving"),
+                wedding: t("generate.presets.greeting_card.holidays.wedding"),
+                graduation: t("generate.presets.greeting_card.holidays.graduation"),
+                general: t("generate.presets.greeting_card.holidays.general"),
+              },
+            },
+          },
+        }}
       />
 
       <BackgroundDots />

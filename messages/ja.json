@@ -139,7 +139,45 @@
     "shared_to_gallery": "ギャラリーに共有済み",
     "reference_image_added": "参照画像を追加しました",
     "reference_image_hint": "AIがこの画像のスタイルと内容を参照して作成します",
-    "switch_to_seedream": "Flux Schnellに切り替え（無料、グローバル対応）"
+    "switch_to_seedream": "Flux Schnellに切り替え（無料、グローバル対応）",
+    "presets": {
+      "title": "クイックプリセット",
+      "credit_multiplier": "[[COUNT]]倍クレジット",
+      "photo_restoration": {
+        "name": "古い写真の修復",
+        "desc": "古くなったり破損した写真を修復・強化します"
+      },
+      "cartoon_avatar": {
+        "name": "漫画アバター",
+        "desc": "あなたの写真を漫画/アニメ風のアバターに変換します"
+      },
+      "greeting_card": {
+        "name": "グリーティングカード",
+        "desc": "あらゆる機会にぴったりのお祝いカードを作成します",
+        "fields": {
+          "recipient": "宛名",
+          "recipient_placeholder": "例：お母さん、田中さん...",
+          "message": "メッセージ",
+          "message_placeholder": "例：お誕生日おめでとうございます！",
+          "holiday": "行事",
+          "holiday_placeholder": "行事を選択"
+        },
+        "holidays": {
+          "christmas": "クリスマス",
+          "new_year": "新年",
+          "birthday": "誕生日",
+          "valentine": "バレンタインデー",
+          "mothers_day": "母の日",
+          "fathers_day": "父の日",
+          "easter": "イースター",
+          "halloween": "ハロウィン",
+          "thanksgiving": "感謝祭",
+          "wedding": "結婚式",
+          "graduation": "卒業",
+          "general": "一般的なお祝い"
+        }
+      }
+    }
   },
   "image_tools": {
     "browser_hint": "ChromeまたはEdgeでのご利用を推奨します",

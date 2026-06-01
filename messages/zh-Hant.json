@@ -115,7 +115,45 @@
     "shared_to_gallery": "已分享到畫廊",
     "reference_image_added": "參考圖片已添加",
     "reference_image_hint": "AI 將參考此圖片風格和內容進行創作",
-    "switch_to_seedream": "切換到 Flux Schnell（免費，全球可用）"
+    "switch_to_seedream": "切換到 Flux Schnell（免費，全球可用）",
+    "presets": {
+      "title": "快捷預設",
+      "credit_multiplier": "[[COUNT]]倍積分",
+      "photo_restoration": {
+        "name": "老照片修復",
+        "desc": "修復並增強老舊或破損的照片"
+      },
+      "cartoon_avatar": {
+        "name": "卡通頭像",
+        "desc": "將你的照片變成卡通/動漫風格頭像"
+      },
+      "greeting_card": {
+        "name": "賀卡製作",
+        "desc": "為任何節日製作精美的賀卡",
+        "fields": {
+          "recipient": "收件人",
+          "recipient_placeholder": "如：媽媽、小王...",
+          "message": "祝福語",
+          "message_placeholder": "如：生日快樂！萬事如意...",
+          "holiday": "節日",
+          "holiday_placeholder": "選擇節日"
+        },
+        "holidays": {
+          "christmas": "聖誕節",
+          "new_year": "新年",
+          "birthday": "生日",
+          "valentine": "情人節",
+          "mothers_day": "母親節",
+          "fathers_day": "父親節",
+          "easter": "復活節",
+          "halloween": "萬聖節",
+          "thanksgiving": "感恩節",
+          "wedding": "婚禮",
+          "graduation": "畢業",
+          "general": "通用慶祝"
+        }
+      }
+    }
   },
   "image_tools": {
     "browser_hint": "用 Chrome 或 Edge 獲得最佳體驗",

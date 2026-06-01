@@ -115,7 +115,45 @@
     "share_similar": "Similar image already shared. Try a different creation.",
     "reference_image_added": "Reference image added",
     "reference_image_hint": "AI will reference this image's style and content",
-    "switch_to_seedream": "Switch to Flux Schnell (free, works globally)"
+    "switch_to_seedream": "Switch to Flux Schnell (free, works globally)",
+    "presets": {
+      "title": "Quick Presets",
+      "credit_multiplier": "[[COUNT]]x credits",
+      "photo_restoration": {
+        "name": "Old Photo Restoration",
+        "desc": "Restore and enhance old or damaged photos"
+      },
+      "cartoon_avatar": {
+        "name": "Cartoon Avatar",
+        "desc": "Turn your photo into a cartoon/anime avatar"
+      },
+      "greeting_card": {
+        "name": "Greeting Card",
+        "desc": "Create a festive greeting card for any occasion",
+        "fields": {
+          "recipient": "Recipient Name",
+          "recipient_placeholder": "e.g. Mom, John...",
+          "message": "Greeting Message",
+          "message_placeholder": "e.g. Happy Birthday! Wishing you all the best...",
+          "holiday": "Occasion",
+          "holiday_placeholder": "Select occasion"
+        },
+        "holidays": {
+          "christmas": "Christmas",
+          "new_year": "New Year",
+          "birthday": "Birthday",
+          "valentine": "Valentine's Day",
+          "mothers_day": "Mother's Day",
+          "fathers_day": "Father's Day",
+          "easter": "Easter",
+          "halloween": "Halloween",
+          "thanksgiving": "Thanksgiving",
+          "wedding": "Wedding",
+          "graduation": "Graduation",
+          "general": "General Celebration"
+        }
+      }
+    }
   },
   "image_tools": {
     "browser_hint": "Use Chrome or Edge for best experience",
