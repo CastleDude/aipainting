@@ -137,10 +137,10 @@ async function generateWithNovita(
 
 // ── OpenRouter (universal fallback) ─────────────────────
 
-const OPENROUTER_FALLBACK: Record<string, string> = {
-  "schnell":   "bytedance-seed/seedream-4.5",     // fastest image model on OpenRouter
-  "sdxl":      "google/gemini-2.5-flash-image",    // good quality/price balance
-  "flux-dev":  "google/gemini-3-pro-image-preview", // highest quality
+const OPENROUTER_FALLBACK: Record<string, { id: string; modalities: string[] }> = {
+  "schnell":   { id: "bytedance-seed/seedream-4.5", modalities: ["image"] },
+  "sdxl":      { id: "google/gemini-2.5-flash-image", modalities: ["image", "text"] },
+  "flux-dev":  { id: "google/gemini-3-pro-image-preview", modalities: ["image", "text"] },
 };
 
 let _openrouter: OpenAI | null = null;
@@ -157,7 +157,7 @@ function getOR(): OpenAI {
 async function generateWithOpenRouter(
   prompt: string, model: string, aspectRatio: string, numImages: number, negativePrompt?: string,
 ): Promise<string[]> {
-  const modelId = OPENROUTER_FALLBACK[model] || OPENROUTER_FALLBACK["schnell"];
+  const cfg = OPENROUTER_FALLBACK[model] || OPENROUTER_FALLBACK["schnell"];
   const dims = SIZES[aspectRatio] || SIZES["1:1"];
   const images: string[] = [];
 
@@ -167,14 +167,19 @@ async function generateWithOpenRouter(
       userContent.push({ type: "text", text: `Avoid: ${negativePrompt.trim()}` });
     }
 
-    const res = await getOR().chat.completions.create({
-      model: modelId,
-      modalities: ["image", "text"],
+    const params: Record<string, unknown> = {
+      model: cfg.id,
+      modalities: cfg.modalities,
       messages: [{ role: "user", content: userContent }],
       max_tokens: 8192,
-      width: dims.width,
-      height: dims.height,
-    } as never);
+    };
+    // Seedream supports native width/height
+    if (model === "schnell") {
+      params.width = dims.width;
+      params.height = dims.height;
+    }
+
+    const res = await getOR().chat.completions.create(params as never);
 
     const msg = res.choices[0]?.message;
     if (!msg) continue;
