@@ -7,6 +7,30 @@ import type { SubscriptionTier } from "@/lib/supabase";
 import { STYLE_PROMPTS, RUNWARE_MODELS } from "@/lib/openrouter";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { checkContentModeration } from "@/lib/moderation";
+
+// ── Describe an image via Gemini Vision ──
+async function describeImage(base64: string): Promise<string | null> {
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY || ""}`,
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        modalities: ["image", "text"],
+        messages: [{ role: "user", content: [
+          { type: "text", text: "Describe this image in 1-2 sentences. Focus on: subject, style, colors, composition, mood. Be concise." },
+          { type: "image_url", image_url: { url: base64 } },
+        ]}],
+        max_tokens: 150,
+      }),
+    });
+    const data = await res.json();
+    return data?.choices?.[0]?.message?.content?.trim() || null;
+  } catch (e) { console.warn("[describeImage]", (e as Error).message); return null; }
+}
 import { generateRunware } from "@/lib/runware";
 
 // ── Config ──────────────────────────────────────────────
@@ -154,6 +178,12 @@ export async function POST(req: NextRequest) {
 
     if (!prompt?.trim()) {
       return NextResponse.json({ error: "Please enter a prompt", code: "empty_prompt" }, { status: 400 });
+    }
+
+    // ── Describe second image via Gemini Vision ──
+    let image2Desc: string | null = null;
+    if (imageBase64_2) {
+      image2Desc = await describeImage(imageBase64_2);
     }
 
     // ── Rate limit ──
@@ -326,9 +356,9 @@ export async function POST(req: NextRequest) {
 
     const genN = speedMode === "fast" ? 1 : numImages;
     if (RUNWARE_MODELS.has(model)) {
-      // For img2img with two photos, use first as inputImage and describe second in prompt
-      const img2desc = imageBase64_2 ? " [SECOND REFERENCE IMAGE ATTACHED FOR COMPOSITION]" : "";
-      images = await generateRunware(`${prompt.trim()}${styleHint}${img2desc}. High quality, detailed.`, model, aspectRatio, genN, negativePrompt, imageBase64);
+      // For img2img with two photos: first = inputImage, second = described via Gemini, embedded in prompt
+      const img2Hint = image2Desc ? ` Second reference image description: ${image2Desc}.` : "";
+      images = await generateRunware(`${prompt.trim()}${styleHint}${img2Hint}. High quality, detailed.`, model, aspectRatio, genN, negativePrompt, imageBase64);
     } else {
       // For OpenRouter models, embed aspect ratio in the prompt
       const arHint = ``;
