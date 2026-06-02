@@ -25,6 +25,39 @@ function getRandomAdCopy(): string {
   return copy;
 }
 
+// ── AI product recognition via Gemini Vision ──
+async function analyzeProductImage(imageBase64: string): Promise<{ title: string; copy: string; points: string } | null> {
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.NEXT_PUBLIC_OPENROUTER_KEY || ""}`,
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        modalities: ["image", "text"],
+        messages: [{
+          role: "user",
+          content: [
+            { type: "text", text: "Analyze this product image. Return ONLY a JSON object with these 3 fields (no markdown, no explanation): {\"title\": \"product name in Chinese\", \"copy\": \"catchy ad copy in Chinese (15 words max)\", \"points\": \"3-4 key selling points in Chinese, separated by commas\"}" },
+            { type: "image_url", image_url: { url: imageBase64 } },
+          ],
+        }],
+        max_tokens: 300,
+      }),
+    });
+    const data = await res.json();
+    const text = data?.choices?.[0]?.message?.content || "";
+    // Extract JSON from response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) return JSON.parse(jsonMatch[0]);
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 // ── Event dispatched to ImageGenerator ──
 export interface PresetApplyEvent {
   presetId: string;
@@ -364,19 +397,14 @@ function PresetModal({
                   </button>
                 )}
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                {/* Random button */}
-                <button
-                  onClick={handleRandom}
-                  disabled={!imageBase64}
-                  className="w-full rounded-lg border border-dashed border-amber-500/40 bg-amber-500/5 px-3 py-2 text-xs font-medium text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
-                  </svg>
-                  {messages.random_btn}
-                </button>
-                {messages.random_cost && (
-                  <p className="text-[10px] text-text-muted text-center">{messages.random_cost.replace("[[COUNT]]", String(preset.baseCost))}</p>
+                {/* Ref image upload for product_ad */}
+                {presetId === "product_ad" && preset.hasRefImage && (
+                  <div className="mt-1">
+                    <p className="text-[10px] text-text-muted mb-1">{pm.params?.["ref_image"] || "参考效果图"}</p>
+                    <button onClick={() => fileInputRef.current?.click()} className="w-full rounded-lg border border-dashed border-border/50 hover:border-accent/40 flex items-center justify-center gap-1 py-1.5 text-[10px] text-text-muted hover:text-accent transition-colors">
+                      + 上传参考
+                    </button>
+                  </div>
                 )}
               </>
             ) : (
@@ -438,7 +466,7 @@ function PresetModal({
                 // Skip bg_custom if background is not "custom"
                 if (param.id === "bg_custom" && paramValues["background"] !== "custom") return null;
                 // Skip hidden product_ad fields unless "more" is open
-                if (presetId === "product_ad" && ["event_time", "company", "contact", "phone"].includes(param.id) && !showMore) return null;
+                if (presetId === "product_ad" && ["event_time", "company", "contact", "phone", "has_qrcode"].includes(param.id) && !showMore) return null;
                 if (param.id === "custom_size" && paramValues["ratio"] !== "custom") return null;
                 return (
                   <div key={param.id}>
@@ -451,16 +479,29 @@ function PresetModal({
                       placeholder={pm.params?.[param.placeholderKey || ""] || ""}
                       className="w-full rounded-lg border border-border/50 bg-bg-card px-3 py-2 text-xs text-text-primary outline-none placeholder:text-text-muted pr-16"
                     />
-                    {param.id === "copy" && presetId === "product_ad" && (
-                      <button type="button" onClick={() => setParam("copy", getRandomAdCopy())}
-                        className="absolute right-1 top-1 rounded-md bg-accent/10 px-2 py-1 text-[10px] text-accent hover:bg-accent/20 transition-colors">
-                        AI推荐
+                    {param.id === "title" && presetId === "product_ad" && (
+                      <button type="button" onClick={async () => {
+                        if (!imageBase64) return;
+                        setParam("title", "AI识别中...");
+                        setParam("copy", "AI识别中...");
+                        setParam("points", "AI识别中...");
+                        const result = await analyzeProductImage(imageBase64);
+                        if (result) {
+                          setParam("title", result.title);
+                          setParam("copy", result.copy);
+                          setParam("points", result.points);
+                        }
+                      }}
+                        className="absolute right-1 top-1 rounded-md bg-gradient-to-r from-purple-500/20 to-blue-500/20 px-2 py-1 text-[10px] text-accent hover:from-purple-500/30 hover:to-blue-500/30 transition-colors">
+                        AI识别推荐 (1积分)
                       </button>
                     )}
                     </div>
                   </div>
                 );
               }
+              // Hide has_qrcode unless more is open for product_ad
+              if (presetId === "product_ad" && param.id === "has_qrcode" && !showMore) return null;
               // select — render as clickable chip tags
               return (
                 <div key={param.id}>
