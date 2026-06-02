@@ -191,12 +191,15 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>, sele
     const framingMap: Record<string, string> = { head: "Close-up headshot portrait.", bust: "Upper body bust portrait.", full: "Full body portrait." };
     const framing = framingMap[paramValues["framing"]] || framingMap.head;
     prompt = prompt.replace("{framing_desc}", framing);
+    const sourceAge = paramValues["source_age"];
+    const sourceHint = sourceAge && sourceAge !== "auto" ? `The person in the uploaded photo is approximately ${sourceAge} years old. ` : "";
     if (ages.length <= 1) {
       prompt = prompt.replace("{age}", ages[0] || "child");
       prompt = prompt.replace("{bg_desc}", bgMap[paramValues["background"]] || bgMap.auto);
+      prompt = sourceHint + prompt;
     } else {
       const ageList = ages.map((a) => `a ${a}-year-old version`).join(", ");
-      prompt = `IMPORTANT: The uploaded photo shows a real person. Study their unique facial features carefully — face shape, eye shape, nose bridge, lip shape, jawline, cheekbone structure, skin tone, ethnicity and gender. These are the permanent identity markers that remain recognizable at any age.
+      prompt = `${sourceHint}IMPORTANT: The uploaded photo shows a real person. Study their unique facial features carefully — face shape, eye shape, nose bridge, lip shape, jawline, cheekbone structure, skin tone, ethnicity and gender. These are the permanent identity markers that remain recognizable at any age.
 
 Now create a group portrait with ${ages.length} versions of THIS EXACT SAME PERSON at different ages standing side by side: ${ageList}.
 
