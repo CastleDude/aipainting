@@ -78,13 +78,13 @@ async function generateOpenRouter(
       max_tokens: 8192,
     };
 
-    // Pass native width/height for Seedream (supports pixel dimensions)
+    // Enforce aspect ratio through API params + prompt
     if (model === "seedream") {
       params.width = dims.width;
       params.height = dims.height;
+      params.size = `${dims.width}x${dims.height}`;
     }
-    // Also enforce aspect ratio in prompt for all models
-    const ratioText = `[IMAGE DIMENSIONS: This image MUST be ${aspectRatio} aspect ratio (width:height = ${aspectRatio}). Generate exactly this shape, NOT square 1:1.]`;
+    const ratioText = `REQUIRED OUTPUT SHAPE: ${aspectRatio} aspect ratio (exactly ${dims.width}x${dims.height} pixels). Do NOT crop to square. If you produce a square 1:1 image, the result is invalid.`;
     userContent.unshift({ type: "text", text: ratioText });
 
     const response = await getOpenRouter().chat.completions.create(params as never);
