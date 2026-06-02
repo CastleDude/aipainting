@@ -161,6 +161,16 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>): str
     const adStyle = adStyleMap[paramValues["ad_style"]] || adStyleMap.tech;
     prompt = prompt.replace("{ref_style}", refStyle);
     prompt = prompt.replace("{ad_style}", `Visual style: ${adStyle}.`);
+    const fontMap: Record<string, string> = {
+      auto: "Choose the most suitable typography style matching the visual style",
+      modern: "Modern minimalist typography with clean sans-serif fonts, elegant spacing",
+      luxury: "Premium serif typography with gold accents, sophisticated letterforms",
+      bold: "Bold impactful typography with heavy weight titles, strong visual hierarchy",
+      handwriting: "Warm handwritten/calligraphy style typography, personal and approachable",
+      tech: "Tech-inspired typography with monospace elements, glowing digital text effects",
+      cute: "Round cute typography with soft curves, playful and youthful lettering",
+    };
+    prompt = prompt.replace("{font_style}", `Typography: ${fontMap[paramValues["font_style"]] || fontMap.auto}.`);
     prompt = prompt.replace("{title}", paramValues["title"] || "Product");
     prompt = prompt.replace("{copy}", paramValues["copy"] || "Amazing product!");
     prompt = prompt.replace("{points}", paramValues["points"] || "");
