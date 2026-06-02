@@ -255,9 +255,12 @@ function PresetModal({
   const [imagePreview, setImagePreview] = useState<string | null>(reopenImage);
   const [imageBase64_2, setImageBase64_2] = useState<string | null>(null);
   const [imagePreview_2, setImagePreview_2] = useState<string | null>(null);
+  const [qrImageBase64, setQrImageBase64] = useState<string | null>(null);
+  const [qrPreview, setQrPreview] = useState<string | null>(null);
   const [paramValues, setParamValues] = useState<Record<string, string>>(cached);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef2 = useRef<HTMLInputElement>(null);
+  const qrInputRef = useRef<HTMLInputElement>(null);
   lastReopenImage = null; // consume the cached image
 
   if (!preset || !pm) return null;
@@ -422,6 +425,28 @@ function PresetModal({
                       if (!file || !file.type.startsWith("image/")) return;
                       const reader = new FileReader();
                       reader.onload = () => { const url = reader.result as string; setImagePreview_2(url); setImageBase64_2(url); };
+                      reader.readAsDataURL(file);
+                    }} className="hidden" />
+                  </>
+                )}
+                {/* QR code upload — shown when has_qrcode is yes */}
+                {presetId === "product_ad" && paramValues["has_qrcode"] === "yes" && (
+                  <>
+                    {qrPreview ? (
+                      <div className="relative w-full aspect-square">
+                        <img src={qrPreview} alt="QR" className="w-full h-full object-contain bg-bg-secondary rounded-lg" />
+                        <button onClick={() => { setQrPreview(null); setQrImageBase64(null); }} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px] hover:bg-red-500">✕</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => qrInputRef.current?.click()} className="w-full rounded-lg border border-dashed border-border/50 hover:border-accent/40 flex items-center justify-center gap-1 py-2 text-[10px] text-text-muted hover:text-accent transition-colors">
+                        + 上传二维码
+                      </button>
+                    )}
+                    <input ref={qrInputRef} type="file" accept="image/*" onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file || !file.type.startsWith("image/")) return;
+                      const reader = new FileReader();
+                      reader.onload = () => { const url = reader.result as string; setQrPreview(url); setQrImageBase64(url); };
                       reader.readAsDataURL(file);
                     }} className="hidden" />
                   </>
