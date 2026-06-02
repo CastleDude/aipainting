@@ -191,8 +191,8 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>, sele
     const framingMap: Record<string, string> = { head: "Close-up headshot portrait.", bust: "Upper body bust portrait.", full: "Full body portrait." };
     const framing = framingMap[paramValues["framing"]] || framingMap.head;
     prompt = prompt.replace("{framing_desc}", framing);
-    const sourceAge = paramValues["source_age"];
-    const sourceHint = sourceAge && sourceAge !== "auto" ? `The person in the uploaded photo is approximately ${sourceAge} years old. ` : "";
+    const sourceAge = paramValues["source_age"]?.trim();
+    const sourceHint = sourceAge ? `The person in the uploaded photo is approximately ${sourceAge} years old. ` : "";
     if (ages.length <= 1) {
       prompt = prompt.replace("{age}", ages[0] || "child");
       prompt = prompt.replace("{bg_desc}", bgMap[paramValues["background"]] || bgMap.auto);
@@ -576,6 +576,16 @@ function PresetModal({
                       placeholder={pm.params?.[param.placeholderKey || ""] || ""}
                       className="w-full rounded-lg border border-border/50 bg-bg-card px-3 py-2 text-xs text-text-primary outline-none placeholder:text-text-muted pr-16"
                     />
+                    {param.id === "source_age" && presetId === "age_journey" && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {["0","6","16","25","40","60","80"].map((v) => (
+                          <button key={v} type="button" onClick={() => setParam("source_age", v)}
+                            className={`rounded-md border px-2 py-0.5 text-[10px] transition-colors ${paramValues["source_age"] === v ? "border-accent bg-accent/10 text-accent" : "border-border/50 text-text-muted hover:border-border"}`}>
+                            {v}岁
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     {param.id === "title" && presetId === "product_ad" && (
                       <button type="button" onClick={async () => {
                         if (!imageBase64) return;

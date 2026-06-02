@@ -86,7 +86,7 @@
     },
     "age_journey": {
       "name": "年龄穿越", "desc": "看看你从婴儿到100岁的样子",
-      "params": { "age": "目标年龄", "age_baby": "0岁", "age_child": "6岁", "age_teen": "16岁", "age_adult": "25岁", "age_40": "40岁", "age_60": "60岁", "age_80": "80岁", "age_100": "100岁", "background": "背景", "bg_auto": "自动随机", "bg_studio": "影棚写真", "bg_nature": "户外自然", "bg_urban": "城市街景", "bg_fantasy": "奇幻世界", "bg_historical": "历史时代", "bg_scifi": "太空科幻", "bg_beach": "海滩日落", "source_age": "当前年龄", "source_auto": "自动识别", "source_0": "0-1岁", "source_6": "5-10岁", "source_16": "13-17岁", "source_adult": "20-30岁", "source_40": "40岁左右", "source_60": "60岁左右", "source_80": "80岁以上",
+      "params": { "age": "目标年龄", "age_baby": "0岁", "age_child": "6岁", "age_teen": "16岁", "age_adult": "25岁", "age_40": "40岁", "age_60": "60岁", "age_80": "80岁", "age_100": "100岁", "background": "背景", "bg_auto": "自动随机", "bg_studio": "影棚写真", "bg_nature": "户外自然", "bg_urban": "城市街景", "bg_fantasy": "奇幻世界", "bg_historical": "历史时代", "bg_scifi": "太空科幻", "bg_beach": "海滩日落", "source_age": "当前年龄", "source_age_placeholder": "输入具体年龄，不知道可点下方快捷选择",
         "framing": "照片身位", "framing_head": "头像照", "framing_bust": "半身照", "framing_full": "全身照",
         "ratio": "图片比例", "custom": "自定义指令", "custom_placeholder": "例如：保留我的笑容..." }
     },
