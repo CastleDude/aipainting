@@ -195,8 +195,8 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>, sele
       prompt = prompt.replace("{age}", ages[0] || "child");
       prompt = prompt.replace("{bg_desc}", bgMap[paramValues["background"]] || bgMap.auto);
     } else {
-      const ageList = ages.map((a) => `a ${a} version`).join(", ");
-      prompt = `Create one photo showing ${ages.length} versions of this person standing together at different ages: ${ageList}. All share the same facial identity. Background: ${bgMap[paramValues["background"]] || bgMap.auto}. Natural, photorealistic group portrait, high quality.`;
+      const ageList = ages.map((a) => `a ${a}-year-old version`).join(", ");
+      prompt = `Create a group photo of THE SAME PERSON at different ages standing together side by side: ${ageList}. CRITICAL REQUIREMENTS: 1) ALL must clearly be the SAME person — identical facial bone structure, same eye color, same skin tone, same ethnicity, no variation. 2) Each wears age-appropriate clothing for their specific age. 3) No child should have adult facial features, no adult should look like a child. 4) Photorealistic, consistent lighting, natural poses. Background: ${bgMap[paramValues["background"]] || bgMap.auto}. ${framing} High quality.`;
     }
     const ct = paramValues["custom"]?.trim();
     prompt = prompt.replace("{custom}", ct ? `Additional style instructions (do not render this as text): ${ct}.` : "");

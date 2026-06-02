@@ -444,9 +444,13 @@ export const PRESETS: Preset[] = [
     baseCost: 2,
     params: [
       { id: "age", labelKey: "presets.age_journey.params.age", type: "select", defaultValue: "child", options: [
-        { value: "baby", labelKey: "presets.age_journey.params.age_baby" }, { value: "child", labelKey: "presets.age_journey.params.age_child" }, { value: "teen", labelKey: "presets.age_journey.params.age_teen" }, { value: "adult", labelKey: "presets.age_journey.params.age_adult" },
-        { value: "30s", labelKey: "presets.age_journey.params.age_30s" }, { value: "40s", labelKey: "presets.age_journey.params.age_40s" }, { value: "50s", labelKey: "presets.age_journey.params.age_50s" }, { value: "60s", labelKey: "presets.age_journey.params.age_60s" },
-        { value: "70s", labelKey: "presets.age_journey.params.age_70s" }, { value: "80s", labelKey: "presets.age_journey.params.age_80s" }, { value: "90s", labelKey: "presets.age_journey.params.age_90s" }, { value: "100", labelKey: "presets.age_journey.params.age_100" },
+        { value: "0", labelKey: "presets.age_journey.params.age_baby" },
+        { value: "6", labelKey: "presets.age_journey.params.age_child" },
+        { value: "16", labelKey: "presets.age_journey.params.age_teen" },
+        { value: "25", labelKey: "presets.age_journey.params.age_adult" },
+        { value: "40", labelKey: "presets.age_journey.params.age_40" },
+        { value: "60", labelKey: "presets.age_journey.params.age_60" },
+        { value: "80", labelKey: "presets.age_journey.params.age_80" },
         { value: "100", labelKey: "presets.age_journey.params.age_100" },
       ]},
       { id: "background", labelKey: "presets.age_journey.params.background", type: "select", defaultValue: "auto", options: [
