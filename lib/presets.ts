@@ -382,7 +382,7 @@ export const PRESETS: Preset[] = [
     requiresImage: true,
     hasRefImage: true,
     promptTemplate:
-      "Create a professional product advertisement poster. Product: {title}. {ref_style} Ad copy: \"{copy}\". Key selling points: {points}. {details} {size_desc}. Clean, commercial-grade product photography style, professional lighting, eye-catching composition. {custom} High quality marketing poster.",
+      "Create a professional product advertisement poster. Product: {title}. {ad_style} {ref_style} Ad copy: \"{copy}\". Key selling points: {points}. {details} {size_desc}. Clean, commercial-grade product photography style, professional lighting, eye-catching composition. {custom} High quality marketing poster.",
     defaultModel: "schnell",
     defaultAspectRatio: "3:4",
     defaultNumImages: 1,
@@ -391,6 +391,16 @@ export const PRESETS: Preset[] = [
       { id: "title", labelKey: "presets.product_ad.params.title", type: "text", defaultValue: "", placeholderKey: "presets.product_ad.params.title_placeholder" },
       { id: "copy", labelKey: "presets.product_ad.params.copy", type: "text", defaultValue: "", placeholderKey: "presets.product_ad.params.copy_placeholder" },
       { id: "points", labelKey: "presets.product_ad.params.points", type: "textarea", defaultValue: "", placeholderKey: "presets.product_ad.params.points_placeholder" },
+      { id: "ad_style", labelKey: "presets.product_ad.params.ad_style", type: "select", defaultValue: "tech", options: [
+        { value: "tech", labelKey: "presets.product_ad.params.style_tech" },
+        { value: "warm", labelKey: "presets.product_ad.params.style_warm" },
+        { value: "luxury", labelKey: "presets.product_ad.params.style_luxury" },
+        { value: "minimal", labelKey: "presets.product_ad.params.style_minimal" },
+        { value: "natural", labelKey: "presets.product_ad.params.style_natural" },
+        { value: "vibrant", labelKey: "presets.product_ad.params.style_vibrant" },
+        { value: "retro", labelKey: "presets.product_ad.params.style_retro" },
+        { value: "industrial", labelKey: "presets.product_ad.params.style_industrial" },
+      ]},
       { id: "ratio", labelKey: "presets.product_ad.params.ratio", type: "select", defaultValue: "3:4", options: [
         { value: "3:4", labelKey: "ratio_3x4" }, { value: "1:1", labelKey: "ratio_1x1" }, { value: "4:3", labelKey: "ratio_4x3" }, { value: "16:9", labelKey: "ratio_16x9" }, { value: "9:16", labelKey: "ratio_9x16" }, { value: "custom", labelKey: "presets.product_ad.params.ratio_custom" },
       ]},

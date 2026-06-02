@@ -166,7 +166,19 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>): str
     const ratioMap: Record<string, string> = { "3:4": "Portrait poster 3:4", "1:1": "Square poster 1:1", "4:3": "Landscape poster 4:3", "16:9": "Widescreen 16:9", "9:16": "Story format 9:16", custom: paramValues["custom_size"] || "Custom size" };
     const moreFields = [paramValues["event_time"] ? `Event time: ${paramValues["event_time"]}` : "", paramValues["company"] ? `Company: ${paramValues["company"]}` : "", paramValues["contact"] ? `Contact: ${paramValues["contact"]}` : "", paramValues["phone"] ? `Phone: ${paramValues["phone"]}` : "", paramValues["has_qrcode"] === "yes" ? "Include a QR code placeholder" : ""].filter(Boolean).join(". ");
     const refStyle = paramValues["refStyleImage"] ? "Reference the style of the uploaded reference image for the overall design." : "";
+    const adStyleMap: Record<string, string> = {
+      tech: "futuristic tech style with blue neon accents, sleek metallic surfaces, holographic elements",
+      warm: "warm cozy lifestyle style with soft golden lighting, natural textures, inviting atmosphere",
+      luxury: "premium luxury style with gold and black tones, elegant marble textures, sophisticated ambiance",
+      minimal: "clean minimalist style with white space, simple geometric compositions, modern aesthetic",
+      natural: "fresh natural style with greenery, earthy tones, organic textures, outdoor lighting",
+      vibrant: "vibrant youthful style with bold bright colors, dynamic motion, energetic pop-art feel",
+      retro: "retro vintage style with warm film tones, nostalgic textures, classic mid-century aesthetic",
+      industrial: "industrial style with dark metal textures, concrete backgrounds, edgy raw aesthetic",
+    };
+    const adStyle = adStyleMap[paramValues["ad_style"]] || adStyleMap.tech;
     prompt = prompt.replace("{ref_style}", refStyle);
+    prompt = prompt.replace("{ad_style}", `Visual style: ${adStyle}.`);
     prompt = prompt.replace("{title}", paramValues["title"] || "Product");
     prompt = prompt.replace("{copy}", paramValues["copy"] || "Amazing product!");
     prompt = prompt.replace("{points}", paramValues["points"] || "");
