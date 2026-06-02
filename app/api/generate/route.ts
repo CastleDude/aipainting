@@ -6,6 +6,7 @@ import { createJob, enqueueJob } from "@/lib/queue";
 import type { SubscriptionTier } from "@/lib/supabase";
 import { STYLE_PROMPTS, RUNWARE_MODELS } from "@/lib/openrouter";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { checkContentModeration } from "@/lib/moderation";
 import { generateRunware } from "@/lib/runware";
 
 // ── Config ──────────────────────────────────────────────
@@ -163,6 +164,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // ── Content Moderation ──
+    const moderation = await checkContentModeration(prompt?.trim() || "", imageBase64);
+    if (moderation.flagged) {
+      return NextResponse.json(
+        { error: "Content policy violation. This prompt has been flagged by our safety system.", code: "content_moderation" },
+        { status: 400 },
+      );
+    }
+
     // ── Credit check (skip if Supabase not configured) ──
     let creditResult: { daily_used?: number; credits?: number } | undefined;
 
@@ -316,8 +326,7 @@ export async function POST(req: NextRequest) {
 
     const genN = speedMode === "fast" ? 1 : numImages;
     if (RUNWARE_MODELS.has(model)) {
-      const genRatio = speedMode === "fast" ? "1:1" : aspectRatio;
-      images = await generateRunware(`${prompt.trim()}${styleHint}. High quality, detailed.`, model, genRatio, genN, negativePrompt);
+      images = await generateRunware(`${prompt.trim()}${styleHint}. High quality, detailed.`, model, aspectRatio, genN, negativePrompt);
     } else {
       // For OpenRouter models, embed aspect ratio in the prompt
       const arHint = `Create a ${aspectRatio} aspect ratio image: `;

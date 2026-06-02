@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aipaiting.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aipainting.top";
 
   const locales = ["en", "zh", "zh-Hant", "ja", "ko"];
   const pages: Array<{ path: string; changeFrequency: "weekly" | "monthly"; priority: number }> = [

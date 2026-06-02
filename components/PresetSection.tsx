@@ -1,0 +1,627 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { PRESETS, getPreset } from "@/lib/presets";
+import type { ExampleImage } from "@/lib/presets";
+import { getRandomGreeting } from "@/lib/greetings";
+
+// ── Product ad copy suggestions ──
+const AD_COPIES = [
+  "限时优惠，错过再等一年！立即下单享受惊喜折扣！",
+  "品质之选，值得信赖。百万用户的一致选择！",
+  "新品首发，引领潮流！为你的生活增添一份精彩。",
+  "专业品质，平民价格。超高性价比，不容错过！",
+  "好物不贵，精致生活从这里开始。立即抢购！",
+  "热销爆款，好评如潮！你值得拥有的品质好物。",
+  "限时特惠，全场满减！快来选购你的心仪好物！",
+  "来自匠心之作，每一件都是艺术品。送给最懂生活的你。",
+  "口碑好物，复购率超高！用过都说好的品质保证。",
+  "独家定制，限量发售！为特别的你准备特别的礼物。",
+];
+let _adCopyIdx = 0;
+function getRandomAdCopy(): string {
+  const copy = AD_COPIES[_adCopyIdx % AD_COPIES.length];
+  _adCopyIdx = (_adCopyIdx + 1) % AD_COPIES.length;
+  return copy;
+}
+
+// ── Event dispatched to ImageGenerator ──
+export interface PresetApplyEvent {
+  presetId: string;
+  prompt: string;
+  model: string;
+  aspectRatio?: string;
+  style?: string;
+  numImages: number;
+  multiplier: number;
+  imageBase64: string | null;
+  requiresImage: boolean;
+  autoGenerate: boolean;
+}
+
+export function dispatchPresetApply(data: PresetApplyEvent) {
+  window.dispatchEvent(new CustomEvent("apply-preset", { detail: data }));
+}
+
+// ── Messages shape ──
+interface PresetSectionMessages {
+  title: string;
+  subtitle: string;
+  start_btn: string;
+  generate_btn: string;
+  upload_hint: string;
+  credit_multiplier: string;
+  random_btn: string;
+  random_cost: string;
+  custom_prompt_priority: string;
+  free: string;
+  presets: Record<string, { name: string; desc: string; params?: Record<string, string>; holidays?: Record<string, string> }>;
+}
+
+interface Props {
+  messages: PresetSectionMessages;
+}
+
+function RoundIcon({ src, alt }: { src: string; alt: string }) {
+  return <img src={src} alt={alt} className="h-10 w-10 rounded-full object-cover shrink-0" />;
+}
+
+// ── Compute total credit cost ──
+function calcCost(presetId: string, paramValues: Record<string, string>): number {
+  const preset = getPreset(presetId);
+  if (!preset) return 1;
+  let cost = preset.baseCost;
+  for (const p of preset.params) {
+    const val = paramValues[p.id];
+    if (val && p.options) {
+      const opt = p.options.find((o) => o.value === val);
+      if (opt?.extraCost) cost += opt.extraCost;
+    }
+  }
+  return cost;
+}
+
+// ── Build final prompt ──
+function buildPrompt(presetId: string, paramValues: Record<string, string>): string {
+  const preset = getPreset(presetId);
+  if (!preset) return "";
+  let prompt = preset.promptTemplate;
+
+  // Photo restoration
+  if (presetId === "photo_restoration") {
+    const colorMap: Record<string, string> = { color: "Add natural colorization to the image", bw: "Keep the image in classic black and white tones", original: "Preserve the original tone and patina of the photograph" };
+    const resMap: Record<string, string> = { original: "Maintain the original resolution", "2x": "Enhance to 2x resolution with super-resolution upscaling", "4x": "Enhance to 4x resolution with super-resolution upscaling" };
+    const styleMap: Record<string, string> = { fresh: "Give the photo a fresh, renewed look with vibrant details", vintage: "Preserve a nostalgic, vintage atmosphere with subtle aging character" };
+    prompt = prompt.replace("{color_desc}", colorMap[paramValues["color"]] || colorMap.color);
+    prompt = prompt.replace("{resolution_desc}", resMap[paramValues["resolution"]] || resMap.original);
+    prompt = prompt.replace("{style_desc}", styleMap[paramValues["style"]] || styleMap.fresh);
+    prompt = prompt.replace("{custom}", paramValues["custom"]?.trim() || "");
+  }
+
+  // Cartoon avatar
+  if (presetId === "cartoon_avatar") {
+    const styleMap: Record<string, string> = {
+      anime: "In Japanese anime/manga art style, cel-shaded, vibrant colors, clean linework",
+      "3d": "In 3D rendered Pixar-style, smooth, cute, modern CGI",
+      chibi: "In super-deformed Q-version chibi style, big head small body, adorable, cute, round features",
+      ghibli: "In Studio Ghibli hand-drawn animation style, soft watercolor backgrounds, whimsical magical realism",
+      comic: "In Western comic book illustration style, bold outlines, vibrant colors, dynamic",
+      manhwa: "In Korean manhwa/webtoon style, elegant, refined, soft lighting",
+      cyberpunk: "In cyberpunk digital art style, neon colors, futuristic, high-tech aesthetic",
+      steampunk: "In steampunk art style, brass and copper machinery, Victorian era, gears and steam engines",
+      pixel: "In retro pixel art style, 8-bit/16-bit game aesthetic, blocky and charming",
+    };
+    const sizeMap: Record<string, string> = { head: "Close-up headshot portrait", bust: "Upper body bust portrait", full: "Full body character illustration" };
+    const bgMap: Record<string, string> = { keep: "Keep the original photo background", transparent: "Transparent background, suitable for stickers and profile pictures", custom: paramValues["bg_custom"]?.trim() || "a clean, simple background" };
+    const genderMap: Record<string, string> = { keep: "Preserve the original gender appearance", male: "Slightly masculine features", female: "Slightly feminine features" };
+    const ageMap: Record<string, string> = { baby: "a cute baby/toddler", child: "a cute child", teen: "a teenager", adult: "an adult" };
+
+    prompt = prompt.replace("{style_desc}", styleMap[paramValues["style"]] || styleMap.anime);
+    prompt = prompt.replace("{size_desc}", sizeMap[paramValues["size"]] || sizeMap.head);
+    prompt = prompt.replace("{bg_desc}", bgMap[paramValues["background"]] || bgMap.keep);
+    prompt = prompt.replace("{gender_desc}", genderMap[paramValues["gender"]] || genderMap.keep);
+    prompt = prompt.replace("{age}", ageMap[paramValues["age"]] || ageMap.child);
+    // Remove bg_custom param from prompt since it's handled in bg_desc
+    prompt = prompt.replace("{custom}", paramValues["custom"]?.trim() || "");
+  }
+
+  // Product ad
+  if (presetId === "product_ad") {
+    const ratioMap: Record<string, string> = { "3:4": "Portrait poster 3:4", "1:1": "Square poster 1:1", "4:3": "Landscape poster 4:3", "16:9": "Widescreen 16:9", "9:16": "Story format 9:16", custom: paramValues["custom_size"] || "Custom size" };
+    const moreFields = [paramValues["event_time"] ? `Event time: ${paramValues["event_time"]}` : "", paramValues["company"] ? `Company: ${paramValues["company"]}` : "", paramValues["contact"] ? `Contact: ${paramValues["contact"]}` : "", paramValues["phone"] ? `Phone: ${paramValues["phone"]}` : "", paramValues["has_qrcode"] === "yes" ? "Include a QR code placeholder" : ""].filter(Boolean).join(". ");
+    const refStyle = paramValues["refStyleImage"] ? "Reference the style of the uploaded reference image for the overall design." : "";
+    prompt = prompt.replace("{ref_style}", refStyle);
+    prompt = prompt.replace("{title}", paramValues["title"] || "Product");
+    prompt = prompt.replace("{copy}", paramValues["copy"] || "Amazing product!");
+    prompt = prompt.replace("{points}", paramValues["points"] || "");
+    prompt = prompt.replace("{details}", moreFields ? `Additional info: ${moreFields}.` : "");
+    prompt = prompt.replace("{size_desc}", ratioMap[paramValues["ratio"]] || ratioMap["3:4"]);
+    prompt = prompt.replace("{custom}", paramValues["custom"]?.trim() || "");
+  }
+
+  // Age journey
+  if (presetId === "age_journey") {
+    const bgMap: Record<string, string> = {
+      auto: "a naturally matching environment", studio: "a professional studio photography backdrop", nature: "a beautiful natural landscape with greenery and sunlight",
+      urban: "a modern urban city street scene", fantasy: "a magical fantasy realm with ethereal elements", historical: "a historical period setting with classical architecture",
+      scifi: "a futuristic sci-fi world with advanced technology and neon lights", beach: "a sunny beach with ocean waves and golden sand",
+    };
+    prompt = prompt.replace("{age}", paramValues["age"] || "child");
+    prompt = prompt.replace("{bg_desc}", bgMap[paramValues["background"]] || bgMap.auto);
+    prompt = prompt.replace("{custom}", paramValues["custom"]?.trim() || "");
+  }
+
+  // Photo together
+  if (presetId === "photo_together") {
+    const poseMap: Record<string, string> = {
+      standing: "standing side by side, smiling warmly", hugging: "sharing a warm embrace, genuine smiles", holding_hands: "holding hands, looking at each other affectionately",
+      back_to_back: "standing back to back with confident expressions", walking: "walking together naturally, candid moment", sitting: "sitting side by side, relaxed and comfortable",
+      jumping: "jumping together joyfully in the air", shoulder_arm: "arm around shoulder, friendly and casual",
+    };
+    const bgMap: Record<string, string> = {
+      auto: "a naturally lit pleasant environment", park: "a beautiful park with trees and flowers", beach: "a sunny beach with waves and sand",
+      city: "a vibrant city street with architecture", cafe: "a cozy coffee shop interior with warm lighting", mountain: "a scenic mountain landscape with panoramic views",
+      wedding_hall: "an elegant wedding hall with floral decorations", custom: paramValues["bg_custom"] || "a nice background",
+    };
+    const other = paramValues["other_person"]?.trim() || "another person";
+    prompt = prompt.replace("{other_person}", other);
+    prompt = prompt.replace("{pose}", poseMap[paramValues["pose"]] || poseMap.standing);
+    prompt = prompt.replace("{bg_desc}", bgMap[paramValues["background"]] || bgMap.auto);
+    prompt = prompt.replace("{custom}", paramValues["custom"]?.trim() || "");
+  }
+
+  // Greeting card
+  if (presetId === "greeting_card") {
+    const styleMap: Record<string, string> = {
+      watercolor: "a watercolor hand-painted",
+      flat: "a flat modern illustration",
+      "3D": "a 3D rendered isometric",
+      chinese: "a traditional Chinese ink and brush",
+      minimal: "a minimalist clean line-art",
+      retro: "a retro vintage",
+    };
+    const ratioMap: Record<string, string> = { "4:3": "Horizontal", "3:4": "Vertical" };
+    prompt = prompt.replace("{style_desc}", styleMap[paramValues["style"]] || styleMap.random);
+    prompt = prompt.replace("{holiday}", paramValues["holiday"] || "birthday");
+    prompt = prompt.replace("{from}", paramValues["from"] || "Anonymous");
+    prompt = prompt.replace("{to}", paramValues["to"] || "You");
+    prompt = prompt.replace("{message}", paramValues["message"] || "Best wishes!");
+    prompt = prompt.replace("{ratio_desc}", ratioMap[paramValues["ratio"]] || "Vertical");
+    prompt = prompt.replace("{custom}", paramValues["custom"]?.trim() || "");
+  }
+
+  return prompt;
+}
+
+// ── Cache last edit values per preset (persists across modal open/close) ──
+const lastParamCache: Record<string, Record<string, string>> = {};
+let lastReopenImage: string | null = null;
+
+// ── Preset Modal ──
+function PresetModal({
+  presetId,
+  onClose,
+  messages,
+}: {
+  presetId: string;
+  onClose: () => void;
+  messages: PresetSectionMessages;
+}) {
+  const preset = getPreset(presetId);
+  const pm = preset ? messages.presets[presetId] : null;
+  const cached = lastParamCache[presetId] || {};
+  const reopenImage = lastReopenImage;
+  const [imageBase64, setImageBase64] = useState<string | null>(reopenImage);
+  const [imagePreview, setImagePreview] = useState<string | null>(reopenImage);
+  const [paramValues, setParamValues] = useState<Record<string, string>>(cached);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  lastReopenImage = null; // consume the cached image
+
+  if (!preset || !pm) return null;
+
+  // Save to cache whenever paramValues change
+  const setParamAndCache = (id: string, value: string) => {
+    setParamValues((prev) => {
+      const next = { ...prev, [id]: value };
+      lastParamCache[presetId] = next;
+      return next;
+    });
+  };
+
+  const resetParams = () => {
+    const defaults: Record<string, string> = {};
+    for (const p of preset.params) defaults[p.id] = p.defaultValue;
+    setParamValues(defaults);
+    lastParamCache[presetId] = defaults;
+  };
+
+  const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
+  const [showMore, setShowMore] = useState(false); // product_ad more fields toggle
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  const totalCost = calcCost(presetId, paramValues);
+
+  const applyTemplate = (attrs: Record<string, string>) => {
+    const next = { ...paramValues };
+    for (const [k, v] of Object.entries(attrs)) next[k] = v;
+    setParamValues(next);
+    lastParamCache[presetId] = next;
+    setHoveredTemplate(null);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = reader.result as string;
+      setImagePreview(url);
+      setImageBase64(url);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Keep setParam alias for clean usage below (calls setParamAndCache)
+  const setParam = setParamAndCache;
+
+  const handleGenerate = (autoGen: boolean) => {
+    const prompt = buildPrompt(presetId, paramValues);
+    const ratio = paramValues["ratio"] || preset.defaultAspectRatio;
+    // Map card style for ImageGenerator's style field
+    let style: string | undefined;
+    if (presetId === "cartoon_avatar") {
+      const styleVal = paramValues["style"] || "anime";
+      if (styleVal === "anime" || styleVal === "ghibli") style = "anime";
+      else if (styleVal === "3d") style = "3d-render";
+      else if (styleVal === "comic") style = "digital-art";
+      else style = undefined;
+    }
+
+    dispatchPresetApply({
+      presetId: preset.id,
+      prompt,
+      model: preset.defaultModel,
+      aspectRatio: ratio,
+      style,
+      numImages: 1, // always 1 image per generation
+      multiplier: totalCost,
+      imageBase64,
+      requiresImage: preset.requiresImage,
+      autoGenerate: autoGen,
+    });
+    onClose();
+  };
+
+  // Random: just use the uploaded image with the preset's base prompt (no custom params)
+  const handleRandom = () => {
+    handleGenerate(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onMouseLeave={() => setHoveredTemplate(null)}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      {/* Large preview — aligned with right column param labels */}
+      {hoveredTemplate && (
+        <div className="fixed z-[200] pointer-events-none flex items-center" style={{ right: "calc(50% - 188px)", top: "50%", transform: "translateY(-50%)", maxWidth: "calc(50vw - 240px)", animation: "previewPop 0.2s ease-out" }}>
+          <img
+            src={hoveredTemplate}
+            alt="Preview"
+            className="rounded-xl shadow-2xl"
+            style={{ width: "auto", height: "auto", maxWidth: "100%", maxHeight: "80vh", border: "3px solid rgba(255,255,255,0.9)" }}
+          />
+        </div>
+      )}
+      <div
+        className="relative bg-bg-primary rounded-2xl border border-border/30 shadow-2xl flex flex-col"
+        style={{ width: 800, height: 600, maxWidth: "95vw", maxHeight: "90vh" }}
+      >
+        {/* Header */}
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-border/20 shrink-0">
+          <RoundIcon src={preset.iconImage} alt={pm.name} />
+          <div>
+            <h3 className="text-base font-bold text-text-primary">{pm.name}</h3>
+            <p className="text-xs text-text-muted">{pm.desc}</p>
+          </div>
+          <button onClick={onClose} className="ml-auto p-1.5 rounded-lg hover:bg-bg-secondary text-text-muted hover:text-text-primary transition-colors shrink-0">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Body: left upload + right params */}
+        <div className="flex flex-1 overflow-y-auto">
+          {/* Left column: upload — hidden for greeting card */}
+          {presetId !== "greeting_card" && (
+          <div className="w-[240px] shrink-0 border-r border-border/20 p-4 flex flex-col gap-3">
+            {preset.requiresImage ? (
+              <>
+                {imagePreview ? (
+                  <div className="relative w-full" style={{ height: 300 }}>
+                    <img src={imagePreview} alt="Preview" className="w-full h-full object-contain bg-bg-secondary rounded-lg" />
+                    <button onClick={() => { setImagePreview(null); setImageBase64(null); }} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px] hover:bg-red-500">
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => fileInputRef.current?.click()} className="w-full rounded-xl border-2 border-dashed border-border/50 hover:border-accent/40 hover:bg-bg-secondary/50 transition-all flex flex-col items-center justify-center gap-2 text-text-muted hover:text-accent cursor-pointer" style={{ height: 300 }}>
+                    <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    <span className="text-xs text-center px-2">{messages.upload_hint}</span>
+                  </button>
+                )}
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                {/* Random button */}
+                <button
+                  onClick={handleRandom}
+                  disabled={!imageBase64}
+                  className="w-full rounded-lg border border-dashed border-amber-500/40 bg-amber-500/5 px-3 py-2 text-xs font-medium text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+                  </svg>
+                  {messages.random_btn}
+                </button>
+                {messages.random_cost && (
+                  <p className="text-[10px] text-text-muted text-center">{messages.random_cost.replace("[[COUNT]]", String(preset.baseCost))}</p>
+                )}
+              </>
+            ) : (
+              <div className="rounded-xl border-2 border-dashed border-border/30 p-4 flex items-center justify-center text-xs text-text-muted w-full" style={{ height: 300 }}>
+                <p className="text-center">{messages.random_btn} — {messages.random_cost.replace("[[COUNT]]", String(preset.baseCost))}</p>
+              </div>
+            )}
+          </div>
+          )}
+
+          {/* Right column: params */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-3">
+            {preset.params.map((param) => {
+              if (param.type === "custom_prompt") {
+                return (
+                  <div key={param.id}>
+                    <label className="text-[11px] font-medium text-amber-400 block mb-1">
+                      {pm.params?.[param.id] ?? param.labelKey} <span className="text-text-muted">({messages.custom_prompt_priority})</span>
+                    </label>
+                    <textarea
+                      value={paramValues[param.id] || ""}
+                      onChange={(e) => setParam(param.id, e.target.value)}
+                      placeholder={pm.params?.[param.placeholderKey || ""] || ""}
+                      rows={2}
+                      className="w-full rounded-lg border border-border/50 bg-bg-card px-3 py-1.5 text-xs text-text-primary outline-none placeholder:text-text-muted resize-none"
+                    />
+                  </div>
+                );
+              }
+              if (param.type === "textarea") {
+                return (
+                  <div key={param.id}>
+                    <label className="text-[11px] font-medium text-text-secondary block mb-1">{pm.params?.[param.id] ?? param.labelKey}</label>
+                    <div className="relative">
+                      <textarea
+                        value={paramValues[param.id] || ""}
+                        onChange={(e) => setParam(param.id, e.target.value)}
+                        placeholder={pm.params?.[param.placeholderKey || ""] || ""}
+                        rows={3}
+                        className="w-full rounded-lg border border-border/50 bg-bg-card px-3 py-1.5 text-xs text-text-primary outline-none placeholder:text-text-muted resize-none pr-16"
+                      />
+                      {param.id === "message" && (
+                        <button
+                          type="button"
+                          onClick={() => setParam("message", getRandomGreeting(paramValues["holiday"] || "general"))}
+                          className="absolute right-1 top-1 rounded-md bg-accent/10 px-2 py-1 text-[10px] text-accent hover:bg-accent/20 transition-colors"
+                        >
+                          🎲 Random
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+              if (param.type === "text") {
+                // Skip bg_custom if background is not "custom"
+                if (param.id === "bg_custom" && paramValues["background"] !== "custom") return null;
+                return (
+                  <div key={param.id}>
+                    <label className="text-[11px] font-medium text-text-secondary block mb-1">{pm.params?.[param.id] ?? param.labelKey}</label>
+                    <input
+                      type="text"
+                      value={paramValues[param.id] || ""}
+                      onChange={(e) => setParam(param.id, e.target.value)}
+                      placeholder={pm.params?.[param.placeholderKey || ""] || ""}
+                      className="w-full rounded-lg border border-border/50 bg-bg-card px-3 py-2 text-xs text-text-primary outline-none placeholder:text-text-muted"
+                    />
+                  </div>
+                );
+              }
+              // select — render as clickable chip tags
+              return (
+                <div key={param.id}>
+                  <label className="text-[11px] font-medium text-text-secondary block mb-1">{pm.params?.[param.id] ?? param.labelKey}</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {param.options?.map((o) => {
+                      const selected = (paramValues[param.id] || param.defaultValue) === o.value;
+                      return (
+                        <button
+                          key={o.value}
+                          type="button"
+                          onClick={() => setParam(param.id, o.value)}
+                          className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+                            selected
+                              ? "border-accent bg-accent/15 text-accent shadow-sm"
+                              : "border-border/50 bg-bg-card text-text-secondary hover:border-border hover:text-text-primary"
+                          }`}
+                        >
+                          {o.icon && <img src={o.icon} alt="" className="w-8 h-8 rounded object-cover shrink-0" />}
+                          {pm.params?.[o.labelKey] ?? o.value}
+                          {o.extraCost ? <span className="ml-1 text-[10px] text-text-muted">+{o.extraCost}</span> : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {/* Greeting card waterfall templates — right column */}
+          {presetId === "greeting_card" && preset.templates && (
+            <div className="w-[180px] shrink-0 border-l border-border/20 flex flex-col" onMouseLeave={() => setHoveredTemplate(null)}>
+              <div className="overflow-y-auto overflow-x-hidden flex-1 p-2 flex flex-col gap-1.5">
+                {preset.templates.map((tpl, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg border border-border/30 group/tpl hover:border-accent/40 transition-colors relative mb-2 break-inside-avoid"
+                    onMouseEnter={() => setHoveredTemplate(tpl.large)}
+                  >
+                    <img src={tpl.thumb} alt="" className="w-full h-auto rounded-lg" />
+                    <div className="absolute inset-x-0 bottom-0 rounded-b-lg bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-6 pb-2 px-2 opacity-0 group-hover/tpl:opacity-100 transition-opacity flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => applyTemplate(tpl.attrs)}
+                        className="cursor-pointer rounded-md bg-white/25 backdrop-blur-sm px-3 py-1.5 text-[10px] font-semibold text-white hover:bg-accent hover:scale-105 transition-all"
+                      >
+                        做同款
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer: reset + cost + generate button */}
+        <div className="flex items-center justify-between px-6 py-3 border-t border-border/20 bg-bg-secondary/30 shrink-0">
+          <button
+            type="button"
+            onClick={resetParams}
+            className="rounded-lg border border-border/50 px-3 py-2 text-[11px] text-text-muted hover:text-text-primary hover:border-border transition-colors"
+          >
+            重置属性
+          </button>
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-text-muted">消耗 <span className="text-accent font-semibold text-sm">{totalCost}</span> {messages.free || "积分"}</span>
+            <button
+              onClick={() => handleGenerate(true)}
+              className="rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-2.5 text-sm font-semibold text-white hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg shadow-purple-500/25"
+            >
+              {messages.generate_btn}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Preset Card ──
+function PresetCard({
+  presetId, messages, onStart,
+}: {
+  presetId: string; messages: PresetSectionMessages; onStart: () => void;
+}) {
+  const preset = getPreset(presetId);
+  const pm = preset ? messages.presets[presetId] : null;
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+  const [showLarge, setShowLarge] = useState<string | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  if (!preset || !pm) return null;
+
+  const handleEnter = (key: string) => {
+    setHoveredKey(key);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setShowLarge(key), 300);
+  };
+  const handleLeave = () => {
+    setHoveredKey(null); setShowLarge(null);
+    if (timerRef.current) clearTimeout(timerRef.current);
+  };
+
+  return (
+    <div className="rounded-2xl border border-border/30 bg-bg-card overflow-visible hover:border-accent/20 transition-all">
+      <div className="flex items-center justify-between p-4 pb-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <RoundIcon src={preset.iconImage} alt={pm.name} />
+          <div className="min-w-0">
+            <h4 className="text-base font-bold text-text-primary">{pm.name}</h4>
+            <p className="text-[12px] text-text-muted truncate" title={pm.desc}>{pm.desc}</p>
+          </div>
+        </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onStart(); }}
+          className="ml-2 shrink-0 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:from-purple-500 hover:to-blue-500 transition-all cursor-pointer"
+        >
+          {messages.start_btn}
+        </button>
+      </div>
+      <div className="flex items-end justify-center gap-6 pb-6 px-4 pt-2" style={{ overflow: "visible" }}>
+        {preset.exampleImages.map((img: ExampleImage, i: number) => (
+          <div key={i} className="relative shrink-0"
+            style={{
+              width: 90, height: 120,
+              transform: hoveredKey === img.large
+                ? `${img.rotate === "left" ? "rotate(6deg)" : "rotate(-6deg)"} scale(1.05)`
+                : `${img.rotate === "left" ? "rotate(-6deg)" : "rotate(6deg)"} scale(1)`,
+              transition: "transform 0.3s ease",
+              zIndex: showLarge === img.large ? 50 : 1,
+              borderRadius: 8,
+              outline: hoveredKey === img.large ? "2px solid rgba(255,255,255,0.85)" : "none",
+            }}
+            onMouseEnter={() => handleEnter(img.large)}
+            onMouseLeave={handleLeave}
+          >
+            <img src={img.thumb} alt="" className="w-full h-full object-cover shadow-md" style={{ borderRadius: 8 }} />
+            {showLarge === img.large && (
+              <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none" style={{ bottom: "calc(100% + 12px)", animation: "previewPop 0.25s ease-out" }}>
+                <img src={img.large} alt="Preview" className="rounded-xl shadow-2xl" style={{ width: "auto", height: "auto", maxWidth: "none", maxHeight: "none", border: "3px solid rgba(255,255,255,0.9)", transform: img.rotate === "left" ? "rotate(-6deg)" : "rotate(6deg)" }} />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Section ──
+export default function PresetSection({ messages }: Props) {
+  const [modalPresetId, setModalPresetId] = useState<string | null>(null);
+
+  // Listen for reopen-preset event (dispatched from ImageGenerator output area)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ presetId: string; imageBase64?: string | null }>).detail;
+      // Cache the image so the modal can restore it
+      if (detail.imageBase64) lastReopenImage = detail.imageBase64;
+      setModalPresetId(detail.presetId);
+    };
+    window.addEventListener("reopen-preset", handler);
+    return () => window.removeEventListener("reopen-preset", handler);
+  }, []);
+
+  return (
+    <>
+      <style>{`@keyframes previewPop{0%{opacity:0;transform:translateY(8px) scale(0.95)}100%{opacity:1;transform:translateY(0) scale(1)}}`}</style>
+      <section className="mt-12 mb-20 mx-auto max-w-[1200px] px-4 sm:px-6">
+        <div className="text-center mb-6">
+          <h2 className="text-3xl font-bold sm:text-4xl text-white">{messages.title}</h2>
+          <p className="text-sm text-text-muted mt-1">{messages.subtitle}</p>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {PRESETS.map((preset) => (
+            <PresetCard key={preset.id} presetId={preset.id} messages={messages} onStart={() => setModalPresetId(preset.id)} />
+          ))}
+        </div>
+      </section>
+      {modalPresetId && <PresetModal presetId={modalPresetId} onClose={() => setModalPresetId(null)} messages={messages} />}
+    </>
+  );
+}

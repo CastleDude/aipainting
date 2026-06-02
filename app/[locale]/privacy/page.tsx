@@ -55,7 +55,7 @@ export default async function PrivacyPage() {
 
           <section>
             <h2 className="text-xl font-semibold text-text-primary mb-3">7. Your Rights</h2>
-            <p>You have the right to access, correct, or delete your personal data. You may export your data or request account deletion at any time. To exercise these rights, contact us at support@aipaiting.com.</p>
+            <p>You have the right to access, correct, or delete your personal data. You may export your data or request account deletion at any time. To exercise these rights, contact us at support@aipainting.top.</p>
           </section>
 
           <section>
@@ -70,7 +70,7 @@ export default async function PrivacyPage() {
 
           <section>
             <h2 className="text-xl font-semibold text-text-primary mb-3">10. Contact</h2>
-            <p>For privacy-related inquiries, please contact us at support@aipaiting.com.</p>
+            <p>For privacy-related inquiries, please contact us at support@aipainting.top.</p>
           </section>
         </div>
       </div>

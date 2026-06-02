@@ -7,8 +7,7 @@ import { useParticleContext } from "@/components/ParticleContext";
 import { useAuth } from "@/components/AuthProvider";
 import { saveMockGeneration } from "@/lib/generations";
 import { consumeRemixImage } from "@/lib/history-bridge";
-import { PRESETS, getPreset } from "@/lib/presets";
-import type { PresetCustomField } from "@/lib/presets";
+import type { PresetApplyEvent } from "@/components/PresetSection";
 
 function getRatioSize(ratio: string) {
   const [w, h] = ratio.split(":").map(Number);
@@ -24,28 +23,6 @@ function RatioBox({ ratio }: { ratio: string }) {
       className="inline-block rounded-sm border border-current/40"
       style={{ width: s.width, height: s.height }}
     />
-  );
-}
-
-function PresetIcon({ icon }: { icon: "photo" | "sparkles" | "card" }) {
-  if (icon === "photo") {
-    return (
-      <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-      </svg>
-    );
-  }
-  if (icon === "sparkles") {
-    return (
-      <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
-      </svg>
-    );
-  }
-  return (
-    <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-    </svg>
   );
 }
 
@@ -264,20 +241,6 @@ function GalleryCard({ item, onRemix, remixText, galleryMouseRef, galleryActive 
   );
 }
 
-interface PresetMessages {
-  title: string;
-  credit_multiplier: string;
-  presets: {
-    photo_restoration: { name: string; desc: string };
-    cartoon_avatar: { name: string; desc: string };
-    greeting_card: {
-      name: string; desc: string;
-      fields: { recipient: string; recipient_placeholder: string; message: string; message_placeholder: string; holiday: string; holiday_placeholder: string };
-      holidays: Record<string, string>;
-    };
-  };
-}
-
 interface ImageGeneratorProps {
   messages: {
     title: string;
@@ -315,10 +278,10 @@ interface ImageGeneratorProps {
     reference_image_hint?: string;
     switch_to_seedream?: string;
   };
-  presetMessages?: PresetMessages;
+  children?: React.ReactNode;
 }
 
-export function ImageGenerator({ messages, presetMessages }: ImageGeneratorProps) {
+export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
   const particleCtx = useParticleContext();
   const fallbackMouseRef = useRef<{ x: number; y: number } | null>(null);
   const fallbackStartYRef = useRef<number>(0);
@@ -346,8 +309,8 @@ export function ImageGenerator({ messages, presetMessages }: ImageGeneratorProps
   const [prompt, setPrompt] = useState("");
   const [negativePrompt, setNegativePrompt] = useState("");
   const [model, setModel] = useState("schnell");
-  const [activePreset, setActivePreset] = useState<string | null>(null);
-  const [presetFieldValues, setPresetFieldValues] = useState<Record<string, string>>({});
+  const [multiplier, setMultiplier] = useState(1);
+  const [lastPresetId, setLastPresetId] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState("1:1");
   const [style, setStyle] = useState("photorealistic");
   const [numImages, setNumImages] = useState(4);
@@ -388,27 +351,44 @@ export function ImageGenerator({ messages, presetMessages }: ImageGeneratorProps
     ? messages.free_remaining.replace("[[COUNT]]", String(freeRemaining))
     : messages.credits_remaining.replace("[[COUNT]]", String(freeRemaining));
 
-  // ── Presets ──
-  const handleSelectPreset = (presetId: string | null) => {
-    if (presetId === null || activePreset === presetId) {
-      setActivePreset(null);
-      setPresetFieldValues({});
-      return;
-    }
-    const preset = getPreset(presetId);
-    if (!preset) return;
-    setActivePreset(presetId);
-    setPresetFieldValues({});
-    setPrompt(preset.disablesPrompt ? preset.promptTemplate : "");
-    setNegativePrompt("");
-    setModel(preset.defaultModel);
-    if (preset.defaultAspectRatio) setAspectRatio(preset.defaultAspectRatio);
-    if (preset.defaultStyle) setStyle(preset.defaultStyle);
-    if (preset.defaultNumImages) {
-      setNumImages(preset.defaultNumImages);
-      setSpeedMode(preset.defaultNumImages > 1 ? "normal" : "fast");
-    }
-  };
+  // ── Preset event listener (from PresetSection modal) ──
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<PresetApplyEvent>).detail;
+      setPrompt(detail.prompt);
+      setNegativePrompt("");
+      setModel(detail.model);
+      if (detail.aspectRatio) setAspectRatio(detail.aspectRatio);
+      if (detail.style) setStyle(detail.style);
+      if (detail.numImages) {
+        setNumImages(detail.numImages);
+        setSpeedMode(detail.numImages > 1 ? "normal" : "fast");
+      }
+      if (detail.imageBase64) {
+        setImagePreview(detail.imageBase64);
+        setImageBase64(detail.imageBase64);
+      } else {
+        setImagePreview(null);
+        setImageBase64(null);
+      }
+      setMultiplier(detail.multiplier);
+      setLastPresetId(detail.presetId);
+      setShowNegative(false);
+      // Scroll to prompt textarea
+      promptRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Auto-generate if requested
+      if (detail.autoGenerate) {
+        setTimeout(() => {
+          promptRef.current?.focus();
+          // Simulate Enter key to trigger generate
+          const btn = document.querySelector('[data-generate-btn]') as HTMLButtonElement;
+          if (btn) btn.click();
+        }, 500);
+      }
+    };
+    window.addEventListener("apply-preset", handler);
+    return () => window.removeEventListener("apply-preset", handler);
+  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -451,37 +431,10 @@ export function ImageGenerator({ messages, presetMessages }: ImageGeneratorProps
     if (!prompt.trim()) return;
     setError(null);
 
-    // ── Preset checks ──
-    const preset = activePreset ? getPreset(activePreset) : undefined;
-    if (preset?.requiresImage && !imageBase64) {
-      setError({ message: "Please upload a reference image for this preset.", code: "missing_image" });
-      return;
-    }
-    if (preset?.customFields) {
-      for (const field of preset.customFields) {
-        if (field.required && !presetFieldValues[field.id]?.trim()) {
-          setError({ message: `Please fill in: ${field.id}`, code: "missing_field" });
-          return;
-        }
-      }
-    }
-
-    // Assemble final prompt from template + custom fields
     let finalPrompt = prompt.trim();
-    if (preset?.promptTemplate) {
-      finalPrompt = preset.promptTemplate;
-    }
-    // Cartoon avatar: if user typed custom style, use a combined prompt
-    if (activePreset === "cartoon_avatar" && !preset?.disablesPrompt && finalPrompt.trim()) {
-      finalPrompt = `Transform this photo into a cartoon/anime style avatar. ${finalPrompt.trim()}. Preserve the person's identity and key features while applying a vibrant cartoon art style. Clean linework, cel-shaded, colorful.`;
-    }
-    // Interpolate custom field placeholders
-    for (const key in presetFieldValues) {
-      finalPrompt = finalPrompt.replace(`{${key}}`, presetFieldValues[key] || "");
-    }
 
     // Translate to English if toggle is on — shows "Translating..." before generating
-    if (translateOn && !preset?.disablesPrompt) {
+    if (translateOn) {
       setTranslating(true);
       try {
         const tRes = await fetch("/api/translate", {
@@ -513,7 +466,7 @@ export function ImageGenerator({ messages, presetMessages }: ImageGeneratorProps
           model, aspectRatio, style, numImages, speedMode,
           imageBase64: imageBase64 || undefined,
           async: isAsync || undefined,
-          multiplier: preset?.creditMultiplier ?? 1,
+          multiplier: multiplier > 1 ? multiplier : undefined,
         }),
       });
       const data = await res.json();
@@ -759,48 +712,6 @@ export function ImageGenerator({ messages, presetMessages }: ImageGeneratorProps
             />
           </div>
 
-          {/* ── Preset selector ── */}
-          {presetMessages && (
-            <div className="mb-3">
-              <span className="text-[10px] text-text-muted uppercase tracking-wider mb-2 inline-block">
-                {presetMessages.title}
-              </span>
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {PRESETS.map((p) => {
-                  const isActive = activePreset === p.id;
-                  const pm = presetMessages.presets[p.id as keyof typeof presetMessages.presets];
-                  const label = pm?.name ?? p.id;
-                  const desc = pm?.desc ?? "";
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => handleSelectPreset(isActive ? null : p.id)}
-                      className={cn(
-                        "shrink-0 flex items-center gap-2 rounded-xl border px-3 py-2 text-xs transition-all cursor-pointer",
-                        isActive
-                          ? "border-accent bg-accent/10 text-accent"
-                          : "border-border/50 bg-bg-card text-text-secondary hover:border-border hover:text-text-primary",
-                      )}
-                    >
-                      <PresetIcon icon={p.icon} />
-                      <div className="text-left">
-                        <div className="font-medium text-xs leading-tight">{label}</div>
-                        <div className="text-[10px] text-text-muted leading-tight">{desc}</div>
-                      </div>
-                      <span className={cn(
-                        "ml-auto shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium",
-                        isActive ? "bg-accent/20 text-accent" : "bg-bg-secondary text-text-muted",
-                      )}>
-                        {presetMessages.credit_multiplier.replace("[[COUNT]]", String(p.creditMultiplier))}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
           {/* Positive prompt */}
           <textarea
             ref={promptRef}
@@ -808,57 +719,15 @@ export function ImageGenerator({ messages, presetMessages }: ImageGeneratorProps
             onChange={(e) => setPrompt(e.target.value)}
             placeholder={messages.prompt_placeholder}
             maxLength={2000}
-            readOnly={!!(activePreset && getPreset(activePreset)?.disablesPrompt)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 handleGenerate();
               }
             }}
-            className={cn(
-              "w-full resize-none bg-transparent px-1 py-2 text-sm outline-none rounded",
-              (activePreset && getPreset(activePreset)?.disablesPrompt)
-                ? "text-text-muted cursor-not-allowed bg-bg-secondary/50"
-                : "text-text-primary placeholder:text-text-muted",
-            )}
+            className="w-full resize-none bg-transparent px-1 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none"
             style={{ height: 120 }}
           />
-          {/* ── Greeting card custom fields ── */}
-          {activePreset === "greeting_card" && presetMessages && (
-            <div className="mt-2 space-y-2">
-              {getPreset("greeting_card")?.customFields.map((field: PresetCustomField) => {
-                const fm = presetMessages.presets.greeting_card;
-                if (field.type === "select") {
-                  return (
-                    <select
-                      key={field.id}
-                      value={presetFieldValues[field.id] || ""}
-                      onChange={(e) => setPresetFieldValues((prev) => ({ ...prev, [field.id]: e.target.value }))}
-                      className="w-full rounded-lg border border-border/50 bg-bg-card px-3 py-2 text-xs text-text-primary outline-none focus:border-accent/50"
-                    >
-                      <option value="">{(fm.fields as Record<string, string>)[field.placeholderKey] ?? ""}</option>
-                      {field.options?.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {fm.holidays[opt.labelKey] ?? opt.value}
-                        </option>
-                      ))}
-                    </select>
-                  );
-                }
-                return (
-                  <input
-                    key={field.id}
-                    type="text"
-                    value={presetFieldValues[field.id] || ""}
-                    onChange={(e) => setPresetFieldValues((prev) => ({ ...prev, [field.id]: e.target.value }))}
-                    placeholder={(fm.fields as Record<string, string>)[field.placeholderKey] ?? ""}
-                    className="w-full rounded-lg border border-border/50 bg-bg-card px-3 py-2 text-xs text-text-primary outline-none placeholder:text-text-muted focus:border-accent/50"
-                  />
-                );
-              })}
-            </div>
-          )}
-
           {/* Character count + negative toggle in one row */}
           <div className="flex items-center justify-between">
             <button
@@ -895,15 +764,6 @@ export function ImageGenerator({ messages, presetMessages }: ImageGeneratorProps
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           {/* Model dropdown */}
-          {/* Locked when a preset with img2img is active (Runware models don't support ref images) */}
-          {activePreset && getPreset(activePreset)?.requiresImage ? (
-            <div className="h-10 rounded-xl border border-accent/30 bg-accent/5 px-3 text-xs flex items-center gap-2 opacity-70">
-              <svg className="h-3.5 w-3.5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              {AI_MODELS[model as keyof typeof AI_MODELS]?.name || model}
-            </div>
-          ) : (
           <div className="relative">
             <button
               onClick={() => { setShowModel(!showModel); setShowStyle(false); setShowNum(false); setShowRatio(false); }}
@@ -929,7 +789,6 @@ export function ImageGenerator({ messages, presetMessages }: ImageGeneratorProps
               </div>
             )}
           </div>
-          )}
 
           {/* Aspect ratio custom dropdown */}
           <div className="relative">
@@ -1056,6 +915,7 @@ export function ImageGenerator({ messages, presetMessages }: ImageGeneratorProps
 
           {/* Generate button */}
         <button
+          data-generate-btn
           onClick={handleGenerate}
           disabled={loading || !prompt.trim()}
           className={cn(
@@ -1128,6 +988,22 @@ export function ImageGenerator({ messages, presetMessages }: ImageGeneratorProps
         className="mt-6 rounded-2xl border-2 border-dashed border-border/30 p-4"
         ref={outputAreaRef}
       >
+        {/* Re-edit preset button */}
+        {lastPresetId && (
+          <div className="flex justify-end mb-2">
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("reopen-preset", { detail: { presetId: lastPresetId, imageBase64, multiplier } }))}
+              className="flex items-center gap-1.5 rounded-lg border border-accent/30 bg-accent/5 px-3 py-1.5 text-xs text-accent hover:bg-accent/10 transition-colors"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+              </svg>
+              重新调整
+            </button>
+          </div>
+        )}
+
         {/* Translating */}
         {translating && !loading && (
           <div className="flex items-center justify-center py-20">
@@ -1219,6 +1095,8 @@ export function ImageGenerator({ messages, presetMessages }: ImageGeneratorProps
         )}
       </div>
       </div>
+
+      {children}
 
       {/* Gallery showcase */}
       <section className="mt-12 mb-20 mx-auto max-w-[1200px] px-4 sm:px-6">

@@ -41,7 +41,7 @@ export default async function TermsPage() {
 
           <section>
             <h2 className="text-xl font-semibold text-text-primary mb-3">4. Acceptable Use</h2>
-            <p>You agree not to use the Service to generate or distribute content that is illegal, harmful, threatening, abusive, harassing, defamatory, or otherwise objectionable. This includes but is not limited to content that infringes intellectual property rights, violates privacy, or promotes discrimination.</p>
+            <p>You agree not to use the Service to generate or distribute content that is illegal, harmful, threatening, abusive, harassing, defamatory, or otherwise objectionable. <strong>NSFW, adult, sexually explicit, or pornographic content is strictly prohibited.</strong> This includes but is not limited to: nudity, sexual acts, suggestive content involving minors, non-consensual intimate imagery, and any content that sexualizes individuals without their consent. This also includes content that infringes intellectual property rights, violates privacy, or promotes discrimination. We reserve the right to suspend or terminate accounts that violate this policy. All prompts are subject to automated content moderation.</p>
           </section>
 
           <section>
@@ -66,7 +66,7 @@ export default async function TermsPage() {
 
           <section>
             <h2 className="text-xl font-semibold text-text-primary mb-3">9. Contact</h2>
-            <p>For questions about these Terms, please contact us at support@aipaiting.com.</p>
+            <p>For questions about these Terms, please contact us at support@aipainting.top.</p>
           </section>
         </div>
       </div>
