@@ -98,7 +98,7 @@ function calcCost(presetId: string, paramValues: Record<string, string>): number
 }
 
 // ── Build final prompt ──
-function buildPrompt(presetId: string, paramValues: Record<string, string>): string {
+function buildPrompt(presetId: string, paramValues: Record<string, string>, selectedAges: string[]): string {
   const preset = getPreset(presetId);
   if (!preset) return "";
   let prompt = preset.promptTemplate;
@@ -182,13 +182,19 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>): str
 
   // Age journey
   if (presetId === "age_journey") {
+    const ages = selectedAges.length > 0 ? selectedAges : [paramValues["age"] || "child"];
     const bgMap: Record<string, string> = {
       auto: "a naturally matching environment", studio: "a professional studio photography backdrop", nature: "a beautiful natural landscape with greenery and sunlight",
       urban: "a modern urban city street scene", fantasy: "a magical fantasy realm with ethereal elements", historical: "a historical period setting with classical architecture",
       scifi: "a futuristic sci-fi world with advanced technology and neon lights", beach: "a sunny beach with ocean waves and golden sand",
     };
-    prompt = prompt.replace("{age}", paramValues["age"] || "child");
-    prompt = prompt.replace("{bg_desc}", bgMap[paramValues["background"]] || bgMap.auto);
+    if (ages.length <= 1) {
+      prompt = prompt.replace("{age}", ages[0] || "child");
+      prompt = prompt.replace("{bg_desc}", bgMap[paramValues["background"]] || bgMap.auto);
+    } else {
+      const ageList = ages.map((a) => `a ${a} version`).join(", ");
+      prompt = `Create one photo showing ${ages.length} versions of this person standing together at different ages: ${ageList}. All share the same facial identity. Background: ${bgMap[paramValues["background"]] || bgMap.auto}. Natural, photorealistic group portrait, high quality.`;
+    }
     const ct = paramValues["custom"]?.trim();
     prompt = prompt.replace("{custom}", ct ? `Additional style instructions (do not render this as text): ${ct}.` : "");
   }
@@ -283,10 +289,12 @@ function PresetModal({
     for (const p of preset.params) defaults[p.id] = p.defaultValue;
     setParamValues(defaults);
     lastParamCache[presetId] = defaults;
+    setSelectedAges([]);
   };
 
   const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
   const [showMore, setShowMore] = useState(false); // product_ad more fields toggle
+  const [selectedAges, setSelectedAges] = useState<string[]>([]); // age_journey multi-select
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -321,7 +329,7 @@ function PresetModal({
   const setParam = setParamAndCache;
 
   const handleGenerate = (autoGen: boolean) => {
-    const prompt = buildPrompt(presetId, paramValues);
+    const prompt = buildPrompt(presetId, paramValues, selectedAges);
     const ratio = paramValues["ratio"] || preset.defaultAspectRatio;
     // Map card style for ImageGenerator's style field
     let style: string | undefined;
@@ -333,14 +341,20 @@ function PresetModal({
       else style = undefined;
     }
 
+    // Age journey — force 16:9 and use multi-age settings
+    const effectiveRatio = presetId === "age_journey" && selectedAges.length > 1 ? "16:9" : ratio;
+    const effectiveCost = presetId === "age_journey" ? (
+      selectedAges.length <= 1 ? 2 : selectedAges.length === 2 ? 4 : selectedAges.length === 3 ? 5 : selectedAges.length === 4 ? 7 : 8
+    ) : totalCost;
+
     dispatchPresetApply({
       presetId: preset.id,
       prompt,
       model: preset.defaultModel,
-      aspectRatio: ratio,
+      aspectRatio: effectiveRatio,
       style,
-      numImages: 1, // always 1 image per generation
-      multiplier: totalCost,
+      numImages: 1,
+      multiplier: effectiveCost,
       imageBase64,
       imageBase64_2: imageBase64_2 || null,
       requiresImage: preset.requiresImage,
@@ -572,6 +586,47 @@ function PresetModal({
               if (presetId === "product_ad" && param.id === "has_qrcode" && !showMore) return null;
               // Insert "更多选项" toggle after ratio select for product_ad
               const isRatioForProductAd = presetId === "product_ad" && param.id === "ratio";
+              // Age multi-select for age_journey
+              if (presetId === "age_journey" && param.id === "age") {
+                const maxAges = 5;
+                const toggleAge = (val: string) => {
+                  setSelectedAges((prev) => {
+                    if (prev.includes(val)) return prev.filter((v) => v !== val);
+                    if (prev.length >= maxAges) return prev;
+                    return [...prev, val];
+                  });
+                };
+                const ageCost = selectedAges.length <= 1 ? 2 : selectedAges.length === 2 ? 4 : selectedAges.length === 3 ? 5 : selectedAges.length === 4 ? 7 : 8;
+                return (
+                  <div key={param.id}>
+                    <label className="text-[11px] font-medium text-text-secondary block mb-1">{pm.params?.[param.id] ?? param.labelKey}</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {param.options?.map((o) => {
+                        const selected = selectedAges.includes(o.value);
+                        const disabled = !selected && selectedAges.length >= maxAges;
+                        return (
+                          <button key={o.value} type="button" onClick={() => toggleAge(o.value)}
+                            className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-all cursor-pointer ${
+                              disabled ? "opacity-30 cursor-not-allowed" :
+                              selected ? "border-accent bg-accent/15 text-accent shadow-sm" :
+                              "border-border/50 bg-bg-card text-text-secondary hover:border-border hover:text-text-primary"
+                            }`}>
+                            {pm.params?.[o.labelKey] ?? o.value}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {selectedAges.length <= 1 ? (
+                      <p className="mt-1 text-[10px] text-text-muted">选择一个年龄看穿越效果</p>
+                    ) : (
+                      <div className="mt-1 text-[10px]">
+                        <p className="text-accent">已选 {selectedAges.length} 个年龄段，将生成跨代合影</p>
+                        <p className="text-text-muted">多人合影自动切换为横版 16:9</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
               // select — render as clickable chip tags
               return (
                 <div key={param.id}>
