@@ -167,7 +167,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log("[generate] aspectRatio:", aspectRatio, "model:", model, "speedMode:", speedMode);
     const moderation = await checkContentModeration(prompt?.trim() || "", imageBase64);
     if (moderation.flagged) {
       return NextResponse.json(

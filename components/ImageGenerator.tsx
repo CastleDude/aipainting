@@ -312,6 +312,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
   const [multiplier, setMultiplier] = useState(1);
   const [lastPresetId, setLastPresetId] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState("1:1");
+  const pendingAspectRef = useRef<string | null>(null); // override during autoGenerate
   const [style, setStyle] = useState("photorealistic");
   const [numImages, setNumImages] = useState(4);
   const [speedMode, setSpeedMode] = useState<"fast" | "normal">("normal");
@@ -359,8 +360,8 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
       setPrompt(detail.prompt);
       setNegativePrompt("");
       setModel(detail.model);
-      if (detail.aspectRatio) setAspectRatio(detail.aspectRatio);
-      if (detail.style) setStyle(detail.style);
+      if (detail.aspectRatio) { setAspectRatio(detail.aspectRatio); pendingAspectRef.current = detail.aspectRatio; }
+      if (detail.style) { setStyle(detail.style); }
       if (detail.numImages) {
         setNumImages(detail.numImages);
         setSpeedMode(detail.numImages > 1 ? "normal" : "fast");
@@ -455,6 +456,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
     }
 
     setLoading(true);
+    pendingAspectRef.current = null; // consumed
 
     const isAsync = speedMode === "normal";
 
@@ -465,7 +467,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
         body: JSON.stringify({
           prompt: finalPrompt,
           negativePrompt: negativePrompt.trim() || undefined,
-          model, aspectRatio, style, numImages, speedMode,
+          model, aspectRatio: pendingAspectRef.current || aspectRatio, style, numImages, speedMode,
           imageBase64: imageBase64 || undefined,
           imageBase64_2: imageBase64_2 || undefined,
           async: isAsync || undefined,
