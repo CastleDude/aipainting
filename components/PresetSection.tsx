@@ -332,6 +332,9 @@ function PresetModal({
   }, []);
 
   const totalCost = calcCost(presetId, paramValues);
+  const displayCost = presetId === "age_journey" ? (
+    selectedAges.length <= 1 ? 2 : selectedAges.length === 2 ? 4 : selectedAges.length === 3 ? 5 : selectedAges.length === 4 ? 7 : 8
+  ) : totalCost;
 
   const applyTemplate = (attrs: Record<string, string>) => {
     const next = { ...paramValues };
@@ -739,7 +742,7 @@ function PresetModal({
             重置属性
           </button>
           <div className="flex items-center gap-3">
-            <span className="text-[11px] text-text-muted">消耗 <span className="text-accent font-semibold text-sm">{totalCost}</span> {messages.free || "积分"}</span>
+            <span className="text-[11px] text-text-muted">消耗 <span className="text-accent font-semibold text-sm">{displayCost}</span> {messages.free || "积分"}</span>
             <button
               onClick={() => handleGenerate(true)}
               className="rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-2.5 text-sm font-semibold text-white hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg shadow-purple-500/25"
