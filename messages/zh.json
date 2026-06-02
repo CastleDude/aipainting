@@ -86,7 +86,8 @@
     },
     "age_journey": {
       "name": "年龄穿越", "desc": "看看你从婴儿到100岁的样子",
-      "params": { "age": "目标年龄", "age_baby": "婴儿 0-1岁", "age_child": "小孩 5-10岁", "age_teen": "少年 13-17岁", "age_adult": "成人 20-30岁", "age_30s": "30多岁", "age_40s": "40多岁", "age_50s": "50多岁", "age_60s": "60多岁", "age_70s": "70多岁", "age_80s": "80多岁", "age_90s": "90多岁", "age_100": "100岁", "background": "背景", "bg_auto": "自动随机", "bg_studio": "影棚写真", "bg_nature": "户外自然", "bg_urban": "城市街景", "bg_fantasy": "奇幻世界", "bg_historical": "历史时代", "bg_scifi": "太空科幻", "bg_beach": "海滩日落", "ratio": "图片比例", "custom": "自定义指令", "custom_placeholder": "例如：保留我的笑容..." }
+      "params": { "age": "目标年龄", "age_baby": "婴儿 0-1岁", "age_child": "小孩 5-10岁", "age_teen": "少年 13-17岁", "age_adult": "成人 20-30岁", "age_30s": "30多岁", "age_40s": "40多岁", "age_50s": "50多岁", "age_60s": "60多岁", "age_70s": "70多岁", "age_80s": "80多岁", "age_90s": "90多岁", "age_100": "100岁", "background": "背景", "bg_auto": "自动随机", "bg_studio": "影棚写真", "bg_nature": "户外自然", "bg_urban": "城市街景", "bg_fantasy": "奇幻世界", "bg_historical": "历史时代", "bg_scifi": "太空科幻", "bg_beach": "海滩日落", "framing": "照片身位", "framing_head": "头像照", "framing_bust": "半身照", "framing_full": "全身照",
+        "ratio": "图片比例", "custom": "自定义指令", "custom_placeholder": "例如：保留我的笑容..." }
     },
     "photo_together": {
       "name": "来个合影", "desc": "生成两个人的合影——上传照片或描述",

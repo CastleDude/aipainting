@@ -438,7 +438,7 @@ export const PRESETS: Preset[] = [
     ],
     requiresImage: true,
     promptTemplate:
-      "Transform this person's photo to show what they would look like at age {age}. Preserve their core facial features and identity while realistically aging or de-aging them. Background: {bg_desc}. Natural, realistic transformation, high quality portrait photography. {custom}",
+      "Transform this person's photo to show what they would look like at age {age}. {framing_desc} Preserve their core facial features and identity while realistically aging or de-aging them. Background: {bg_desc}. Natural, realistic transformation, high quality portrait photography. {custom}",
     defaultModel: "seedream",
     defaultNumImages: 1,
     baseCost: 2,
@@ -453,6 +453,11 @@ export const PRESETS: Preset[] = [
         { value: "auto", labelKey: "presets.age_journey.params.bg_auto" }, { value: "studio", labelKey: "presets.age_journey.params.bg_studio" }, { value: "nature", labelKey: "presets.age_journey.params.bg_nature" },
         { value: "urban", labelKey: "presets.age_journey.params.bg_urban" }, { value: "fantasy", labelKey: "presets.age_journey.params.bg_fantasy" }, { value: "historical", labelKey: "presets.age_journey.params.bg_historical" },
         { value: "scifi", labelKey: "presets.age_journey.params.bg_scifi" }, { value: "beach", labelKey: "presets.age_journey.params.bg_beach" },
+      ]},
+      { id: "framing", labelKey: "presets.age_journey.params.framing", type: "select", defaultValue: "head", options: [
+        { value: "head", labelKey: "presets.age_journey.params.framing_head" },
+        { value: "bust", labelKey: "presets.age_journey.params.framing_bust" },
+        { value: "full", labelKey: "presets.age_journey.params.framing_full" },
       ]},
       { id: "ratio", labelKey: "presets.age_journey.params.ratio", type: "select", defaultValue: "1:1", options: [
         { value: "1:1", labelKey: "ratio_1x1" }, { value: "3:4", labelKey: "ratio_3x4" }, { value: "4:3", labelKey: "ratio_4x3" }, { value: "16:9", labelKey: "ratio_16x9" },

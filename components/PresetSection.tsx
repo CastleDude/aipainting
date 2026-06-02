@@ -188,6 +188,9 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>, sele
       urban: "a modern urban city street scene", fantasy: "a magical fantasy realm with ethereal elements", historical: "a historical period setting with classical architecture",
       scifi: "a futuristic sci-fi world with advanced technology and neon lights", beach: "a sunny beach with ocean waves and golden sand",
     };
+    const framingMap: Record<string, string> = { head: "Close-up headshot portrait.", bust: "Upper body bust portrait.", full: "Full body portrait." };
+    const framing = framingMap[paramValues["framing"]] || framingMap.head;
+    prompt = prompt.replace("{framing_desc}", framing);
     if (ages.length <= 1) {
       prompt = prompt.replace("{age}", ages[0] || "child");
       prompt = prompt.replace("{bg_desc}", bgMap[paramValues["background"]] || bgMap.auto);
