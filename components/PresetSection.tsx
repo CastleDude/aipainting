@@ -196,7 +196,17 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>, sele
       prompt = prompt.replace("{bg_desc}", bgMap[paramValues["background"]] || bgMap.auto);
     } else {
       const ageList = ages.map((a) => `a ${a}-year-old version`).join(", ");
-      prompt = `Create a group photo of THE SAME PERSON at different ages standing together side by side: ${ageList}. CRITICAL REQUIREMENTS: 1) ALL must clearly be the SAME person — identical facial bone structure, same eye color, same skin tone, same ethnicity, no variation. 2) Each wears age-appropriate clothing for their specific age. 3) No child should have adult facial features, no adult should look like a child. 4) Photorealistic, consistent lighting, natural poses. Background: ${bgMap[paramValues["background"]] || bgMap.auto}. ${framing} High quality.`;
+      prompt = `IMPORTANT: The uploaded photo shows a real person. Study their unique facial features carefully — face shape, eye shape, nose bridge, lip shape, jawline, cheekbone structure, skin tone, ethnicity and gender. These are the permanent identity markers that remain recognizable at any age.
+
+Now create a group portrait with ${ages.length} versions of THIS EXACT SAME PERSON at different ages standing side by side: ${ageList}.
+
+STRICT RULES:
+1. SAME PERSON GUARANTEE: Every version must share the identical permanent features extracted from the reference photo. Same unique face shape, same distinctive eyes, same nose, same lips, same jaw. This is ONE person aging — NOT different people.
+2. AGE REALISM: Babies (0-3) must have infant proportions — large round head (1/4 of body), chubby cheeks, tiny nose, big eyes, soft skin. Children (4-12) must have child proportions — rounder face, smaller jaw, no adult bone structure. Teens show emerging adult features. Adults show mature bone structure. Seniors show natural aging — wrinkles, gray hair, softer skin texture.
+3. NEVER put an adult face on a child body. NEVER put a child face on an adult body. This is the most critical rule.
+4. Clothing must match each age naturally.
+5. Same lighting, same background: ${bgMap[paramValues["background"]] || bgMap.auto}.
+${framing} Photorealistic, consistent scale, professional quality.`;
     }
     const ct = paramValues["custom"]?.trim();
     prompt = prompt.replace("{custom}", ct ? `Additional style instructions (do not render this as text): ${ct}.` : "");
