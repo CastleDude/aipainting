@@ -386,17 +386,17 @@ function PresetModal({
         <div className="flex flex-1 overflow-y-auto">
           {/* Left column: upload — hidden for greeting card */}
           {presetId !== "greeting_card" && (
-          <div className="w-[240px] shrink-0 border-r border-border/20 p-4 flex flex-col gap-3">
+          <div className={`shrink-0 border-r border-border/20 p-4 flex flex-col gap-3 ${(presetId === "product_ad" || presetId === "photo_together") ? "w-[200px]" : "w-[240px]"}`}>
             {preset.requiresImage ? (
               <>
                 {/* Main image — square */}
                 {imagePreview ? (
-                  <div className="relative w-full aspect-square">
+                  <div className={`relative mx-auto ${(presetId === "product_ad" || presetId === "photo_together") ? "w-[160px] h-[160px]" : "w-full aspect-square"}`}>
                     <img src={imagePreview} alt="Preview" className="w-full h-full object-cover bg-bg-secondary rounded-lg" />
                     <button onClick={() => { setImagePreview(null); setImageBase64(null); }} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px] hover:bg-red-500">✕</button>
                   </div>
                 ) : (
-                  <button onClick={() => fileInputRef.current?.click()} className="w-full aspect-square rounded-xl border-2 border-dashed border-border/50 hover:border-accent/40 hover:bg-bg-secondary/50 transition-all flex flex-col items-center justify-center gap-2 text-text-muted hover:text-accent cursor-pointer">
+                  <button onClick={() => fileInputRef.current?.click()} className={`mx-auto rounded-xl border-2 border-dashed border-border/50 hover:border-accent/40 hover:bg-bg-secondary/50 transition-all flex flex-col items-center justify-center gap-2 text-text-muted hover:text-accent cursor-pointer ${(presetId === "product_ad" || presetId === "photo_together") ? "w-[160px] h-[160px]" : "w-full aspect-square"}`}>
                     <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
@@ -408,12 +408,12 @@ function PresetModal({
                 {(presetId === "product_ad" || presetId === "photo_together") && (
                   <>
                     {imagePreview_2 ? (
-                      <div className="relative w-full aspect-square">
+                      <div className="relative mx-auto w-[160px] h-[160px]">
                         <img src={imagePreview_2} alt="Preview" className="w-full h-full object-cover bg-bg-secondary rounded-lg" />
                         <button onClick={() => { setImagePreview_2(null); setImageBase64_2(null); }} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px] hover:bg-red-500">✕</button>
                       </div>
                     ) : (
-                      <button onClick={() => fileInputRef2.current?.click()} className="w-full aspect-square rounded-xl border-2 border-dashed border-border/50 hover:border-accent/40 hover:bg-bg-secondary/50 transition-all flex flex-col items-center justify-center gap-1 text-text-muted hover:text-accent cursor-pointer">
+                      <button onClick={() => fileInputRef2.current?.click()} className="mx-auto w-[160px] h-[160px] rounded-xl border-2 border-dashed border-border/50 hover:border-accent/40 hover:bg-bg-secondary/50 transition-all flex flex-col items-center justify-center gap-1 text-text-muted hover:text-accent cursor-pointer">
                         <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
