@@ -280,7 +280,7 @@ export async function POST(req: NextRequest) {
         if (RUNWARE_MODELS.has(model)) {
           genImages = await generateRunware(`${prompt.trim()}${styleHint}. High quality, detailed.`, model, aspectRatio, numImages, negativePrompt);
         } else {
-          const arHint = `Create a ${aspectRatio} aspect ratio image: `;
+          const arHint = `[OUTPUT SIZE: ${aspectRatio} aspect ratio required. Do not deviate from this.] `;
           const fullPrompt = `${arHint}${prompt.trim()}${styleHint}. High quality, detailed.`;
           genImages = await generateOpenRouter(model, fullPrompt, negativePrompt, aspectRatio, numImages, imageBase64);
         }
@@ -329,7 +329,7 @@ export async function POST(req: NextRequest) {
       images = await generateRunware(`${prompt.trim()}${styleHint}. High quality, detailed.`, model, aspectRatio, genN, negativePrompt);
     } else {
       // For OpenRouter models, embed aspect ratio in the prompt
-      const arHint = `Create a ${aspectRatio} aspect ratio image: `;
+      const arHint = `[OUTPUT SIZE: ${aspectRatio} aspect ratio required. Do not deviate from this.] `;
       const fullPrompt = `${arHint}${prompt.trim()}${styleHint}. High quality, detailed.`;
       images = await generateOpenRouter(model, fullPrompt, negativePrompt, aspectRatio, genN, imageBase64);
     }
