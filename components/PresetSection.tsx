@@ -274,6 +274,7 @@ ${framing} Photorealistic, consistent scale, professional quality.`;
 
 // ── Cache last edit values per preset (persists across modal open/close) ──
 const lastParamCache: Record<string, Record<string, string>> = {};
+const lastAgeCache: Record<string, string[]> = {};
 let lastReopenImage: string | null = null;
 
 // ── Preset Modal ──
@@ -319,11 +320,12 @@ function PresetModal({
     setParamValues(defaults);
     lastParamCache[presetId] = defaults;
     setSelectedAges([]);
+    lastAgeCache[presetId] = [];
   };
 
   const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
   const [showMore, setShowMore] = useState(false); // product_ad more fields toggle
-  const [selectedAges, setSelectedAges] = useState<string[]>([]); // age_journey multi-select
+  const [selectedAges, setSelectedAges] = useState<string[]>(lastAgeCache[presetId] || []); // age_journey multi-select
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -635,9 +637,9 @@ function PresetModal({
                 const maxAges = 5;
                 const toggleAge = (val: string) => {
                   setSelectedAges((prev) => {
-                    if (prev.includes(val)) return prev.filter((v) => v !== val);
-                    if (prev.length >= maxAges) return prev;
-                    return [...prev, val];
+                    const next = prev.includes(val) ? prev.filter((v) => v !== val) : prev.length >= maxAges ? prev : [...prev, val];
+                    lastAgeCache[presetId] = next;
+                    return next;
                   });
                 };
                 const ageCost = selectedAges.length <= 1 ? 2 : selectedAges.length === 2 ? 4 : selectedAges.length === 3 ? 5 : selectedAges.length === 4 ? 7 : 8;
