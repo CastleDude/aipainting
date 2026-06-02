@@ -83,6 +83,9 @@ async function generateOpenRouter(
       params.width = dims.width;
       params.height = dims.height;
     }
+    // Also enforce aspect ratio in prompt for all models
+    const ratioText = `[IMAGE DIMENSIONS: This image MUST be ${aspectRatio} aspect ratio (width:height = ${aspectRatio}). Generate exactly this shape, NOT square 1:1.]`;
+    userContent.unshift({ type: "text", text: ratioText });
 
     const response = await getOpenRouter().chat.completions.create(params as never);
 
@@ -280,8 +283,8 @@ export async function POST(req: NextRequest) {
         if (RUNWARE_MODELS.has(model)) {
           genImages = await generateRunware(`${prompt.trim()}${styleHint}. High quality, detailed.`, model, aspectRatio, numImages, negativePrompt);
         } else {
-          const arHint = `[OUTPUT SIZE: ${aspectRatio} aspect ratio required. Do not deviate from this.] `;
-          const fullPrompt = `${arHint}${prompt.trim()}${styleHint}. High quality, detailed.`;
+          const arHint = ``;
+          const fullPrompt = `${prompt.trim()}${styleHint}. High quality, detailed.`;
           genImages = await generateOpenRouter(model, fullPrompt, negativePrompt, aspectRatio, numImages, imageBase64);
         }
         if (genImages.length === 0) throw Object.assign(new Error("No images returned"), { code: "no_output" });
@@ -329,8 +332,8 @@ export async function POST(req: NextRequest) {
       images = await generateRunware(`${prompt.trim()}${styleHint}. High quality, detailed.`, model, aspectRatio, genN, negativePrompt);
     } else {
       // For OpenRouter models, embed aspect ratio in the prompt
-      const arHint = `[OUTPUT SIZE: ${aspectRatio} aspect ratio required. Do not deviate from this.] `;
-      const fullPrompt = `${arHint}${prompt.trim()}${styleHint}. High quality, detailed.`;
+      const arHint = ``;
+      const fullPrompt = `${prompt.trim()}${styleHint}. High quality, detailed.`;
       images = await generateOpenRouter(model, fullPrompt, negativePrompt, aspectRatio, genN, imageBase64);
     }
 
