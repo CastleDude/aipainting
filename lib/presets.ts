@@ -442,6 +442,7 @@ export const PRESETS: Preset[] = [
     defaultNumImages: 1,
     baseCost: 2,
     params: [
+      { id: "source_age", labelKey: "presets.age_journey.params.source_age", type: "text", defaultValue: "", placeholderKey: "presets.age_journey.params.source_age_placeholder" },
       { id: "age", labelKey: "presets.age_journey.params.age", type: "select", defaultValue: "child", options: [
         { value: "0", labelKey: "presets.age_journey.params.age_baby" },
         { value: "6", labelKey: "presets.age_journey.params.age_child" },
@@ -457,7 +458,6 @@ export const PRESETS: Preset[] = [
         { value: "urban", labelKey: "presets.age_journey.params.bg_urban" }, { value: "fantasy", labelKey: "presets.age_journey.params.bg_fantasy" }, { value: "historical", labelKey: "presets.age_journey.params.bg_historical" },
         { value: "scifi", labelKey: "presets.age_journey.params.bg_scifi" }, { value: "beach", labelKey: "presets.age_journey.params.bg_beach" },
       ]},
-      { id: "source_age", labelKey: "presets.age_journey.params.source_age", type: "text", defaultValue: "", placeholderKey: "presets.age_journey.params.source_age_placeholder" },
       { id: "framing", labelKey: "presets.age_journey.params.framing", type: "select", defaultValue: "head", options: [
         { value: "head", labelKey: "presets.age_journey.params.framing_head" },
         { value: "bust", labelKey: "presets.age_journey.params.framing_bust" },
