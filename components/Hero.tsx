@@ -57,10 +57,10 @@ export function Hero({ messages }: HeroProps) {
         <div className="mt-12 flex items-center justify-center gap-8 text-sm text-text-muted">
           <div className="flex items-center gap-1.5">
             <span className="text-yellow-400">★★★★★</span>
-            <span>{messages.rating || "4.9/5"}</span>
+            <span>{messages.rating || "AI-Powered"}</span>
           </div>
           <div className="h-4 w-px bg-border" />
-          <div>{messages.creators || "25,000+ creators"}</div>
+          <div>{messages.creators || "Fast & Free"}</div>
           <div className="h-4 w-px bg-border" />
           <div>{messages.models || "10+ AI models"}</div>
         </div>

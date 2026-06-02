@@ -21,7 +21,7 @@
       "privacy": { "title": "Privacy First", "desc": "All generated images are automatically deleted after 10 minutes. Your creations stay yours." },
       "hd_quality": { "title": "Full HD Quality", "desc": "Generate images up to 1664×1328 resolution with stunning detail and clarity." },
       "free_tier": { "title": "Always Free Tier", "desc": "Get 20 fast generations every day for free. Upgrade when you need more creative power." },
-      "rating": { "title": "4.9 Star Rating", "desc": "Trusted by creators creators worldwide for reliable, high-quality AI image generation." },
+      "rating": { "title": "Multiple AI Models", "desc": "Access 9 leading AI models including Flux Schnell, SDXL, Gemini and GPT — all in one place." },
       "global": { "title": "All Regions Access", "desc": "Flux Schnell works globally with no regional restrictions. Create from anywhere in the world." }
     }
   },
@@ -707,7 +707,7 @@
   },
   "testimonials": {
     "title": "Loved by Creators Worldwide",
-    "subtitle": "Join creators creators who trust AI Painting for their daily creative work"
+    "subtitle": "Join creators who trust AI Painting for their daily creative work"
   },
   "footer": {
     "copyright": "© 2025 AI Painting. All rights reserved.",

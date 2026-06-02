@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { checkContentModeration } from "@/lib/moderation";
 
 let _openrouter: OpenAI | null = null;
 function getOpenRouter(): OpenAI {
@@ -204,6 +205,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Too many requests", retryAfter: rl.retryAfter },
         { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
+      );
+    }
+
+    // ── Content Moderation ──
+    const modCheck = await checkContentModeration("image processing request", image);
+    if (modCheck.flagged) {
+      return NextResponse.json(
+        { error: "Content policy violation. This image has been flagged by our safety system.", code: "content_moderation" },
+        { status: 400 },
       );
     }
 
