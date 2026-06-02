@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
 import { ImageGenerator } from "@/components/ImageGenerator";
-import { Testimonials } from "@/components/Testimonials";
 import { BackgroundDots } from "@/components/BackgroundDots";
 import { HomeParticleWrapper } from "@/components/HomeClient";
 import PresetSection from "@/components/PresetSection";
@@ -388,9 +387,6 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
-
-      {/* Testimonials */}
-      <Testimonials messages={{ title: t("testimonials.title"), subtitle: t("testimonials.subtitle") }} />
 
       {/* FAQ */}
       <section className="mx-auto max-w-[1200px] px-4 pb-20 sm:px-6">
