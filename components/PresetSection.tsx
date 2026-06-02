@@ -217,10 +217,11 @@ Now create a group portrait with ${ages.length} versions of THIS EXACT SAME PERS
 STRICT RULES:
 1. SAME PERSON GUARANTEE: Every version must share the identical permanent features extracted from the reference photo. Same unique face shape, same distinctive eyes, same nose, same lips, same jaw. This is ONE person aging — NOT different people.
 2. AGE REALISM: Babies (0-3) must have infant proportions — large round head (1/4 of body), chubby cheeks, tiny nose, big eyes, soft skin. Children (4-12) must have child proportions — rounder face, smaller jaw, no adult bone structure. Teens show emerging adult features. Adults show mature bone structure. Seniors show natural aging — wrinkles, gray hair, softer skin texture.
-3. NEVER put an adult face on a child body. NEVER put a child face on an adult body. This is the most critical rule.
-4. Clothing must match each age naturally.
-5. ALL faces must be clearly visible, looking directly at the camera lens. No face hidden or turned away.
-6. Same lighting, same background: ${bgMap[paramValues["background"]] || bgMap.auto}.
+3. HAIR must match each age biologically: baby (fine soft hair or bald spots), child (age-appropriate cute style), teen (trendy youthful style), adult (mature professional style), senior (gray/white, thinning, receding hairline). Hair color, volume, density, and texture must follow natural aging — do NOT give a child adult hair or a senior youthful hair.
+4. NEVER put an adult face on a child body. NEVER put a child face on an adult body. This is the most critical rule.
+5. Clothing must match each age naturally.
+6. ALL faces must be clearly visible, looking directly at the camera lens. No face hidden or turned away.
+7. Same lighting, same background: ${bgMap[paramValues["background"]] || bgMap.auto}.
 ${framing} Photorealistic, consistent scale, professional quality.`;
     }
     const ct = paramValues["custom"]?.trim();

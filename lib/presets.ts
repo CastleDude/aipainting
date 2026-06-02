@@ -437,7 +437,7 @@ export const PRESETS: Preset[] = [
     ],
     requiresImage: true,
     promptTemplate:
-      "Transform this person's photo to show what they would look like at age {age}. {framing_desc} Preserve their core facial features and identity while realistically aging or de-aging them. Background: {bg_desc}. Natural, realistic transformation, high quality portrait photography. {custom}",
+      "Transform this person's photo to show what they would look like at age {age}. {framing_desc} Preserve their core facial features and identity. HAIR: give them age-appropriate hair — babies have fine soft hair, children cute styles, teens trendy, adults mature, seniors gray/thinning with natural hairlines. Background: {bg_desc}. Natural, realistic transformation, high quality portrait photography. {custom}",
     defaultModel: "seedream",
     defaultNumImages: 1,
     baseCost: 2,
