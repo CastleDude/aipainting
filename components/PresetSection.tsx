@@ -145,7 +145,7 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>, sele
 
   // Product ad
   if (presetId === "product_ad") {
-    const ratioMap: Record<string, string> = { "3:4": "Portrait poster 3:4", "1:1": "Square poster 1:1", "4:3": "Landscape poster 4:3", "16:9": "Widescreen 16:9", "9:16": "Story format 9:16", custom: paramValues["custom_size"] || "Custom size" };
+    const ratioMap: Record<string, string> = { "3:4": "Portrait poster 3:4", "1:1": "Square poster 1:1", "4:3": "Landscape poster 4:3", "16:9": "Widescreen 16:9", "9:16": "Story format 9:16" };
     const moreFields = [paramValues["event_time"] ? `Event time: ${paramValues["event_time"]}` : "", paramValues["company"] ? `Company: ${paramValues["company"]}` : "", paramValues["contact"] ? `Contact: ${paramValues["contact"]}` : "", paramValues["phone"] ? `Phone: ${paramValues["phone"]}` : "", paramValues["has_qrcode"] === "yes" ? "Include a QR code placeholder" : ""].filter(Boolean).join(". ");
     const refStyle = paramValues["refStyleImage"] ? "Reference the style of the uploaded reference image for the overall design." : "";
     const adStyleMap: Record<string, string> = {
@@ -562,8 +562,7 @@ function PresetModal({
                 if (param.id === "bg_custom" && paramValues["background"] !== "custom") return null;
                 // Skip hidden product_ad fields unless "more" is open
                 if (presetId === "product_ad" && ["event_time", "company", "contact", "phone", "has_qrcode"].includes(param.id) && !showMore) return null;
-                if (param.id === "custom_size" && paramValues["ratio"] !== "custom") return null;
-                return (
+                            return (
                   <div key={param.id}>
                     <label className="text-[11px] font-medium text-text-secondary block mb-1">{pm.params?.[param.id] ?? param.labelKey}</label>
                     <div className="relative">

@@ -411,9 +411,8 @@ export const PRESETS: Preset[] = [
         { value: "cute", labelKey: "presets.product_ad.params.font_cute" },
       ]},
       { id: "ratio", labelKey: "presets.product_ad.params.ratio", type: "select", defaultValue: "3:4", options: [
-        { value: "3:4", labelKey: "ratio_3x4" }, { value: "1:1", labelKey: "ratio_1x1" }, { value: "4:3", labelKey: "ratio_4x3" }, { value: "16:9", labelKey: "ratio_16x9" }, { value: "9:16", labelKey: "ratio_9x16" }, { value: "custom", labelKey: "presets.product_ad.params.ratio_custom" },
+        { value: "3:4", labelKey: "ratio_3x4" }, { value: "1:1", labelKey: "ratio_1x1" }, { value: "4:3", labelKey: "ratio_4x3" }, { value: "16:9", labelKey: "ratio_16x9" }, { value: "9:16", labelKey: "ratio_9x16" },
       ]},
-      { id: "custom_size", labelKey: "presets.product_ad.params.custom_size", type: "text", defaultValue: "", placeholderKey: "presets.product_ad.params.custom_size_placeholder" },
       { id: "event_time", labelKey: "presets.product_ad.params.event_time", type: "text", defaultValue: "", placeholderKey: "presets.product_ad.params.event_time_placeholder" },
       { id: "company", labelKey: "presets.product_ad.params.company", type: "text", defaultValue: "", placeholderKey: "presets.product_ad.params.company_placeholder" },
       { id: "contact", labelKey: "presets.product_ad.params.contact", type: "text", defaultValue: "", placeholderKey: "presets.product_ad.params.contact_placeholder" },
