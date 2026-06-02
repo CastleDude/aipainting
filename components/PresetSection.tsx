@@ -198,10 +198,21 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>, sele
       prompt = prompt.replace("{bg_desc}", bgMap[paramValues["background"]] || bgMap.auto);
       prompt = sourceHint + prompt;
     } else {
+      const compositions = [
+        "seated casually on a comfortable sofa, some on the floor in front, relaxed and natural",
+        "gathered around a dining table, sharing a meal together, warm family atmosphere",
+        "walking together along a path outdoors, candid snapshot moment, natural stride",
+        "in a garden, some sitting on a bench, others standing around, flowers in background",
+        "sitting on stairs, different people on different steps, casual and cool",
+        "standing in a semi-circle facing the camera, arms around each other, warm smiles",
+        "on a picnic blanket in a park, some sitting cross-legged, some lounging, sunny day",
+        "leaning against a wall together, relaxed urban style, different heights and poses",
+      ];
+      const comp = compositions[Math.floor(Math.random() * compositions.length)];
       const ageList = ages.map((a) => `a ${a}-year-old version`).join(", ");
       prompt = `${sourceHint}IMPORTANT: The uploaded photo shows a real person. Study their unique facial features carefully — face shape, eye shape, nose bridge, lip shape, jawline, cheekbone structure, skin tone, ethnicity and gender. These are the permanent identity markers that remain recognizable at any age.
 
-Now create a group portrait with ${ages.length} versions of THIS EXACT SAME PERSON at different ages standing side by side: ${ageList}.
+Now create a group portrait with ${ages.length} versions of THIS EXACT SAME PERSON at different ages. Composition: ${comp}. Ages in the photo: ${ageList}.
 
 STRICT RULES:
 1. SAME PERSON GUARANTEE: Every version must share the identical permanent features extracted from the reference photo. Same unique face shape, same distinctive eyes, same nose, same lips, same jaw. This is ONE person aging — NOT different people.
