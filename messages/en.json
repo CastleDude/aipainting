@@ -267,7 +267,7 @@
     },
     "age_journey": {
       "name": "Age Journey",
-      "desc": "See yourself at any age — from baby to 1000 years old",
+      "desc": "See yourself at any age — from baby to 100 years old",
       "params": {
         "age": "Target Age",
         "age_baby": "Baby (0-1)",
@@ -282,9 +282,6 @@
         "age_80s": "80s",
         "age_90s": "90s",
         "age_100": "100 Years",
-        "age_200": "200 Years",
-        "age_500": "500 Years",
-        "age_1000": "1000 Years",
         "background": "Background",
         "bg_auto": "Auto (Random)",
         "bg_studio": "Studio Portrait",

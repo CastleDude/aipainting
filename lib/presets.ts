@@ -428,7 +428,7 @@ export const PRESETS: Preset[] = [
         { value: "baby", labelKey: "presets.age_journey.params.age_baby" }, { value: "child", labelKey: "presets.age_journey.params.age_child" }, { value: "teen", labelKey: "presets.age_journey.params.age_teen" }, { value: "adult", labelKey: "presets.age_journey.params.age_adult" },
         { value: "30s", labelKey: "presets.age_journey.params.age_30s" }, { value: "40s", labelKey: "presets.age_journey.params.age_40s" }, { value: "50s", labelKey: "presets.age_journey.params.age_50s" }, { value: "60s", labelKey: "presets.age_journey.params.age_60s" },
         { value: "70s", labelKey: "presets.age_journey.params.age_70s" }, { value: "80s", labelKey: "presets.age_journey.params.age_80s" }, { value: "90s", labelKey: "presets.age_journey.params.age_90s" }, { value: "100", labelKey: "presets.age_journey.params.age_100" },
-        { value: "200", labelKey: "presets.age_journey.params.age_200" }, { value: "500", labelKey: "presets.age_journey.params.age_500" }, { value: "1000", labelKey: "presets.age_journey.params.age_1000" },
+        { value: "100", labelKey: "presets.age_journey.params.age_100" },
       ]},
       { id: "background", labelKey: "presets.age_journey.params.background", type: "select", defaultValue: "auto", options: [
         { value: "auto", labelKey: "presets.age_journey.params.bg_auto" }, { value: "studio", labelKey: "presets.age_journey.params.bg_studio" }, { value: "nature", labelKey: "presets.age_journey.params.bg_nature" },
@@ -456,7 +456,7 @@ export const PRESETS: Preset[] = [
     requiresImage: true,
     maxImages: 2,
     promptTemplate:
-      "Create a realistic photo of two people together. Person from the first uploaded photo and {other_person} standing together. Pose: {pose}. Background: {bg_desc}. Natural lighting, realistic blending, both people looking at the camera, photorealistic quality. {custom}",
+      "Create a realistic photo of two people together. Person from the first uploaded photo and {other_person} standing together. Pose: {pose}. Background: {bg_desc}. Natural lighting, realistic blending, both people looking at the camera, photorealistic quality. IMPORTANT: Only use this for consensual, appropriate purposes. Do NOT create misleading or deceptive images. {custom}",
     defaultModel: "seedream",
     defaultNumImages: 1,
     baseCost: 3,
