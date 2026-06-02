@@ -28,31 +28,13 @@ function getRandomAdCopy(): string {
 // ── AI product recognition via Gemini Vision ──
 async function analyzeProductImage(imageBase64: string): Promise<{ title: string; copy: string; points: string } | null> {
   try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const res = await fetch("/api/analyze-product", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.NEXT_PUBLIC_OPENROUTER_KEY || ""}`,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        modalities: ["image", "text"],
-        messages: [{
-          role: "user",
-          content: [
-            { type: "text", text: "Analyze this product image. Return ONLY a JSON object with these 3 fields (no markdown, no explanation): {\"title\": \"product name in Chinese\", \"copy\": \"catchy ad copy in Chinese (15 words max)\", \"points\": \"3-4 key selling points in Chinese, separated by commas\"}" },
-            { type: "image_url", image_url: { url: imageBase64 } },
-          ],
-        }],
-        max_tokens: 300,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: imageBase64 }),
     });
-    const data = await res.json();
-    const text = data?.choices?.[0]?.message?.content || "";
-    // Extract JSON from response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) return JSON.parse(jsonMatch[0]);
-    return null;
+    if (!res.ok) return null;
+    return await res.json();
   } catch {
     return null;
   }
