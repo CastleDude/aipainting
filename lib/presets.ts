@@ -484,7 +484,7 @@ export const PRESETS: Preset[] = [
     requiresImage: true,
     maxImages: 2,
     promptTemplate:
-      "Create a realistic photo of two people together. Person from the first uploaded photo and {other_person} standing together. Pose: {pose}. Background: {bg_desc}. Natural lighting, realistic blending, both people looking at the camera, photorealistic quality. IMPORTANT: Only use this for consensual, appropriate purposes. Do NOT create misleading or deceptive images. {custom}",
+      "PERSON A is the person in the uploaded reference photo — you MUST faithfully preserve their exact facial identity, features, ethnic appearance, gender, hairstyle, and body type. PERSON B is {other_person}. Create a realistic photo of these TWO SPECIFIC people together. Pose: {pose}. Background: {bg_desc}. Natural lighting, realistic blending, both people looking at the camera. The result must clearly show the REFERENCE person's actual face — not a generic face. Photorealistic quality. IMPORTANT: Only use for consensual, appropriate purposes. Do NOT create misleading images. {custom}",
     defaultModel: "flux-dev",
     defaultNumImages: 1,
     baseCost: 3,
