@@ -498,12 +498,6 @@ function PresetModal({
                         </button>
                       )}
                     </div>
-                    {param.id === "points" && presetId === "product_ad" && (
-                      <button type="button" onClick={() => setShowMore(!showMore)}
-                        className="mt-1 text-[11px] text-accent hover:underline">
-                        {showMore ? "收起更多选项 ▲" : "更多选项 ▼"}
-                      </button>
-                    )}
                   </div>
                 );
               }
@@ -547,6 +541,8 @@ function PresetModal({
               }
               // Hide has_qrcode unless more is open for product_ad
               if (presetId === "product_ad" && param.id === "has_qrcode" && !showMore) return null;
+              // Insert "更多选项" toggle after ratio select for product_ad
+              const isRatioForProductAd = presetId === "product_ad" && param.id === "ratio";
               // select — render as clickable chip tags
               return (
                 <div key={param.id}>
@@ -572,6 +568,12 @@ function PresetModal({
                       );
                     })}
                   </div>
+                  {isRatioForProductAd && (
+                    <button type="button" onClick={() => setShowMore(!showMore)}
+                      className="mt-1 text-[11px] text-accent hover:underline">
+                      {showMore ? "收起更多选项 ▲" : "更多选项 ▼"}
+                    </button>
+                  )}
                 </div>
               );
             })}
