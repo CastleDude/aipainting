@@ -171,10 +171,10 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>, sele
       cute: "Round cute typography with soft curves, playful and youthful lettering",
     };
     prompt = prompt.replace("{font_style}", `Typography: ${fontMap[paramValues["font_style"]] || fontMap.auto}.`);
-    prompt = prompt.replace("{title}", paramValues["title"] || "Product");
-    prompt = prompt.replace("{copy}", paramValues["copy"] || "Amazing product!");
-    prompt = prompt.replace("{points}", paramValues["points"] || "");
-    prompt = prompt.replace("{details}", moreFields ? `Additional info: ${moreFields}.` : "");
+    prompt = prompt.replace("{title}", `THEME: ${paramValues["title"] || "Product"}`);
+    prompt = prompt.replace("{copy}", `TAGLINE to render on poster: "${paramValues["copy"] || "Amazing product!"}"`);
+    prompt = prompt.replace("{points}", `FEATURES to list on poster: ${paramValues["points"] || ""}`);
+    prompt = prompt.replace("{details}", moreFields ? `DETAILS to render: ${moreFields}.` : "");
     prompt = prompt.replace("{size_desc}", ratioMap[paramValues["ratio"]] || ratioMap["3:4"]);
     const ct = paramValues["custom"]?.trim();
     prompt = prompt.replace("{custom}", ct ? `Additional style instructions (do not render this as text): ${ct}.` : "");
@@ -263,7 +263,7 @@ ${framing} Photorealistic, consistent scale, professional quality.`;
     prompt = prompt.replace("{holiday}", paramValues["holiday"] || "birthday");
     prompt = prompt.replace("{from}", paramValues["from"] || "Anonymous");
     prompt = prompt.replace("{to}", paramValues["to"] || "You");
-    prompt = prompt.replace("{message}", paramValues["message"] || "Best wishes!");
+    prompt = prompt.replace("{message}", `TEXT TO RENDER ON CARD: "${paramValues["message"] || "Best wishes!"}"`);
     prompt = prompt.replace("{ratio_desc}", ratioMap[paramValues["ratio"]] || "Vertical");
     const ct = paramValues["custom"]?.trim();
     prompt = prompt.replace("{custom}", ct ? `Additional style instructions (do not render this as text): ${ct}.` : "");
