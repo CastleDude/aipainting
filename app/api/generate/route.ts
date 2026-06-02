@@ -268,9 +268,8 @@ export async function POST(req: NextRequest) {
 
     // Build style hint from STYLE_PROMPTS map (strong descriptive prompts)
     const rawStyle: string = body.style || "";
-    const styleKey = rawStyle.replace(/-/g, " ");
-    const styleHint = rawStyle && rawStyle !== "photorealistic" && STYLE_PROMPTS[styleKey]
-      ? ` in ${STYLE_PROMPTS[styleKey]}`
+    const styleHint = rawStyle && rawStyle !== "photorealistic" && STYLE_PROMPTS[rawStyle]
+      ? ` in ${STYLE_PROMPTS[rawStyle]}`
       : "";
 
     // ── Async mode: enqueue and return job ID ──
