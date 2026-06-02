@@ -419,31 +419,45 @@ function PresetModal({
                         className="w-full rounded-lg border border-border/50 bg-bg-card px-3 py-1.5 text-xs text-text-primary outline-none placeholder:text-text-muted resize-none pr-16"
                       />
                       {param.id === "message" && (
-                        <button
-                          type="button"
-                          onClick={() => setParam("message", getRandomGreeting(paramValues["holiday"] || "general"))}
-                          className="absolute right-1 top-1 rounded-md bg-accent/10 px-2 py-1 text-[10px] text-accent hover:bg-accent/20 transition-colors"
-                        >
-                          🎲 Random
+                        <button type="button" onClick={() => setParam("message", getRandomGreeting(paramValues["holiday"] || "general"))}
+                          className="absolute right-1 top-1 rounded-md bg-accent/10 px-2 py-1 text-[10px] text-accent hover:bg-accent/20 transition-colors">
+                          🎲 推荐贺词
                         </button>
                       )}
                     </div>
+                    {param.id === "points" && presetId === "product_ad" && (
+                      <button type="button" onClick={() => setShowMore(!showMore)}
+                        className="mt-1 text-[11px] text-accent hover:underline">
+                        {showMore ? "收起更多选项 ▲" : "更多选项 ▼"}
+                      </button>
+                    )}
                   </div>
                 );
               }
               if (param.type === "text") {
                 // Skip bg_custom if background is not "custom"
                 if (param.id === "bg_custom" && paramValues["background"] !== "custom") return null;
+                // Skip hidden product_ad fields unless "more" is open
+                if (presetId === "product_ad" && ["event_time", "company", "contact", "phone"].includes(param.id) && !showMore) return null;
+                if (param.id === "custom_size" && paramValues["ratio"] !== "custom") return null;
                 return (
                   <div key={param.id}>
                     <label className="text-[11px] font-medium text-text-secondary block mb-1">{pm.params?.[param.id] ?? param.labelKey}</label>
+                    <div className="relative">
                     <input
                       type="text"
                       value={paramValues[param.id] || ""}
                       onChange={(e) => setParam(param.id, e.target.value)}
                       placeholder={pm.params?.[param.placeholderKey || ""] || ""}
-                      className="w-full rounded-lg border border-border/50 bg-bg-card px-3 py-2 text-xs text-text-primary outline-none placeholder:text-text-muted"
+                      className="w-full rounded-lg border border-border/50 bg-bg-card px-3 py-2 text-xs text-text-primary outline-none placeholder:text-text-muted pr-16"
                     />
+                    {param.id === "copy" && presetId === "product_ad" && (
+                      <button type="button" onClick={() => setParam("copy", getRandomAdCopy())}
+                        className="absolute right-1 top-1 rounded-md bg-accent/10 px-2 py-1 text-[10px] text-accent hover:bg-accent/20 transition-colors">
+                        AI推荐
+                      </button>
+                    )}
+                    </div>
                   </div>
                 );
               }
