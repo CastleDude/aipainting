@@ -380,12 +380,12 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
       promptRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       // Auto-generate if requested
       if (detail.autoGenerate) {
-        setTimeout(() => {
-          promptRef.current?.focus();
-          // Simulate Enter key to trigger generate
-          const btn = document.querySelector('[data-generate-btn]') as HTMLButtonElement;
-          if (btn) btn.click();
-        }, 500);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const el = document.querySelector('[data-generate-btn]') as HTMLButtonElement;
+            if (el && !el.disabled) { promptRef.current?.focus(); el.click(); }
+          });
+        });
       }
     };
     window.addEventListener("apply-preset", handler);
