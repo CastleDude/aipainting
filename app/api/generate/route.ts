@@ -149,7 +149,7 @@ function classifyError(status: number, message: string) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { prompt, negativePrompt, model = "schnell", aspectRatio = "1:1", numImages = 4, speedMode, imageBase64, isPublic, async: asyncMode, multiplier } = body;
+    const { prompt, negativePrompt, model = "schnell", aspectRatio = "1:1", numImages = 4, speedMode, imageBase64, imageBase64_2, isPublic, async: asyncMode, multiplier } = body;
     const creditMultiplier: number = typeof multiplier === "number" && multiplier > 0 ? multiplier : 1;
 
     if (!prompt?.trim()) {
@@ -326,12 +326,14 @@ export async function POST(req: NextRequest) {
 
     const genN = speedMode === "fast" ? 1 : numImages;
     if (RUNWARE_MODELS.has(model)) {
-      images = await generateRunware(`${prompt.trim()}${styleHint}. High quality, detailed.`, model, aspectRatio, genN, negativePrompt, imageBase64);
+      // For img2img with two photos, use first as inputImage and describe second in prompt
+      const img2desc = imageBase64_2 ? " [SECOND REFERENCE IMAGE ATTACHED FOR COMPOSITION]" : "";
+      images = await generateRunware(`${prompt.trim()}${styleHint}${img2desc}. High quality, detailed.`, model, aspectRatio, genN, negativePrompt, imageBase64);
     } else {
       // For OpenRouter models, embed aspect ratio in the prompt
       const arHint = ``;
       const fullPrompt = `${prompt.trim()}${styleHint}. High quality, detailed.`;
-      images = await generateOpenRouter(model, fullPrompt, negativePrompt, aspectRatio, genN, imageBase64);
+      images = await generateOpenRouter(model, fullPrompt, negativePrompt, aspectRatio, genN, imageBase64 || imageBase64_2);
     }
 
     if (images.length === 0) {

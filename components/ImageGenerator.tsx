@@ -331,6 +331,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageBase64_2, setImageBase64_2] = useState<string | null>(null);
+  const pendingImg2Ref = useRef<string | null>(null);
   const [generationIds, setGenerationIds] = useState<string[]>([]);
   const [sharedIds, setSharedIds] = useState<Set<string>>(new Set());
   const [sharingIdx, setSharingIdx] = useState<number | null>(null);
@@ -370,7 +371,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
       if (detail.imageBase64) {
         setImagePreview(detail.imageBase64);
         setImageBase64(detail.imageBase64);
-        if (detail.imageBase64_2) setImageBase64_2(detail.imageBase64_2);
+        if (detail.imageBase64_2) { setImageBase64_2(detail.imageBase64_2); pendingImg2Ref.current = detail.imageBase64_2; }
       } else {
         setImagePreview(null);
         setImageBase64(null);
@@ -459,6 +460,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
     setLoading(true);
     pendingAspectRef.current = null;
     pendingStyleRef.current = null;
+    pendingImg2Ref.current = null;
 
     const isAsync = speedMode === "normal";
 
@@ -471,7 +473,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
           negativePrompt: negativePrompt.trim() || undefined,
           model, aspectRatio: pendingAspectRef.current || aspectRatio, style: pendingStyleRef.current || style, numImages, speedMode,
           imageBase64: imageBase64 || undefined,
-          imageBase64_2: imageBase64_2 || undefined,
+          imageBase64_2: pendingImg2Ref.current || imageBase64_2 || undefined,
           async: isAsync || undefined,
           multiplier: multiplier > 1 ? multiplier : undefined,
         }),
