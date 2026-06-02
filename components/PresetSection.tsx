@@ -95,7 +95,8 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>): str
     prompt = prompt.replace("{color_desc}", colorMap[paramValues["color"]] || colorMap.color);
     prompt = prompt.replace("{resolution_desc}", resMap[paramValues["resolution"]] || resMap.original);
     prompt = prompt.replace("{style_desc}", styleMap[paramValues["style"]] || styleMap.fresh);
-    prompt = prompt.replace("{custom}", paramValues["custom"]?.trim() || "");
+    const ct = paramValues["custom"]?.trim();
+    prompt = prompt.replace("{custom}", ct ? `Additional style instructions (do not render this as text): ${ct}.` : "");
   }
 
   // Cartoon avatar
@@ -122,7 +123,8 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>): str
     prompt = prompt.replace("{gender_desc}", genderMap[paramValues["gender"]] || genderMap.keep);
     prompt = prompt.replace("{age}", ageMap[paramValues["age"]] || ageMap.child);
     // Remove bg_custom param from prompt since it's handled in bg_desc
-    prompt = prompt.replace("{custom}", paramValues["custom"]?.trim() || "");
+    const ct = paramValues["custom"]?.trim();
+    prompt = prompt.replace("{custom}", ct ? `Additional style instructions (do not render this as text): ${ct}.` : "");
   }
 
   // Product ad
@@ -136,7 +138,8 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>): str
     prompt = prompt.replace("{points}", paramValues["points"] || "");
     prompt = prompt.replace("{details}", moreFields ? `Additional info: ${moreFields}.` : "");
     prompt = prompt.replace("{size_desc}", ratioMap[paramValues["ratio"]] || ratioMap["3:4"]);
-    prompt = prompt.replace("{custom}", paramValues["custom"]?.trim() || "");
+    const ct = paramValues["custom"]?.trim();
+    prompt = prompt.replace("{custom}", ct ? `Additional style instructions (do not render this as text): ${ct}.` : "");
   }
 
   // Age journey
@@ -148,7 +151,8 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>): str
     };
     prompt = prompt.replace("{age}", paramValues["age"] || "child");
     prompt = prompt.replace("{bg_desc}", bgMap[paramValues["background"]] || bgMap.auto);
-    prompt = prompt.replace("{custom}", paramValues["custom"]?.trim() || "");
+    const ct = paramValues["custom"]?.trim();
+    prompt = prompt.replace("{custom}", ct ? `Additional style instructions (do not render this as text): ${ct}.` : "");
   }
 
   // Photo together
@@ -167,7 +171,8 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>): str
     prompt = prompt.replace("{other_person}", other);
     prompt = prompt.replace("{pose}", poseMap[paramValues["pose"]] || poseMap.standing);
     prompt = prompt.replace("{bg_desc}", bgMap[paramValues["background"]] || bgMap.auto);
-    prompt = prompt.replace("{custom}", paramValues["custom"]?.trim() || "");
+    const ct = paramValues["custom"]?.trim();
+    prompt = prompt.replace("{custom}", ct ? `Additional style instructions (do not render this as text): ${ct}.` : "");
   }
 
   // Greeting card
@@ -187,7 +192,8 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>): str
     prompt = prompt.replace("{to}", paramValues["to"] || "You");
     prompt = prompt.replace("{message}", paramValues["message"] || "Best wishes!");
     prompt = prompt.replace("{ratio_desc}", ratioMap[paramValues["ratio"]] || "Vertical");
-    prompt = prompt.replace("{custom}", paramValues["custom"]?.trim() || "");
+    const ct = paramValues["custom"]?.trim();
+    prompt = prompt.replace("{custom}", ct ? `Additional style instructions (do not render this as text): ${ct}.` : "");
   }
 
   return prompt;
