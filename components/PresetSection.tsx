@@ -118,15 +118,15 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>, sele
   // Cartoon avatar
   if (presetId === "cartoon_avatar") {
     const styleMap: Record<string, string> = {
-      anime: "In Japanese anime/manga art style, cel-shaded, vibrant colors, clean linework",
-      "3d": "In 3D rendered Pixar-style, smooth, cute, modern CGI",
-      chibi: "In super-deformed Q-version chibi style, big head small body, adorable, cute, round features",
-      ghibli: "In Studio Ghibli hand-drawn animation style, soft watercolor backgrounds, whimsical magical realism",
-      comic: "In Western comic book illustration style, bold outlines, vibrant colors, dynamic",
-      manhwa: "In Korean manhwa/webtoon style, elegant, refined, soft lighting",
-      cyberpunk: "In cyberpunk digital art style, neon colors, futuristic, high-tech aesthetic",
-      steampunk: "In steampunk art style, brass and copper machinery, Victorian era, gears and steam engines",
-      pixel: "In retro pixel art style, 8-bit/16-bit game aesthetic, blocky and charming",
+      anime: "In Japanese anime/manga art style, cel-shaded, vibrant colors, clean linework. MATCH the subject's exact gender.",
+      "3d": "In 3D rendered Pixar-style, smooth, cute, modern CGI. MATCH the subject's exact gender.",
+      chibi: "In super-deformed Q-version chibi style, big head small body, adorable, cute, round features. MATCH the subject's exact gender.",
+      ghibli: "In Studio Ghibli hand-drawn animation style, soft watercolor backgrounds, whimsical magical realism. MATCH the subject's exact gender.",
+      comic: "In Western comic book illustration style, bold outlines, vibrant colors, dynamic. MATCH the subject's exact gender.",
+      manhwa: "In Korean manhwa/webtoon style, elegant, refined, soft lighting. MATCH the subject's exact gender.",
+      cyberpunk: "In cyberpunk digital art style, neon colors, futuristic, high-tech aesthetic. CRITICAL: faithfully preserve the subject's gender, facial features, and identity from the reference photo.",
+      steampunk: "In steampunk art style, brass and copper machinery, Victorian era, gears and steam engines. MATCH the subject's exact gender.",
+      pixel: "In retro pixel art style, 8-bit/16-bit game aesthetic, blocky and charming. MATCH the subject's exact gender.",
     };
     const sizeMap: Record<string, string> = { head: "Close-up headshot portrait", bust: "Upper body bust portrait", full: "Full body character illustration" };
     const bgMap: Record<string, string> = { keep: "Keep the original photo background", transparent: "Transparent background, suitable for stickers and profile pictures", custom: paramValues["bg_custom"]?.trim() || "a clean, simple background" };

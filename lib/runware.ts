@@ -46,7 +46,11 @@ async function generateWithRunware(
   // Add reference image for img2img
   if (imageBase64?.trim()) {
     task.inputImage = imageBase64.trim();
-    task.strength = 0.65; // how much to follow the reference (0-1)
+    task.strength = 0.75; // how much to follow the reference (0-1), higher = more faithful
+    task.cfgScale = 12;   // higher = follows prompt more strictly
+    // Negative prompt to prevent unwanted changes
+    if (!task.negativePrompt) task.negativePrompt = "";
+    task.negativePrompt += " different person, different gender, gender swap, wrong gender, female body, different ethnic";
   }
   if (negativePrompt?.trim()) task.negativePrompt = negativePrompt.trim();
 
