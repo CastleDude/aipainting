@@ -68,6 +68,7 @@ export interface PresetApplyEvent {
   numImages: number;
   multiplier: number;
   imageBase64: string | null;
+  imageBase64_2?: string | null;
   requiresImage: boolean;
   autoGenerate: boolean;
 }
@@ -252,8 +253,11 @@ function PresetModal({
   const reopenImage = lastReopenImage;
   const [imageBase64, setImageBase64] = useState<string | null>(reopenImage);
   const [imagePreview, setImagePreview] = useState<string | null>(reopenImage);
+  const [imageBase64_2, setImageBase64_2] = useState<string | null>(null);
+  const [imagePreview_2, setImagePreview_2] = useState<string | null>(null);
   const [paramValues, setParamValues] = useState<Record<string, string>>(cached);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef2 = useRef<HTMLInputElement>(null);
   lastReopenImage = null; // consume the cached image
 
   if (!preset || !pm) return null;
@@ -331,6 +335,7 @@ function PresetModal({
       numImages: 1, // always 1 image per generation
       multiplier: totalCost,
       imageBase64,
+      imageBase64_2: imageBase64_2 || null,
       requiresImage: preset.requiresImage,
       autoGenerate: autoGen,
     });
@@ -412,14 +417,27 @@ function PresetModal({
                   )}
                   </>
                 )}
-                {/* Ref image upload for product_ad */}
-                {presetId === "product_ad" && preset.hasRefImage && (
-                  <div className="mt-1">
-                    <p className="text-[10px] text-text-muted mb-1">{pm.params?.["ref_image"] || "参考效果图"}</p>
-                    <button onClick={() => fileInputRef.current?.click()} className="w-full rounded-lg border border-dashed border-border/50 hover:border-accent/40 flex items-center justify-center gap-1 py-1.5 text-[10px] text-text-muted hover:text-accent transition-colors">
-                      + 上传参考
-                    </button>
-                  </div>
+                {/* Second image upload for product_ad (ref) and photo_together (person 2) */}
+                {(presetId === "product_ad" || presetId === "photo_together") && (
+                  <>
+                    {imagePreview_2 ? (
+                      <div className="relative w-full" style={{ height: 120 }}>
+                        <img src={imagePreview_2} alt="Preview" className="w-full h-full object-contain bg-bg-secondary rounded-lg" />
+                        <button onClick={() => { setImagePreview_2(null); setImageBase64_2(null); }} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px] hover:bg-red-500">✕</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => fileInputRef2.current?.click()} className="w-full rounded-lg border border-dashed border-border/50 hover:border-accent/40 flex items-center justify-center gap-1 py-2 text-[10px] text-text-muted hover:text-accent transition-colors">
+                        + {presetId === "product_ad" ? "参考效果图" : "第二张照片"}
+                      </button>
+                    )}
+                    <input ref={fileInputRef2} type="file" accept="image/*" onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file || !file.type.startsWith("image/")) return;
+                      const reader = new FileReader();
+                      reader.onload = () => { const url = reader.result as string; setImagePreview_2(url); setImageBase64_2(url); };
+                      reader.readAsDataURL(file);
+                    }} className="hidden" />
+                  </>
                 )}
               </>
             ) : (
