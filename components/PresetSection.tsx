@@ -219,7 +219,8 @@ STRICT RULES:
 2. AGE REALISM: Babies (0-3) must have infant proportions — large round head (1/4 of body), chubby cheeks, tiny nose, big eyes, soft skin. Children (4-12) must have child proportions — rounder face, smaller jaw, no adult bone structure. Teens show emerging adult features. Adults show mature bone structure. Seniors show natural aging — wrinkles, gray hair, softer skin texture.
 3. NEVER put an adult face on a child body. NEVER put a child face on an adult body. This is the most critical rule.
 4. Clothing must match each age naturally.
-5. Same lighting, same background: ${bgMap[paramValues["background"]] || bgMap.auto}.
+5. ALL faces must be clearly visible, looking directly at the camera lens. No face hidden or turned away.
+6. Same lighting, same background: ${bgMap[paramValues["background"]] || bgMap.auto}.
 ${framing} Photorealistic, consistent scale, professional quality.`;
     }
     const ct = paramValues["custom"]?.trim();
@@ -585,14 +586,17 @@ function PresetModal({
                       value={paramValues[param.id] || ""}
                       onChange={(e) => setParam(param.id, e.target.value)}
                       placeholder={pm.params?.[param.placeholderKey || ""] || ""}
-                      className="w-full rounded-lg border border-border/50 bg-bg-card px-3 py-2 text-xs text-text-primary outline-none placeholder:text-text-muted pr-16"
+                      className={`rounded-lg border border-border/50 bg-bg-card px-3 py-2 text-xs text-text-primary outline-none placeholder:text-text-muted ${param.id === "source_age" ? "w-24" : "w-full"} ${param.id === "copy" ? "pr-16" : ""}`}
                     />
                     {param.id === "source_age" && presetId === "age_journey" && (
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {["0","6","16","25","40","60","80"].map((v) => (
-                          <button key={v} type="button" onClick={() => setParam("source_age", v)}
-                            className={`rounded-md border px-2 py-0.5 text-[10px] transition-colors ${paramValues["source_age"] === v ? "border-accent bg-accent/10 text-accent" : "border-border/50 text-text-muted hover:border-border"}`}>
-                            {v}岁
+                        {[
+                          { v:"0", label:"0-3岁" },{ v:"4", label:"4-12岁" },{ v:"13", label:"13-19岁" },{ v:"20", label:"20-35岁" },
+                          { v:"36", label:"36-50岁" },{ v:"51", label:"51-65岁" },{ v:"66", label:"66-80岁" },{ v:"81", label:"80岁以上" },
+                        ].map((item) => (
+                          <button key={item.v} type="button" onClick={() => setParam("source_age", item.v)}
+                            className={`rounded-md border px-2 py-0.5 text-[10px] transition-colors ${paramValues["source_age"] === item.v ? "border-accent bg-accent/10 text-accent" : "border-border/50 text-text-muted hover:border-border"}`}>
+                            {item.label}
                           </button>
                         ))}
                       </div>
