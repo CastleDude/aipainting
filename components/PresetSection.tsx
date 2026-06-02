@@ -386,15 +386,14 @@ function PresetModal({
           <div className="w-[240px] shrink-0 border-r border-border/20 p-4 flex flex-col gap-3">
             {preset.requiresImage ? (
               <>
+                {/* Main image — square */}
                 {imagePreview ? (
-                  <div className="relative w-full" style={{ height: 300 }}>
-                    <img src={imagePreview} alt="Preview" className="w-full h-full object-contain bg-bg-secondary rounded-lg" />
-                    <button onClick={() => { setImagePreview(null); setImageBase64(null); }} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px] hover:bg-red-500">
-                      ✕
-                    </button>
+                  <div className="relative w-full aspect-square">
+                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover bg-bg-secondary rounded-lg" />
+                    <button onClick={() => { setImagePreview(null); setImageBase64(null); }} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px] hover:bg-red-500">✕</button>
                   </div>
                 ) : (
-                  <button onClick={() => fileInputRef.current?.click()} className="w-full rounded-xl border-2 border-dashed border-border/50 hover:border-accent/40 hover:bg-bg-secondary/50 transition-all flex flex-col items-center justify-center gap-2 text-text-muted hover:text-accent cursor-pointer" style={{ height: 300 }}>
+                  <button onClick={() => fileInputRef.current?.click()} className="w-full aspect-square rounded-xl border-2 border-dashed border-border/50 hover:border-accent/40 hover:bg-bg-secondary/50 transition-all flex flex-col items-center justify-center gap-2 text-text-muted hover:text-accent cursor-pointer">
                     <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
@@ -402,7 +401,32 @@ function PresetModal({
                   </button>
                 )}
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                {/* Random button — for presets other than product_ad */}
+                {/* Second image — square (product_ad ref / photo_together person 2) */}
+                {(presetId === "product_ad" || presetId === "photo_together") && (
+                  <>
+                    {imagePreview_2 ? (
+                      <div className="relative w-full aspect-square">
+                        <img src={imagePreview_2} alt="Preview" className="w-full h-full object-cover bg-bg-secondary rounded-lg" />
+                        <button onClick={() => { setImagePreview_2(null); setImageBase64_2(null); }} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px] hover:bg-red-500">✕</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => fileInputRef2.current?.click()} className="w-full aspect-square rounded-xl border-2 border-dashed border-border/50 hover:border-accent/40 hover:bg-bg-secondary/50 transition-all flex flex-col items-center justify-center gap-1 text-text-muted hover:text-accent cursor-pointer">
+                        <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        <span className="text-[10px] text-center px-2">{presetId === "product_ad" ? "参考效果图" : "第二张照片"}</span>
+                      </button>
+                    )}
+                    <input ref={fileInputRef2} type="file" accept="image/*" onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file || !file.type.startsWith("image/")) return;
+                      const reader = new FileReader();
+                      reader.onload = () => { const url = reader.result as string; setImagePreview_2(url); setImageBase64_2(url); };
+                      reader.readAsDataURL(file);
+                    }} className="hidden" />
+                  </>
+                )}
+                {/* Random button — moved below uploads */}
                 {presetId !== "product_ad" && (
                   <>
                   <button onClick={handleRandom} disabled={!imageBase64}
@@ -415,28 +439,6 @@ function PresetModal({
                   {messages.random_cost && (
                     <p className="text-[10px] text-text-muted text-center">{messages.random_cost.replace("[[COUNT]]", String(preset.baseCost))}</p>
                   )}
-                  </>
-                )}
-                {/* Second image upload for product_ad (ref) and photo_together (person 2) */}
-                {(presetId === "product_ad" || presetId === "photo_together") && (
-                  <>
-                    {imagePreview_2 ? (
-                      <div className="relative w-full" style={{ height: 120 }}>
-                        <img src={imagePreview_2} alt="Preview" className="w-full h-full object-contain bg-bg-secondary rounded-lg" />
-                        <button onClick={() => { setImagePreview_2(null); setImageBase64_2(null); }} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px] hover:bg-red-500">✕</button>
-                      </div>
-                    ) : (
-                      <button onClick={() => fileInputRef2.current?.click()} className="w-full rounded-lg border border-dashed border-border/50 hover:border-accent/40 flex items-center justify-center gap-1 py-2 text-[10px] text-text-muted hover:text-accent transition-colors">
-                        + {presetId === "product_ad" ? "参考效果图" : "第二张照片"}
-                      </button>
-                    )}
-                    <input ref={fileInputRef2} type="file" accept="image/*" onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (!file || !file.type.startsWith("image/")) return;
-                      const reader = new FileReader();
-                      reader.onload = () => { const url = reader.result as string; setImagePreview_2(url); setImageBase64_2(url); };
-                      reader.readAsDataURL(file);
-                    }} className="hidden" />
                   </>
                 )}
               </>
