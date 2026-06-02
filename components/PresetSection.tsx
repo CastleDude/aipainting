@@ -98,7 +98,7 @@ function calcCost(presetId: string, paramValues: Record<string, string>): number
 }
 
 // ── Build final prompt ──
-function buildPrompt(presetId: string, paramValues: Record<string, string>, selectedAges: string[]): string {
+function buildPrompt(presetId: string, paramValues: Record<string, string>, selectedAges: string[], img2?: string | null): string {
   const preset = getPreset(presetId);
   if (!preset) return "";
   let prompt = preset.promptTemplate;
@@ -147,7 +147,7 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>, sele
   if (presetId === "product_ad") {
     const ratioMap: Record<string, string> = { "3:4": "Portrait poster 3:4", "1:1": "Square poster 1:1", "4:3": "Landscape poster 4:3", "16:9": "Widescreen 16:9", "9:16": "Story format 9:16" };
     const moreFields = [paramValues["event_time"] ? `Event time: ${paramValues["event_time"]}` : "", paramValues["company"] ? `Company: ${paramValues["company"]}` : "", paramValues["contact"] ? `Contact: ${paramValues["contact"]}` : "", paramValues["phone"] ? `Phone: ${paramValues["phone"]}` : "", paramValues["has_qrcode"] === "yes" ? "Include a QR code placeholder" : ""].filter(Boolean).join(". ");
-    const refStyle = paramValues["refStyleImage"] ? "Reference the style of the uploaded reference image for the overall design." : "";
+    const refStyle = img2 ? "The second uploaded image is a style reference — adopt its design language, color palette, composition, and visual tone for this poster." : "";
     const adStyleMap: Record<string, string> = {
       tech: "futuristic tech style with blue neon accents, sleek metallic surfaces, holographic elements",
       warm: "warm cozy lifestyle style with soft golden lighting, natural textures, inviting atmosphere",
@@ -240,7 +240,7 @@ ${framing} Photorealistic, consistent scale, professional quality.`;
       city: "a vibrant city street with architecture", cafe: "a cozy coffee shop interior with warm lighting", mountain: "a scenic mountain landscape with panoramic views",
       wedding_hall: "an elegant wedding hall with floral decorations", custom: paramValues["bg_custom"] || "a nice background",
     };
-    const other = paramValues["other_person"]?.trim() || "another person";
+    const other = paramValues["other_person"]?.trim() || (img2 ? "the person in the second uploaded photo" : "another person");
     prompt = prompt.replace("{other_person}", other);
     prompt = prompt.replace("{pose}", poseMap[paramValues["pose"]] || poseMap.standing);
     prompt = prompt.replace("{bg_desc}", bgMap[paramValues["background"]] || bgMap.auto);
@@ -363,7 +363,7 @@ function PresetModal({
   const setParam = setParamAndCache;
 
   const handleGenerate = (autoGen: boolean) => {
-    const prompt = buildPrompt(presetId, paramValues, selectedAges);
+    const prompt = buildPrompt(presetId, paramValues, selectedAges, imageBase64_2);
     const ratio = paramValues["ratio"] || preset.defaultAspectRatio;
     // Map card style for ImageGenerator's style field
     let style: string | undefined;
