@@ -63,7 +63,7 @@ export const PRESETS: Preset[] = [
     requiresImage: true,
     promptTemplate:
       "Restore and enhance this photograph. {color_desc} {resolution_desc} {style_desc}. Fix all scratches, tears, fading, stains. Improve sharpness and clarity. Strictly preserve original content, faces, and scene. Do NOT alter people appearance. {custom} Output high quality photograph.",
-    defaultModel: "seedream",
+    defaultModel: "flux-dev",
     defaultNumImages: 1,
     baseCost: 3,
     params: [
@@ -139,7 +139,7 @@ export const PRESETS: Preset[] = [
     requiresImage: true,
     promptTemplate:
       "Transform this photo into a cartoon avatar. {style_desc} {size_desc}. Background: {bg_desc}. Gender style: {gender_desc}. Age style: make them look like a {age}. {custom} Preserve the person's identity and key facial features. High quality.",
-    defaultModel: "seedream",
+    defaultModel: "flux-dev",
     defaultNumImages: 1,
     baseCost: 2,
     params: [
@@ -438,7 +438,7 @@ export const PRESETS: Preset[] = [
     requiresImage: true,
     promptTemplate:
       "Transform this person's photo to show what they would look like at age {age}. {framing_desc} Preserve their core facial features and identity. HAIR: give them age-appropriate hair — babies have fine soft hair, children cute styles, teens trendy, adults mature, seniors gray/thinning with natural hairlines. Background: {bg_desc}. Natural, realistic transformation, high quality portrait photography. {custom}",
-    defaultModel: "seedream",
+    defaultModel: "flux-dev",
     defaultNumImages: 1,
     baseCost: 2,
     params: [
@@ -485,7 +485,7 @@ export const PRESETS: Preset[] = [
     maxImages: 2,
     promptTemplate:
       "Create a realistic photo of two people together. Person from the first uploaded photo and {other_person} standing together. Pose: {pose}. Background: {bg_desc}. Natural lighting, realistic blending, both people looking at the camera, photorealistic quality. IMPORTANT: Only use this for consensual, appropriate purposes. Do NOT create misleading or deceptive images. {custom}",
-    defaultModel: "seedream",
+    defaultModel: "flux-dev",
     defaultNumImages: 1,
     baseCost: 3,
     params: [

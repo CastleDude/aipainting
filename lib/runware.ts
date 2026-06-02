@@ -22,7 +22,7 @@ export const RUNWARE_MODEL_MAP: Record<string, string> = {
 // ── Runware (sync) ─────────────────────────────────────
 
 async function generateWithRunware(
-  prompt: string, model: string, aspectRatio: string, numImages: number, negativePrompt?: string,
+  prompt: string, model: string, aspectRatio: string, numImages: number, negativePrompt?: string, imageBase64?: string,
 ): Promise<string[]> {
   const apiKey = process.env.RUNWARE_API_KEY;
   if (!apiKey) throw new Error("RUNWARE_API_KEY not configured");
@@ -43,6 +43,11 @@ async function generateWithRunware(
     outputFormat: "JPG",
     includeCost: true,
   };
+  // Add reference image for img2img
+  if (imageBase64?.trim()) {
+    task.inputImage = imageBase64.trim();
+    task.strength = 0.65; // how much to follow the reference (0-1)
+  }
   if (negativePrompt?.trim()) task.negativePrompt = negativePrompt.trim();
 
   const res = await fetch("https://api.runware.ai/v1", {
@@ -204,12 +209,12 @@ async function generateWithOpenRouter(
 // ── Unified export ─────────────────────────────────────
 
 export async function generateRunware(
-  prompt: string, model: string, aspectRatio: string, numImages: number, negativePrompt?: string,
+  prompt: string, model: string, aspectRatio: string, numImages: number, negativePrompt?: string, imageBase64?: string,
 ): Promise<string[]> {
-  // 1. Runware (cheapest, sync)
+  // 1. Runware (cheapest, direct, supports aspect ratio + img2img)
   if (process.env.RUNWARE_API_KEY) {
     try {
-      return await generateWithRunware(prompt, model, aspectRatio, numImages, negativePrompt);
+      return await generateWithRunware(prompt, model, aspectRatio, numImages, negativePrompt, imageBase64);
     } catch (e) {
       console.warn("[ai] Runware failed:", (e as Error).message);
     }

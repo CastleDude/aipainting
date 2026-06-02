@@ -78,14 +78,13 @@ async function generateOpenRouter(
       max_tokens: 8192,
     };
 
-    // Enforce aspect ratio through API params + prompt
+    // Seedream: dimensions only work via prompt (chat completions ignores width/height params)
     if (model === "seedream") {
       params.width = dims.width;
       params.height = dims.height;
-      params.size = `${dims.width}x${dims.height}`;
     }
-    const ratioText = `REQUIRED OUTPUT SHAPE: ${aspectRatio} aspect ratio (exactly ${dims.width}x${dims.height} pixels). Do NOT crop to square. If you produce a square 1:1 image, the result is invalid.`;
-    userContent.unshift({ type: "text", text: ratioText });
+    // CRITICAL: embed aspect ratio as part of the scene description, not a meta-instruction
+    userContent.unshift({ type: "text", text: `Create a ${dims.width}x${dims.height} pixel image with a ${aspectRatio} aspect ratio. The final image must be ${aspectRatio} shape.` });
 
     const response = await getOpenRouter().chat.completions.create(params as never);
 
@@ -280,7 +279,7 @@ export async function POST(req: NextRequest) {
       const genFn = async () => {
         let genImages: string[];
         if (RUNWARE_MODELS.has(model)) {
-          genImages = await generateRunware(`${prompt.trim()}${styleHint}. High quality, detailed.`, model, aspectRatio, numImages, negativePrompt);
+          genImages = await generateRunware(`${prompt.trim()}${styleHint}. High quality, detailed.`, model, aspectRatio, numImages, negativePrompt, imageBase64);
         } else {
           const arHint = ``;
           const fullPrompt = `${prompt.trim()}${styleHint}. High quality, detailed.`;
@@ -328,7 +327,7 @@ export async function POST(req: NextRequest) {
 
     const genN = speedMode === "fast" ? 1 : numImages;
     if (RUNWARE_MODELS.has(model)) {
-      images = await generateRunware(`${prompt.trim()}${styleHint}. High quality, detailed.`, model, aspectRatio, genN, negativePrompt);
+      images = await generateRunware(`${prompt.trim()}${styleHint}. High quality, detailed.`, model, aspectRatio, genN, negativePrompt, imageBase64);
     } else {
       // For OpenRouter models, embed aspect ratio in the prompt
       const arHint = ``;
