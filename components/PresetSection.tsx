@@ -834,6 +834,7 @@ function PresetModal({
                     onMouseEnter={() => setHoveredTemplate(tpl.large)}
                   >
                     <img src={tpl.thumb} alt="" className="w-full h-auto rounded-lg" />
+                    {Object.keys(tpl.attrs).length > 0 && (
                     <div className="absolute inset-x-0 bottom-0 rounded-b-lg bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-6 pb-2 px-2 opacity-0 group-hover/tpl:opacity-100 transition-opacity flex justify-center">
                       <button
                         type="button"
@@ -843,6 +844,7 @@ function PresetModal({
                         做同款
                       </button>
                     </div>
+                    )}
                   </div>
                 ))}
               </div>
