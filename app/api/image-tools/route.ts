@@ -148,8 +148,8 @@ async function upscaleWithRealESRGAN(imageDataUrl: string, scale: 2 | 4): Promis
 
 async function imageEditWithOpenRouter(prompt: string, imageDataUrl: string): Promise<string> {
   const response = await getOpenRouter().chat.completions.create({
-    model: "google/gemini-2.5-flash-image",
-    modalities: ["image", "text"],
+    model: "bytedance-seed/seedream-4.5",
+    modalities: ["image"],
     messages: [
       {
         role: "user",

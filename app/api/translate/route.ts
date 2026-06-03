@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { checkContentModeration } from "@/lib/moderation";
 
 let _openrouter: OpenAI | null = null;
 function getOpenRouter(): OpenAI {
@@ -27,6 +28,15 @@ export async function POST(req: NextRequest) {
 
     if (!text?.trim()) {
       return NextResponse.json({ translated: text });
+    }
+
+    // ── Content Moderation ──
+    const modCheck = await checkContentModeration(text.trim());
+    if (modCheck.flagged) {
+      return NextResponse.json(
+        { error: "Content policy violation. This prompt has been flagged by our safety system.", code: "content_moderation" },
+        { status: 400 },
+      );
     }
 
     // Skip if already mostly English

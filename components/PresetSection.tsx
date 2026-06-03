@@ -269,6 +269,121 @@ ${framing} Photorealistic, consistent scale, professional quality.`;
     prompt = prompt.replace("{custom}", ct ? `Additional style instructions (do not render this as text): ${ct}.` : "");
   }
 
+  // Wallpaper
+  if (presetId === "wallpaper") {
+    const styleMap: Record<string, string> = {
+      nature: "nature landscape", abstract: "abstract art", minimal: "minimalist",
+      space: "cosmic space", geometric: "geometric pattern", gradient: "smooth gradient",
+    };
+    const colorMap: Record<string, string> = {
+      auto: "with balanced colors", dark: "in dark tones", light: "in light tones",
+      vibrant: "with vibrant saturated colors", pastel: "with soft pastel colors",
+    };
+    const moodMap: Record<string, string> = {
+      calm: "Calm and serene atmosphere", energetic: "Energetic and dynamic feel", dreamy: "Dreamy and ethereal mood",
+    };
+    prompt = prompt.replace("{style}", styleMap[paramValues["style"]] || styleMap.nature);
+    prompt = prompt.replace("{color_desc}", colorMap[paramValues["color"]] || colorMap.auto);
+    prompt = prompt.replace("{mood_desc}", moodMap[paramValues["mood"]] || moodMap.calm);
+    const ct = paramValues["custom"]?.trim();
+    prompt = prompt.replace("{custom}", ct ? `Additional instructions: ${ct}.` : "");
+  }
+
+  // Logo design
+  if (presetId === "logo_design") {
+    const styleMap: Record<string, string> = {
+      minimal: "minimalist clean", vintage: "vintage retro", tech: "modern tech",
+      handdrawn: "hand-drawn organic", luxury: "luxury premium", geometric: "geometric bold",
+    };
+    const colorMap: Record<string, string> = {
+      auto: "Harmonious color palette", dark: "Dark elegant color scheme", gold: "Gold and black premium palette", blue: "Blue professional color scheme",
+    };
+    prompt = prompt.replace("{brand}", paramValues["brand"] || "Brand");
+    prompt = prompt.replace("{industry}", paramValues["industry"] || "technology");
+    prompt = prompt.replace("{style}", styleMap[paramValues["style"]] || styleMap.minimal);
+    prompt = prompt.replace("{color_desc}", colorMap[paramValues["color"]] || colorMap.auto);
+    const ct = paramValues["custom"]?.trim();
+    prompt = prompt.replace("{custom}", ct ? `Additional instructions: ${ct}.` : "");
+  }
+
+  // Tattoo design
+  if (presetId === "tattoo_design") {
+    const styleMap: Record<string, string> = {
+      traditional: "traditional old-school", tribal: "tribal bold", watercolor: "watercolor artistic",
+      minimalist: "minimalist fine-line", japanese: "Japanese irezumi", geometric: "geometric precise",
+    };
+    const placementMap: Record<string, string> = {
+      arm: "upper arm sleeve", chest: "chest plate", back: "full back", wrist: "wrist band", leg: "leg calf",
+    };
+    const colorMap: Record<string, string> = {
+      bw: "Black ink only, no color", color: "Full color vibrant ink",
+    };
+    prompt = prompt.replace("{theme}", paramValues["theme"] || "custom design");
+    prompt = prompt.replace("{style}", styleMap[paramValues["style"]] || styleMap.traditional);
+    prompt = prompt.replace("{placement}", placementMap[paramValues["placement"]] || placementMap.arm);
+    prompt = prompt.replace("{color_desc}", colorMap[paramValues["color"]] || colorMap.bw);
+    const ct = paramValues["custom"]?.trim();
+    prompt = prompt.replace("{custom}", ct ? `Additional instructions: ${ct}.` : "");
+  }
+
+  // Interior design
+  if (presetId === "interior_design") {
+    const roomMap: Record<string, string> = {
+      living: "living room", bedroom: "bedroom", kitchen: "kitchen", bathroom: "bathroom", office: "home office",
+    };
+    const styleMap: Record<string, string> = {
+      modern: "modern contemporary", minimalist: "minimalist clean", industrial: "industrial loft",
+      scandinavian: "Scandinavian hygge", japandi: "Japandi fusion", luxury: "luxury high-end",
+    };
+    const colorMap: Record<string, string> = {
+      auto: "balanced natural palette", warm: "warm earthy tones", cool: "cool serene tones",
+    };
+    const moodMap: Record<string, string> = {
+      cozy: "Cozy and inviting atmosphere", luxurious: "Luxurious and opulent feel", airy: "Airy and spacious ambiance",
+    };
+    prompt = prompt.replace("{room_type}", roomMap[paramValues["room_type"]] || roomMap.living);
+    prompt = prompt.replace("{style}", styleMap[paramValues["style"]] || styleMap.modern);
+    prompt = prompt.replace("{color_desc}", colorMap[paramValues["color"]] || colorMap.auto);
+    prompt = prompt.replace("{mood_desc}", moodMap[paramValues["mood"]] || moodMap.cozy);
+    const ct = paramValues["custom"]?.trim();
+    prompt = prompt.replace("{custom}", ct ? `Additional instructions: ${ct}.` : "");
+  }
+
+  // Food design
+  if (presetId === "food_design") {
+    const styleMap: Record<string, string> = {
+      overhead: "flat-lay overhead", closeup: "macro close-up", rustic: "rustic farmhouse",
+      fine_dining: "fine dining gourmet", street_food: "street food casual",
+    };
+    const settingMap: Record<string, string> = {
+      wooden_table: "on a rustic wooden table", marble: "on a sleek marble counter", outdoor: "in natural outdoor lighting", restaurant: "in an elegant restaurant setting",
+    };
+    prompt = prompt.replace("{dish}", paramValues["dish"] || "delicious cuisine");
+    prompt = prompt.replace("{style}", styleMap[paramValues["style"]] || styleMap.overhead);
+    prompt = prompt.replace("{setting_desc}", settingMap[paramValues["setting"]] || settingMap.wooden_table);
+    const ct = paramValues["custom"]?.trim();
+    prompt = prompt.replace("{custom}", ct ? `Additional instructions: ${ct}.` : "");
+  }
+
+  // Package design
+  if (presetId === "package_design") {
+    const typeMap: Record<string, string> = {
+      box: "product box", bottle: "bottle", bag: "paper bag", tube: "tube", jar: "glass jar",
+    };
+    const styleMap: Record<string, string> = {
+      modern: "modern sleek", luxury: "luxury premium", eco: "eco-friendly natural", vintage: "vintage classic", minimal: "minimalist clean",
+    };
+    const colorMap: Record<string, string> = {
+      auto: "Balanced color palette", dark: "Dark sophisticated color scheme", light: "Light fresh color scheme",
+    };
+    prompt = prompt.replace("{product}", paramValues["product"] || "product");
+    prompt = prompt.replace("{package_type}", typeMap[paramValues["package_type"]] || typeMap.box);
+    prompt = prompt.replace("{style}", styleMap[paramValues["style"]] || styleMap.modern);
+    prompt = prompt.replace("{color_desc}", colorMap[paramValues["color"]] || colorMap.auto);
+    const ct = paramValues["custom"]?.trim();
+    prompt = prompt.replace("{custom}", ct ? `Additional instructions: ${ct}.` : "");
+  }
+
   return prompt;
 }
 
@@ -437,7 +552,7 @@ function PresetModal({
         {/* Body: left upload + right params */}
         <div className="flex flex-1 overflow-y-auto">
           {/* Left column: upload — hidden for greeting card */}
-          {presetId !== "greeting_card" && (
+          {preset.requiresImage && (
           <div className={`shrink-0 border-r border-border/20 p-4 flex flex-col gap-3 ${(presetId === "product_ad" || presetId === "photo_together") ? "w-[200px]" : "w-[240px]"}`}>
             {preset.requiresImage ? (
               <>
@@ -708,11 +823,11 @@ function PresetModal({
               );
             })}
           </div>
-          {/* Greeting card waterfall templates — right column */}
-          {presetId === "greeting_card" && preset.templates && (
-            <div className="w-[180px] shrink-0 border-l border-border/20 flex flex-col" onMouseLeave={() => setHoveredTemplate(null)}>
+          {/* Waterfall templates — right column for greeting_card + text-to-image presets */}
+          {(presetId === "greeting_card" || !preset.requiresImage) && (
+            <div className={`shrink-0 border-l border-border/20 flex flex-col ${presetId === "greeting_card" ? "w-[180px]" : "w-[200px]"}`} onMouseLeave={() => setHoveredTemplate(null)}>
               <div className="overflow-y-auto overflow-x-hidden flex-1 p-2 flex flex-col gap-1.5">
-                {preset.templates.map((tpl, i) => (
+                {(preset.templates || preset.exampleImages.map((img, i) => ({ thumb: img.thumb, large: img.large, attrs: {} }))).map((tpl: any, i: number) => (
                   <div
                     key={i}
                     className="rounded-lg border border-border/30 group/tpl hover:border-accent/40 transition-colors relative mb-2 break-inside-avoid"
@@ -747,7 +862,7 @@ function PresetModal({
           <div className="flex items-center gap-3">
             <span className="text-[11px] text-text-muted">消耗 <span className="text-accent font-semibold text-sm">{displayCost}</span> {messages.free || "积分"}</span>
             <button
-              onClick={() => handleGenerate(true)}
+              onClick={() => handleGenerate(false)}
               className="rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-2.5 text-sm font-semibold text-white hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg shadow-purple-500/25"
             >
               {messages.generate_btn}
