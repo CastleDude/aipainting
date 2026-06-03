@@ -43,11 +43,11 @@ async function generateWithRunware(
     outputFormat: "JPG",
     includeCost: true,
   };
-  // Add reference image for img2img
+  // Add reference image for img2img (Runware uses rehostedImage)
   if (imageBase64?.trim()) {
-    task.inputImage = imageBase64.trim();
-    task.strength = 0.6; // balanced: enough to see the reference person, enough freedom for composition
-    task.cfgScale = 8;   // prompt adherence
+    task.rehostedImage = imageBase64.trim();
+    task.strength = 0.35; // lower = more faithful to reference (0=exact copy, 1=ignore)
+    task.cfgScale = 3;    // lower = more creative freedom for img2img
     // Negative prompt to prevent unwanted changes
     if (!task.negativePrompt) task.negativePrompt = "";
     task.negativePrompt += " different person, different gender, gender swap, wrong gender, female body, different ethnic";
