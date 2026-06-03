@@ -41,6 +41,8 @@ export default async function HistoryPage({
     save_reminder: t("dashboard.save_reminder"),
     share_limit: t("generate.share_limit"),
     share_similar: t("generate.share_similar"),
+    today: t("history.today"),
+    yesterday: t("history.yesterday"),
   };
 
   return <GenerationHistory locale={locale} messages={messages} />;

@@ -436,7 +436,9 @@
     "select_all": "すべて選択",
     "cancel": "キャンセル",
     "confirm_delete": "選択した履歴を削除してもよろしいですか？",
-    "deleted": "削除しました"
+    "deleted": "削除しました",
+    "today": "今日",
+    "yesterday": "昨日"
   },
   "login_modal": {
     "login": "ログイン",

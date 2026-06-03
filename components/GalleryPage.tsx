@@ -33,7 +33,7 @@ export default function GalleryPage() {
   const [viewerSrc, setViewerSrc] = useState<string | null>(null);
   const [viewerAlt, setViewerAlt] = useState("");
 
-  const limit = 24;
+  const limit = 12;
   const totalPages = Math.ceil(total / limit);
 
   const fetchItems = useCallback(async () => {
@@ -139,17 +139,18 @@ export default function GalleryPage() {
           </div>
         ) : (
           <>
-            <div className="columns-2 sm:columns-3 lg:columns-4 gap-4 space-y-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="break-inside-avoid group relative rounded-xl overflow-hidden border border-border/30 hover:border-accent/40 transition-colors bg-bg-card"
+                  className="group relative rounded-xl overflow-hidden border border-border/30 hover:border-accent/40 transition-colors bg-bg-card aspect-square"
                 >
                   <img
                     src={item.image_url}
                     alt={item.prompt}
-                    className="w-full h-auto"
+                    className="w-full h-full object-cover"
                     loading="lazy"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
                     <p className="text-xs text-white/80 line-clamp-2 mb-2">{item.prompt}</p>

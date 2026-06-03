@@ -436,7 +436,9 @@
     "select_all": "전체 선택",
     "cancel": "취소",
     "confirm_delete": "선택한 기록을 정말 삭제하시겠습니까?",
-    "deleted": "삭제됨"
+    "deleted": "삭제됨",
+    "today": "오늘",
+    "yesterday": "어제"
   },
   "login_modal": {
     "login": "로그인",

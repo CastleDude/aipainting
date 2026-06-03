@@ -398,7 +398,9 @@
     "select_all": "Select All",
     "cancel": "Cancel",
     "confirm_delete": "Are you sure you want to delete the selected records?",
-    "deleted": "Deleted"
+    "deleted": "Deleted",
+    "today": "Today",
+    "yesterday": "Yesterday"
   },
   "login_modal": {
     "login": "Log In",

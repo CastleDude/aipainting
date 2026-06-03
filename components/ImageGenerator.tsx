@@ -307,6 +307,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
   }, []);
 
   const [prompt, setPrompt] = useState("");
+  const presetPromptRef = useRef<string | null>(null); // hidden preset prompt, takes priority when set
   const [negativePrompt, setNegativePrompt] = useState("");
   const [model, setModel] = useState("schnell");
   const [multiplier, setMultiplier] = useState(1);
@@ -359,7 +360,8 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<PresetApplyEvent>).detail;
-      setPrompt(detail.prompt);
+      presetPromptRef.current = detail.prompt;
+      setPrompt(`✦ ${detail.presetId}`);
       setNegativePrompt("");
       setModel(detail.model);
       if (detail.aspectRatio) { setAspectRatio(detail.aspectRatio); pendingAspectRef.current = detail.aspectRatio; }
@@ -433,10 +435,10 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
   };
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) return;
+    if (!presetPromptRef.current && !prompt.trim()) return;
     setError(null);
 
-    let finalPrompt = prompt.trim();
+    let finalPrompt = presetPromptRef.current || prompt.trim();
 
     // Translate to English if toggle is on — shows "Translating..." before generating
     if (translateOn) {
@@ -725,7 +727,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
           <textarea
             ref={promptRef}
             value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
+            onChange={(e) => { presetPromptRef.current = null; setPrompt(e.target.value); }}
             placeholder={messages.prompt_placeholder}
             maxLength={2000}
             onKeyDown={(e) => {
@@ -926,7 +928,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
         <button
           data-generate-btn
           onClick={handleGenerate}
-          disabled={loading || !prompt.trim()}
+          disabled={loading || (!presetPromptRef.current && !prompt.trim())}
           className={cn(
             "h-10 rounded-xl px-8 text-sm font-semibold transition-all flex items-center gap-2",
             loading || !prompt.trim()

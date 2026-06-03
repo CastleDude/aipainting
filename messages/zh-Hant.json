@@ -436,7 +436,9 @@
     "select_all": "選擇所有",
     "cancel": "取消",
     "confirm_delete": "確定要刪除選中的記錄嗎？",
-    "deleted": "已刪除"
+    "deleted": "已刪除",
+    "today": "今天",
+    "yesterday": "昨天"
   },
   "login_modal": {
     "login": "登入",
