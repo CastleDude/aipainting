@@ -23,7 +23,7 @@ function getModerationUrl(apiKey: string): string {
  * Screen a prompt against Creem's Moderation API.
  *
  * - decision "allow" → pass
- * - decision "flag" or "deny" → block (Creem recommends blocking flag)
+ * - decision "flag" or "deny" → block (Creem requires blocking both)
  * - API unreachable → fail closed in production, fail open in dev
  */
 export async function checkContentModeration(
@@ -99,7 +99,7 @@ export async function checkContentModeration(
       return { flagged: false };
     }
 
-    // "flag" or "deny" → block
+    // "flag" or "deny" → block (Creem compliance requirement)
     console.warn(`[moderation] Prompt blocked — decision: ${decision}`);
     return {
       flagged: true,
