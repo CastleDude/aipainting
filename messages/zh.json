@@ -52,7 +52,7 @@
   "presets": {
     "title": "个性定制", "subtitle": "一键模板，快速出图——只需上传或描述，剩下的交给我们",
     "start_btn": "开始", "generate_btn": "开始制作", "upload_hint": "上传照片", "credit_multiplier": "[[COUNT]]倍积分",
-    "random_btn": "随机抽卡", "random_cost": "消耗 [[COUNT]] 积分", "custom_prompt_priority": "自定义提示词优先", "free": "积分",
+    "random_btn": "随机抽卡", "random_cost": "消耗 [[COUNT]] 积分", "custom_prompt_priority": "自定义提示词优先", "free": "积分", "no_upload_needed": "无需上传图片", "upload_qr": "上传二维码", "recommend_greeting": "推荐贺词", "ai_analyzing": "AI识别中...", "ai_recommend_btn": "AI识别推荐 (1积分)", "age_journey_hint": "选择一个年龄看穿越效果", "age_selected": "已选 [[COUNT]] 个年龄段，将生成跨代合影", "age_switch_hint": "多人合影自动切换为横版 16:9", "show_more": "更多选项 ▼", "show_less": "收起更多选项 ▲", "use_this_style": "做同款", "reset_params": "重置属性", "cost": "消耗", "credits": "积分", "age_labels": { "0_3": "0-3岁", "4_12": "4-12岁", "13_19": "13-19岁", "20_35": "20-35岁", "36_50": "36-50岁", "51_65": "51-65岁", "66_80": "66-80岁", "81_plus": "80岁以上" }, "ad_copies": "限时优惠，错过再等一年！立即下单享受惊喜折扣！|||品质之选，值得信赖。百万用户的一致选择！|||新品首发，引领潮流！为你的生活增添一份精彩。|||专业品质，平民价格。超高性价比，不容错过！|||好物不贵，精致生活从这里开始。立即抢购！|||热销爆款，好评如潮！你值得拥有的品质好物。|||限时特惠，全场满减！快来选购你的心仪好物！|||来自匠心之作，每一件都是艺术品。送给最懂生活的你。|||口碑好物，复购率超高！用过都说好的品质保证。|||独家定制，限量发售！为特别的你准备特别的礼物。",
     "ratio_1x1": "正方形 1:1", "ratio_4x3": "标准 4:3", "ratio_16x9": "宽屏 16:9", "ratio_9x16": "竖屏 9:16",
     "ratio_3x4": "竖版 3:4", "ratio_2x3": "海报 2:3", "ratio_3x2": "横版 3:2", "ratio_21x9": "超宽 21:9",
     "photo_restoration": {

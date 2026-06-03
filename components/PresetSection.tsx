@@ -5,26 +5,6 @@ import { PRESETS, getPreset } from "@/lib/presets";
 import type { ExampleImage } from "@/lib/presets";
 import { getRandomGreeting } from "@/lib/greetings";
 
-// ── Product ad copy suggestions ──
-const AD_COPIES = [
-  "限时优惠，错过再等一年！立即下单享受惊喜折扣！",
-  "品质之选，值得信赖。百万用户的一致选择！",
-  "新品首发，引领潮流！为你的生活增添一份精彩。",
-  "专业品质，平民价格。超高性价比，不容错过！",
-  "好物不贵，精致生活从这里开始。立即抢购！",
-  "热销爆款，好评如潮！你值得拥有的品质好物。",
-  "限时特惠，全场满减！快来选购你的心仪好物！",
-  "来自匠心之作，每一件都是艺术品。送给最懂生活的你。",
-  "口碑好物，复购率超高！用过都说好的品质保证。",
-  "独家定制，限量发售！为特别的你准备特别的礼物。",
-];
-let _adCopyIdx = 0;
-function getRandomAdCopy(): string {
-  const copy = AD_COPIES[_adCopyIdx % AD_COPIES.length];
-  _adCopyIdx = (_adCopyIdx + 1) % AD_COPIES.length;
-  return copy;
-}
-
 // ── AI product recognition via Gemini Vision ──
 async function analyzeProductImage(imageBase64: string): Promise<{ title: string; copy: string; points: string } | null> {
   try {
@@ -71,6 +51,22 @@ interface PresetSectionMessages {
   random_cost: string;
   custom_prompt_priority: string;
   free: string;
+  no_upload_needed: string;
+  upload_qr: string;
+  recommend_greeting: string;
+  ai_analyzing: string;
+  ai_recommend_btn: string;
+  age_journey_hint: string;
+  age_selected: string;
+  age_switch_hint: string;
+  show_more: string;
+  show_less: string;
+  use_this_style: string;
+  reset_params: string;
+  cost: string;
+  credits: string;
+  age_labels: Record<string, string>;
+  ad_copies: string[];
   presets: Record<string, { name: string; desc: string; params?: Record<string, string>; holidays?: Record<string, string> }>;
 }
 
@@ -191,12 +187,9 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>, sele
     const framingMap: Record<string, string> = { head: "Close-up headshot portrait.", bust: "Upper body bust portrait.", full: "Full body portrait." };
     const framing = framingMap[paramValues["framing"]] || framingMap.head;
     prompt = prompt.replace("{framing_desc}", framing);
-    const sourceAge = paramValues["source_age"]?.trim();
-    const sourceHint = sourceAge ? `The person in the uploaded photo is approximately ${sourceAge} years old. ` : "";
     if (ages.length <= 1) {
-      prompt = prompt.replace("{age}", ages[0] || "child");
+      prompt = prompt.replace("{age}", ages[0] || "adult");
       prompt = prompt.replace("{bg_desc}", bgMap[paramValues["background"]] || bgMap.auto);
-      prompt = sourceHint + prompt;
     } else {
       const compositions = [
         "seated casually on a comfortable sofa, some on the floor in front, relaxed and natural",
@@ -210,7 +203,7 @@ function buildPrompt(presetId: string, paramValues: Record<string, string>, sele
       ];
       const comp = compositions[Math.floor(Math.random() * compositions.length)];
       const ageList = ages.map((a) => `a ${a}-year-old version`).join(", ");
-      prompt = `${sourceHint}IMPORTANT: The uploaded photo shows a real person. Study their unique facial features carefully — face shape, eye shape, nose bridge, lip shape, jawline, cheekbone structure, skin tone, ethnicity and gender. These are the permanent identity markers that remain recognizable at any age.
+      prompt = `IMPORTANT: The uploaded photo shows a real person. Study their unique facial features carefully — face shape, eye shape, nose bridge, lip shape, jawline, cheekbone structure, skin tone, ethnicity and gender. These are the permanent identity markers that remain recognizable at any age.
 
 Now create a group portrait with ${ages.length} versions of THIS EXACT SAME PERSON at different ages. Composition: ${comp}. Ages in the photo: ${ageList}.
 
@@ -577,7 +570,7 @@ function PresetModal({
                       </div>
                     ) : (
                       <button onClick={() => qrInputRef.current?.click()} className="w-full rounded-lg border border-dashed border-border/50 hover:border-accent/40 flex items-center justify-center gap-1 py-2 text-[10px] text-text-muted hover:text-accent transition-colors">
-                        + 上传二维码
+                        + {messages.upload_qr}
                       </button>
                     )}
                     <input ref={qrInputRef} type="file" accept="image/*" onChange={(e) => {
@@ -608,7 +601,7 @@ function PresetModal({
             ) : (
               <div className="flex flex-col gap-2 w-full">
                 <div className="rounded-xl border-2 border-dashed border-border/30 p-4 flex items-center justify-center text-xs text-text-muted w-full" style={{ height: 260 }}>
-                  <p className="text-center">无需上传图片</p>
+                  <p className="text-center">{messages.no_upload_needed}</p>
                 </div>
                 <button onClick={handleRandom}
                   className="w-full rounded-lg border border-dashed border-amber-500/40 bg-amber-500/5 px-3 py-2 text-xs font-medium text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/60 transition-all flex items-center justify-center gap-2">
@@ -657,7 +650,7 @@ function PresetModal({
                       {param.id === "message" && (
                         <button type="button" onClick={() => setParam("message", getRandomGreeting(paramValues["holiday"] || "general"))}
                           className="absolute right-1 top-1 rounded-md bg-accent/10 px-2 py-1 text-[10px] text-accent hover:bg-accent/20 transition-colors">
-                          🎲 推荐贺词
+                          🎲 {messages.recommend_greeting}
                         </button>
                       )}
                     </div>
@@ -683,8 +676,8 @@ function PresetModal({
                     {param.id === "source_age" && presetId === "age_journey" && (
                       <div className="flex flex-wrap gap-1 mt-1">
                         {[
-                          { v:"0", label:"0-3岁" },{ v:"4", label:"4-12岁" },{ v:"13", label:"13-19岁" },{ v:"20", label:"20-35岁" },
-                          { v:"36", label:"36-50岁" },{ v:"51", label:"51-65岁" },{ v:"66", label:"66-80岁" },{ v:"81", label:"80岁以上" },
+                          { v:"0", label:messages.age_labels["0_3"] },{ v:"4", label:messages.age_labels["4_12"] },{ v:"13", label:messages.age_labels["13_19"] },{ v:"20", label:messages.age_labels["20_35"] },
+                          { v:"36", label:messages.age_labels["36_50"] },{ v:"51", label:messages.age_labels["51_65"] },{ v:"66", label:messages.age_labels["66_80"] },{ v:"81", label:messages.age_labels["81_plus"] },
                         ].map((item) => (
                           <button key={item.v} type="button" onClick={() => setParam("source_age", item.v)}
                             className={`rounded-md border px-2 py-0.5 text-[10px] transition-colors ${paramValues["source_age"] === item.v ? "border-accent bg-accent/10 text-accent" : "border-border/50 text-text-muted hover:border-border"}`}>
@@ -696,9 +689,9 @@ function PresetModal({
                     {param.id === "title" && presetId === "product_ad" && (
                       <button type="button" onClick={async () => {
                         if (!imageBase64) return;
-                        setParam("title", "AI识别中...");
-                        setParam("copy", "AI识别中...");
-                        setParam("points", "AI识别中...");
+                        setParam("title", messages.ai_analyzing);
+                        setParam("copy", messages.ai_analyzing);
+                        setParam("points", messages.ai_analyzing);
                         const result = await analyzeProductImage(imageBase64);
                         if (result) {
                           setParam("title", result.title);
@@ -707,7 +700,7 @@ function PresetModal({
                         }
                       }}
                         className="absolute right-1 top-1 rounded-md bg-gradient-to-r from-purple-500/20 to-blue-500/20 px-2 py-1 text-[10px] text-accent hover:from-purple-500/30 hover:to-blue-500/30 transition-colors">
-                        AI识别推荐 (1积分)
+                        {messages.ai_recommend_btn}
                       </button>
                     )}
                     </div>
@@ -749,11 +742,11 @@ function PresetModal({
                       })}
                     </div>
                     {selectedAges.length <= 1 ? (
-                      <p className="mt-1 text-[10px] text-text-muted">选择一个年龄看穿越效果</p>
+                      <p className="mt-1 text-[10px] text-text-muted">{messages.age_journey_hint}</p>
                     ) : (
                       <div className="mt-1 text-[10px]">
-                        <p className="text-accent">已选 {selectedAges.length} 个年龄段，将生成跨代合影</p>
-                        <p className="text-text-muted">多人合影自动切换为横版 16:9</p>
+                        <p className="text-accent">{messages.age_selected.replace("[[COUNT]]", String(selectedAges.length))}</p>
+                        <p className="text-text-muted">{messages.age_switch_hint}</p>
                       </div>
                     )}
                   </div>
@@ -787,7 +780,7 @@ function PresetModal({
                   {isRatioForProductAd && (
                     <button type="button" onClick={() => setShowMore(!showMore)}
                       className="mt-1 text-[11px] text-accent hover:underline">
-                      {showMore ? "收起更多选项 ▲" : "更多选项 ▼"}
+                      {showMore ? messages.show_less : messages.show_more}
                     </button>
                   )}
                 </div>
@@ -812,7 +805,7 @@ function PresetModal({
                         onClick={() => applyTemplate(tpl.attrs)}
                         className="cursor-pointer rounded-md bg-white/25 backdrop-blur-sm px-3 py-1.5 text-[10px] font-semibold text-white hover:bg-accent hover:scale-105 transition-all"
                       >
-                        做同款
+                        {messages.use_this_style}
                       </button>
                     </div>
                     )}
@@ -830,10 +823,10 @@ function PresetModal({
             onClick={resetParams}
             className="rounded-lg border border-border/50 px-3 py-2 text-[11px] text-text-muted hover:text-text-primary hover:border-border transition-colors"
           >
-            重置属性
+            {messages.reset_params}
           </button>
           <div className="flex items-center gap-3">
-            <span className="text-[11px] text-text-muted">消耗 <span className="text-accent font-semibold text-sm">{displayCost}</span> {messages.free || "积分"}</span>
+            <span className="text-[11px] text-text-muted">{messages.cost} <span className="text-accent font-semibold text-sm">{displayCost}</span> {messages.free || messages.credits}</span>
             <button
               onClick={() => handleGenerate(false)}
               className="rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-2.5 text-sm font-semibold text-white hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg shadow-purple-500/25"
