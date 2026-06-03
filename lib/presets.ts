@@ -437,7 +437,7 @@ export const PRESETS: Preset[] = [
     ],
     requiresImage: true,
     promptTemplate:
-      "Transform this person's photo to show what they would look like at age {age}. {framing_desc} Preserve their core facial features and identity. HAIR: give them age-appropriate hair — babies have fine soft hair, children cute styles, teens trendy, adults mature, seniors gray/thinning with natural hairlines. Background: {bg_desc}. Natural, realistic transformation, high quality portrait photography. {custom}",
+      "Transform this person's photo to show what they would look like at age {age}. {framing_desc} CRITICAL: This is the SAME PERSON at a different age. You MUST preserve: 1) their EXACT gender — NEVER swap male to female or vice versa, 2) their facial bone structure and identity, 3) their ethnic appearance. HAIR: give them age-appropriate hair — babies have fine soft hair, children cute styles, teens trendy, adults mature, seniors gray/thinning with natural hairlines. Background: {bg_desc}. Natural transformation, high quality portrait photography. {custom}",
     defaultModel: "flux-dev",
     defaultNumImages: 1,
     baseCost: 2,
