@@ -43,11 +43,17 @@ async function generateWithRunware(
     outputFormat: "JPG",
     includeCost: true,
   };
-  // Add reference image for img2img (Runware uses rehostedImage)
+  // Add reference image for img2img via ControlNet
   if (imageBase64?.trim()) {
-    task.rehostedImage = imageBase64.trim();
-    task.strength = 0.8; // higher = more faithful to reference (0=ignore, 1=exact copy)
-    task.cfgScale = 1.5; // minimal prompt override for faithful img2img
+    const cleanB64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+    task.controlNet = [{
+      model: "civitai:133005@782002", // SDXL controlnet
+      weight: 0.85,
+      guideImage: cleanB64,
+      preprocessor: "canny",
+      startStep: 0,
+      endStep: 0.8,
+    }];
   }
   if (negativePrompt?.trim()) task.negativePrompt = negativePrompt.trim();
 
