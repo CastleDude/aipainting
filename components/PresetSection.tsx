@@ -408,13 +408,10 @@ function PresetModal({
   const reopenImage = lastReopenImage;
   const [imageBase64, setImageBase64] = useState<string | null>(reopenImage);
   const [imagePreview, setImagePreview] = useState<string | null>(reopenImage);
-  const [imageBase64_2, setImageBase64_2] = useState<string | null>(null);
-  const [imagePreview_2, setImagePreview_2] = useState<string | null>(null);
   const [qrImageBase64, setQrImageBase64] = useState<string | null>(null);
   const [qrPreview, setQrPreview] = useState<string | null>(null);
   const [paramValues, setParamValues] = useState<Record<string, string>>(cached);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const fileInputRef2 = useRef<HTMLInputElement>(null);
   const qrInputRef = useRef<HTMLInputElement>(null);
   lastReopenImage = null; // consume the cached image
 
@@ -478,7 +475,7 @@ function PresetModal({
   const setParam = setParamAndCache;
 
   const handleGenerate = (autoGen: boolean) => {
-    const prompt = buildPrompt(presetId, paramValues, selectedAges, imageBase64_2);
+    const prompt = buildPrompt(presetId, paramValues, selectedAges, null);
     const ratio = paramValues["ratio"] || preset.defaultAspectRatio;
     // Map card style for ImageGenerator's style field
     let style: string | undefined;
@@ -505,7 +502,6 @@ function PresetModal({
       numImages: 1,
       multiplier: effectiveCost,
       imageBase64,
-      imageBase64_2: imageBase64_2 || null,
       requiresImage: preset.requiresImage,
       autoGenerate: autoGen,
     });
@@ -553,17 +549,17 @@ function PresetModal({
         <div className="flex flex-1 overflow-y-auto">
           {/* Left column: upload — hidden for greeting card */}
           {preset.requiresImage && (
-          <div className={`shrink-0 border-r border-border/20 p-4 flex flex-col gap-3 ${(presetId === "product_ad" || presetId === "photo_together") ? "w-[200px]" : "w-[240px]"}`}>
+          <div className="shrink-0 border-r border-border/20 p-4 flex flex-col gap-3 w-[240px]">
             {preset.requiresImage ? (
               <>
                 {/* Main image — square */}
                 {imagePreview ? (
-                  <div className={`relative mx-auto ${(presetId === "product_ad" || presetId === "photo_together") ? "w-[160px] h-[160px]" : "w-full aspect-square"}`}>
+                  <div className="relative mx-auto w-full aspect-square">
                     <img src={imagePreview} alt="Preview" className="w-full h-full object-cover bg-bg-secondary rounded-lg" />
                     <button onClick={() => { setImagePreview(null); setImageBase64(null); }} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px] hover:bg-red-500">✕</button>
                   </div>
                 ) : (
-                  <button onClick={() => fileInputRef.current?.click()} className={`mx-auto rounded-xl border-2 border-dashed border-border/50 hover:border-accent/40 hover:bg-bg-secondary/50 transition-all flex flex-col items-center justify-center gap-2 text-text-muted hover:text-accent cursor-pointer ${(presetId === "product_ad" || presetId === "photo_together") ? "w-[160px] h-[160px]" : "w-full aspect-square"}`}>
+                  <button onClick={() => fileInputRef.current?.click()} className="mx-auto rounded-xl border-2 border-dashed border-border/50 hover:border-accent/40 hover:bg-bg-secondary/50 transition-all flex flex-col items-center justify-center gap-2 text-text-muted hover:text-accent cursor-pointer w-full aspect-square">
                     <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
@@ -571,31 +567,6 @@ function PresetModal({
                   </button>
                 )}
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                {/* Second image — square (product_ad ref / photo_together person 2) */}
-                {(presetId === "product_ad" || presetId === "photo_together") && (
-                  <>
-                    {imagePreview_2 ? (
-                      <div className="relative mx-auto w-[160px] h-[160px]">
-                        <img src={imagePreview_2} alt="Preview" className="w-full h-full object-cover bg-bg-secondary rounded-lg" />
-                        <button onClick={() => { setImagePreview_2(null); setImageBase64_2(null); }} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px] hover:bg-red-500">✕</button>
-                      </div>
-                    ) : (
-                      <button onClick={() => fileInputRef2.current?.click()} className="mx-auto w-[160px] h-[160px] rounded-xl border-2 border-dashed border-border/50 hover:border-accent/40 hover:bg-bg-secondary/50 transition-all flex flex-col items-center justify-center gap-1 text-text-muted hover:text-accent cursor-pointer">
-                        <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                        <span className="text-[10px] text-center px-2">{presetId === "product_ad" ? "参考效果图" : "第二张照片"}</span>
-                      </button>
-                    )}
-                    <input ref={fileInputRef2} type="file" accept="image/*" onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (!file || !file.type.startsWith("image/")) return;
-                      const reader = new FileReader();
-                      reader.onload = () => { const url = reader.result as string; setImagePreview_2(url); setImageBase64_2(url); };
-                      reader.readAsDataURL(file);
-                    }} className="hidden" />
-                  </>
-                )}
                 {/* QR code upload — shown when has_qrcode is yes */}
                 {presetId === "product_ad" && paramValues["has_qrcode"] === "yes" && (
                   <>
@@ -772,7 +743,7 @@ function PresetModal({
                               selected ? "border-accent bg-accent/15 text-accent shadow-sm" :
                               "border-border/50 bg-bg-card text-text-secondary hover:border-border hover:text-text-primary"
                             }`}>
-                            {pm.params?.[o.labelKey] ?? o.value}
+                            {pm.params?.[o.labelKey] ?? pm.params?.[o.labelKey.split(".").pop()!] ?? o.value}
                           </button>
                         );
                       })}
@@ -807,7 +778,7 @@ function PresetModal({
                           }`}
                         >
                           {o.icon && <img src={o.icon} alt="" className="w-8 h-8 rounded object-cover shrink-0" />}
-                          {pm.params?.[o.labelKey] ?? o.value}
+                          {pm.params?.[o.labelKey] ?? pm.params?.[o.labelKey.split(".").pop()!] ?? o.value}
                           {o.extraCost ? <span className="ml-1 text-[10px] text-text-muted">+{o.extraCost}</span> : null}
                         </button>
                       );

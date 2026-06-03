@@ -153,7 +153,16 @@ export default async function ImageToolsPage() {
           }),
         }}
       />
-      <ImageTools messages={toolMessages} />
+      <ImageTools
+        messages={toolMessages}
+        cropPhotoSizes={(() => {
+          const keys = ["1inch","2inch","3inch","5inch","6inch","7inch","8inch","a4","a5"];
+          return keys.map((k) => ({
+            label: t(`image_tools.crop.photo_sizes.${k}`),
+            tip: t(`image_tools.crop.photo_sizes.${k}_tip`),
+          }));
+        })()}
+      />
 
       {/* Showcase — before/after comparison */}
       <section className="mx-auto max-w-[1200px] px-4 pt-16 sm:px-6">
@@ -166,18 +175,10 @@ export default async function ImageToolsPage() {
           </p>
         </div>
 
-        {/* Crop — full-width row: static split left, text right */}
+        {/* Crop — full-width row: image left, text right */}
         <div className="flex flex-col md:flex-row gap-6 mb-6 rounded-xl border border-border/30 bg-bg-card overflow-hidden">
           <div className="relative w-full md:w-1/2 aspect-video shrink-0">
-            <div className="absolute inset-0" style={{ clipPath: "inset(0 50% 0 0)" }}>
-              <img src="/images/1.png" alt="Crop before" className="absolute inset-0 w-full h-full object-cover filter grayscale-[0.6] brightness-75" loading="lazy" />
-              <span className="absolute top-3 left-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white/80 backdrop-blur-sm">{t("image_tools.before")}</span>
-            </div>
-            <div className="absolute inset-0" style={{ clipPath: "inset(0 0 0 50%)" }}>
-              <img src="/images/1.png" alt="Crop after" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-              <span className="absolute top-3 right-3 rounded-full bg-accent/80 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">{t("image_tools.after")}</span>
-            </div>
-            <div className="absolute inset-y-0 left-1/2 w-[2px] bg-white/60 shadow-lg z-10" />
+            <img src="/images/cut.jpg" alt={t("image_tools.tabs.crop")} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-4 pt-14 z-10">
               <p className="text-sm font-semibold text-white">{t("image_tools.tabs.crop")}</p>
               <p className="text-xs text-white/70 mt-0.5">{t("image_tools.descriptions.crop")}</p>
@@ -227,7 +228,8 @@ export default async function ImageToolsPage() {
           </div>
           <div className="w-full md:w-1/2 shrink-0">
             <BeforeAfterSlider
-              img="/images/4.png"
+              imgBefore="/images/changebg1.jpg"
+              imgAfter="/images/changebg2.jpg"
               alt={t("image_tools.tabs.replace_bg")}
               beforeLabel={t("image_tools.before")}
               afterLabel={t("image_tools.after")}
@@ -244,7 +246,7 @@ export default async function ImageToolsPage() {
         <div className="flex flex-col md:flex-row gap-6 mt-8 rounded-xl border border-border/30 bg-bg-card overflow-hidden">
           <div className="w-full md:w-1/2 shrink-0">
             <BeforeAfterSlider
-              imgBefore="/images/smoothb.png"
+              imgBefore="/images/smoothb.jpg"
               imgAfter="/images/smootha.jpg"
               alt={t("image_tools.tabs.smooth")}
               beforeLabel={t("image_tools.before")}

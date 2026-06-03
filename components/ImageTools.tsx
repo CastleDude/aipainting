@@ -56,15 +56,15 @@ const ASPECT_RATIOS = [
 ];
 
 const PHOTO_SIZES = [
-  { label: "1寸", tip: "25×35mm", width: 295, height: 413, ratio: 5 / 7 },
-  { label: "2寸", tip: "35×45mm", width: 413, height: 531, ratio: 7 / 9 },
-  { label: "3寸", tip: "55×84mm", width: 650, height: 992, ratio: 2 / 3 },
-  { label: "5寸", tip: "89×127mm", width: 1050, height: 1500, ratio: 7 / 10 },
-  { label: "6寸", tip: "102×152mm", width: 1200, height: 1800, ratio: 2 / 3 },
-  { label: "7寸", tip: "127×178mm", width: 1500, height: 2100, ratio: 5 / 7 },
-  { label: "8寸", tip: "152×203mm", width: 1800, height: 2400, ratio: 3 / 4 },
-  { label: "A4", tip: "210×297mm", width: 2480, height: 3508, ratio: 210 / 297 },
-  { label: "A5", tip: "148×210mm", width: 1748, height: 2480, ratio: 148 / 210 },
+  { key: "1inch", width: 295, height: 413, ratio: 5 / 7 },
+  { key: "2inch", width: 413, height: 531, ratio: 7 / 9 },
+  { key: "3inch", width: 650, height: 992, ratio: 2 / 3 },
+  { key: "5inch", width: 1050, height: 1500, ratio: 7 / 10 },
+  { key: "6inch", width: 1200, height: 1800, ratio: 2 / 3 },
+  { key: "7inch", width: 1500, height: 2100, ratio: 5 / 7 },
+  { key: "8inch", width: 1800, height: 2400, ratio: 3 / 4 },
+  { key: "a4", width: 2480, height: 3508, ratio: 210 / 297 },
+  { key: "a5", width: 1748, height: 2480, ratio: 148 / 210 },
 ];
 
 function starPath(cx: number, cy: number, outerR: number, innerR: number, points: number, cornerR: number) {
@@ -143,7 +143,7 @@ const BG_COLORS = [
   { color: "transparent", name: "Transparent" },
 ];
 
-export function ImageTools({ messages }: { messages: Messages }) {
+export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; cropPhotoSizes: { label: string; tip: string }[] }) {
   const [tool, setTool] = useState<Tool>("crop");
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [imageName, setImageName] = useState("");
@@ -1925,8 +1925,10 @@ export function ImageTools({ messages }: { messages: Messages }) {
                     {messages.crop_width} × {messages.crop_height} ({messages.crop_px})
                   </label>
                   <div className="grid grid-cols-5 gap-1.5 mb-2">
-                    {PHOTO_SIZES.map((ps) => (
-                      <span key={ps.label} className="group relative">
+                    {PHOTO_SIZES.map((ps, i) => {
+                      const t = cropPhotoSizes[i] ?? { label: ps.key, tip: "" };
+                      return (
+                      <span key={ps.key} className="group relative">
                         <button
                           onClick={() => {
                             setCropW(String(ps.width));
@@ -1954,13 +1956,13 @@ export function ImageTools({ messages }: { messages: Messages }) {
                               : "bg-bg-secondary text-text-secondary hover:text-text-primary",
                           )}
                         >
-                          {ps.label}
+                          {t.label}
                         </button>
                         <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 rounded-md border border-border bg-bg-primary px-2 py-1 text-[11px] text-text-secondary whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 pointer-events-none">
-                          {ps.tip}
+                          {t.tip}
                         </span>
                       </span>
-                    ))}
+                    )})}
                   </div>
                   <div className="flex gap-1.5">
                     <input
