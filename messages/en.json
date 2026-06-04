@@ -40,8 +40,8 @@
         "desc": "Get 20 fast generations every day for free. Upgrade when you need more creative power."
       },
       "rating": {
-        "title": "4.9 Star Rating",
-        "desc": "Trusted by 25,000+ creators worldwide for reliable, high-quality AI image generation."
+        "title": "Community Approved",
+        "desc": "Loved by creators worldwide for fast, high-quality AI image generation."
       },
       "global": {
         "title": "All Regions Access",
@@ -523,7 +523,7 @@
   },
   "testimonials": {
     "title": "Loved by Creators Worldwide",
-    "subtitle": "Join 25,000+ creators who trust AI Painting for their daily creative work"
+    "subtitle": "Join creators worldwide who trust AI Painting for their daily creative work"
   },
   "footer": {
     "copyright": "© 2025 AI Painting. All rights reserved.",

@@ -94,7 +94,7 @@ export function Testimonials({ messages }: { messages?: { title?: string; subtit
           {messages?.title || "Loved by Creators Worldwide"}
         </h2>
         <p className="mt-3 text-text-secondary max-w-2xl mx-auto text-sm leading-relaxed">
-          {messages?.subtitle || "Join 25,000+ creators who trust AI Painting for their daily creative work"}
+          {messages?.subtitle || "Join creators worldwide who trust AI Painting for their daily creative work"}
         </p>
       </div>
 
