@@ -3,6 +3,7 @@ export interface Generation {
   prompt: string;
   model: string;
   image_url: string;
+  thumb_url?: string | null;
   is_public: boolean;
   created_at: string;
 }

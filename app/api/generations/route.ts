@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
 
 function levenshteinRatio(a: string, b: string): number {
   const m = a.length;
@@ -29,6 +28,31 @@ function normalizePrompt(p: string): string {
   return p.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+/** Extract user ID from Supabase auth cookie JWT */
+function getUserIdFromCookies(cookies: { name: string; value: string }[]): string | null {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supabaseUrl) return null;
+  // Auth cookie name: sb-{project-ref}-auth-token
+  const projectRef = supabaseUrl.match(/https:\/\/([^.]+)\./)?.[1];
+  if (!projectRef) return null;
+  const cookieName = `sb-${projectRef}-auth-token`;
+  const cookie = cookies.find((c) => c.name === cookieName);
+  if (!cookie) return null;
+  try {
+    // Auth cookie is a JSON array: [access_token, refresh_token, ...]
+    const parts = JSON.parse(cookie.value);
+    const token = Array.isArray(parts) ? parts[0] : null;
+    if (!token) return null;
+    // Decode JWT payload (base64url)
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    const decoded = JSON.parse(Buffer.from(payload, "base64url").toString());
+    return decoded.sub || null;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(req: NextRequest) {
   // Dev mock mode — return mock data from cookie
   if (process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_DEV_MOCK_USER === "true") {
@@ -38,56 +62,59 @@ export async function GET(req: NextRequest) {
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabaseUrl || !serviceKey) {
     return NextResponse.json({ generations: [] });
   }
 
   try {
-    const supabase = createServerClient(supabaseUrl, supabaseKey, {
-      cookies: {
-        getAll() { return req.cookies.getAll(); },
-        setAll() {},
-      },
-    });
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    // Extract user ID from JWT in auth cookie
+    const userId = getUserIdFromCookies(req.cookies.getAll());
+    if (!userId) {
       return NextResponse.json({ generations: [] });
     }
 
-    const { data } = await supabase
-      .from("generations")
-      .select("id, prompt, model, image_url, thumb_url, is_public, created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(20);
+    // Query directly via REST API with service role (bypasses auth issues)
+    const select = "id,prompt,model,image_url,thumb_url,is_public,created_at";
+    const order = "order=created_at.desc";
+    const limit = "limit=20";
+    const filter = `user_id=eq.${encodeURIComponent(userId)}`;
 
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/generations?select=${select}&${filter}&${order}&${limit}`,
+      {
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+        },
+      }
+    );
+
+    if (!res.ok) {
+      console.error("[generations] Query failed:", res.status, await res.text().catch(() => ""));
+      return NextResponse.json({ generations: [] });
+    }
+
+    const data = await res.json();
     return NextResponse.json({ generations: data || [] });
-  } catch {
+  } catch (e) {
+    console.error("[generations] Error:", e instanceof Error ? e.message : e);
     return NextResponse.json({ generations: [] });
   }
 }
 
 export async function DELETE(req: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabaseUrl || !serviceKey) {
     return NextResponse.json({ error: "Not configured" }, { status: 500 });
   }
 
   try {
-    const supabase = createServerClient(supabaseUrl, supabaseKey, {
-      cookies: {
-        getAll() { return req.cookies.getAll(); },
-        setAll() {},
-      },
-    });
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = getUserIdFromCookies(req.cookies.getAll());
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -96,12 +123,18 @@ export async function DELETE(req: NextRequest) {
     const ids = searchParams.get("ids");
 
     if (id) {
-      // Single delete
-      await supabase.from("generations").delete().eq("id", id).eq("user_id", user.id);
+      await fetch(`${supabaseUrl}/rest/v1/generations?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(userId)}`, {
+        method: "DELETE",
+        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+      });
     } else if (ids) {
-      // Batch delete
       const idList = ids.split(",");
-      await supabase.from("generations").delete().in("id", idList).eq("user_id", user.id);
+      for (const gid of idList) {
+        await fetch(`${supabaseUrl}/rest/v1/generations?id=eq.${encodeURIComponent(gid)}&user_id=eq.${encodeURIComponent(userId)}`, {
+          method: "DELETE",
+          headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+        });
+      }
     } else {
       return NextResponse.json({ error: "Missing id or ids" }, { status: 400 });
     }
@@ -137,22 +170,15 @@ export async function PATCH(req: NextRequest) {
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabaseUrl || !serviceKey) {
     return NextResponse.json({ error: "Not configured" }, { status: 500 });
   }
 
   try {
-    const supabase = createServerClient(supabaseUrl, supabaseKey, {
-      cookies: {
-        getAll() { return req.cookies.getAll(); },
-        setAll() {},
-      },
-    });
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = getUserIdFromCookies(req.cookies.getAll());
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -163,53 +189,44 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Missing id or is_public" }, { status: 400 });
     }
 
-    // Fetch the generation to verify ownership and get its prompt
-    const { data: gen } = await supabase
-      .from("generations")
-      .select("id, prompt, is_public")
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .single();
-
+    // Fetch the generation to verify ownership
+    const res1 = await fetch(
+      `${supabaseUrl}/rest/v1/generations?select=id,prompt,is_public&id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
+      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+    );
+    const [gen] = await res1.json();
     if (!gen) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
     // When sharing to gallery, check daily limit & similarity
     if (is_public && !gen.is_public) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("tier")
-        .eq("id", user.id)
-        .single();
-
+      const resP = await fetch(
+        `${supabaseUrl}/rest/v1/profiles?select=tier&id=eq.${encodeURIComponent(userId)}&limit=1`,
+        { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+      );
+      const [profile] = await resP.json();
       const tier = (profile?.tier as string) || "free";
 
-      // Daily share limit: free = 5/day, paid = unlimited
       if (tier === "free") {
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
-        const { count: todayShares } = await supabase
-          .from("generations")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .eq("is_public", true)
-          .gte("created_at", todayStart.toISOString());
-
-        if (todayShares != null && todayShares >= 5) {
+        const countRes = await fetch(
+          `${supabaseUrl}/rest/v1/generations?select=id&user_id=eq.${encodeURIComponent(userId)}&is_public=eq.true&created_at=gte.${encodeURIComponent(todayStart.toISOString())}&limit=0`,
+          { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, Prefer: "count=exact" } }
+        );
+        const total = parseInt(countRes.headers.get("content-range")?.split("/")[1] || "0");
+        if (total >= 5) {
           return NextResponse.json({ ok: false, code: "share_limit" }, { status: 200 });
         }
       }
 
-      // Prompt similarity dedup — check against own other public prompts
-      const { data: existing } = await supabase
-        .from("generations")
-        .select("prompt")
-        .eq("user_id", user.id)
-        .eq("is_public", true)
-        .neq("id", id)
-        .limit(50);
-
+      // Prompt similarity dedup
+      const dedupRes = await fetch(
+        `${supabaseUrl}/rest/v1/generations?select=prompt&user_id=eq.${encodeURIComponent(userId)}&is_public=eq.true&id=neq.${encodeURIComponent(id)}&limit=50`,
+        { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+      );
+      const existing = await dedupRes.json();
       if (existing?.length) {
         const newNormalized = normalizePrompt(gen.prompt);
         for (const row of existing) {
@@ -220,27 +237,45 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    await supabase
-      .from("generations")
-      .update({ is_public })
-      .eq("id", id)
-      .eq("user_id", user.id);
+    // Update
+    await fetch(
+      `${supabaseUrl}/rest/v1/generations?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(userId)}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify({ is_public }),
+      }
+    );
 
-    // Enforce gallery limit: max 50 public images, delete oldest excess
+    // Enforce gallery limit: max 50 public images
     if (is_public) {
-      const { data: publicIds } = await supabase
-        .from("generations")
-        .select("id")
-        .eq("is_public", true)
-        .order("created_at", { ascending: true })
-        .range(0, 999999);
-
-      if (publicIds && publicIds.length > 50) {
-        const toRemove = publicIds.slice(0, publicIds.length - 50);
-        await supabase
-          .from("generations")
-          .update({ is_public: false })
-          .in("id", toRemove.map((g: { id: string }) => g.id));
+      const pubRes = await fetch(
+        `${supabaseUrl}/rest/v1/generations?select=id&is_public=eq.true&order=created_at.asc`,
+        { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+      );
+      const pubIds = await pubRes.json();
+      if (pubIds && pubIds.length > 50) {
+        const toRemove = pubIds.slice(0, pubIds.length - 50);
+        for (const g of toRemove) {
+          await fetch(
+            `${supabaseUrl}/rest/v1/generations?id=eq.${encodeURIComponent(g.id)}`,
+            {
+              method: "PATCH",
+              headers: {
+                apikey: serviceKey,
+                Authorization: `Bearer ${serviceKey}`,
+                "Content-Type": "application/json",
+                Prefer: "return=minimal",
+              },
+              body: JSON.stringify({ is_public: false }),
+            }
+          );
+        }
       }
     }
 

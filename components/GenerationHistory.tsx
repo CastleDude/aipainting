@@ -366,10 +366,11 @@ export function GenerationHistory({
                           }`}
                         >
                           <img
-                            src={gen.image_url}
+                            src={gen.thumb_url || gen.image_url}
                             alt={gen.prompt}
                             className="w-full aspect-square object-cover cursor-pointer rounded-xl border border-border/30 transition-transform duration-300 group-hover:scale-110"
                             loading="lazy"
+                            decoding="async"
                             onClick={() => handleView(gen.image_url, gen.prompt)}
                           />
                           {/* Selection checkbox */}
