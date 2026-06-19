@@ -38,7 +38,7 @@ export function GenerationHistory({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const { profile, user } = useAuth();
+  const { profile, user, loading: authLoading } = useAuth();
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -55,7 +55,7 @@ export function GenerationHistory({
     setTimeout(() => setToast(null), 3000);
   };
 
-  const authLoading = !mounted || loading;
+  const isAuthReady = mounted && !authLoading;
 
   const fetchGenerations = useCallback(() => {
     if (isDevMock) {
@@ -65,7 +65,7 @@ export function GenerationHistory({
     }
     if (!user) {
       // Auth still loading — keep waiting, don't set empty yet
-      if (authLoading) return;
+      if (!isAuthReady) return;
       setGenerations([]);
       setLoading(false);
       return;
