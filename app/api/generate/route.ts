@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { createServerClient } from "@supabase/ssr";
+
 import { canGenerate, computeDeduction, shouldResetCredits } from "@/lib/credits";
 import { createJob, enqueueJob } from "@/lib/queue";
 import pool, { ensureProfile } from "@/lib/db";
@@ -344,13 +344,8 @@ export async function POST(req: NextRequest) {
     const savedIds: string[] = [];
     if (supabaseUrl && supabaseKey && process.env.NEXT_PUBLIC_DEV_MOCK_USER !== "true") {
       try {
-        const supabase = createServerClient(supabaseUrl, supabaseKey, {
-          cookies: {
-            getAll() { return req.cookies.getAll(); },
-            setAll() {},
-          },
-        });
-        const { data: { user: saveUser } } = await supabase.auth.getUser();
+        const session3 = await auth();
+        const saveUser = session3?.user ? { id: (session3.user as any).id } : null;
         if (saveUser) {
           // Generate thumbnails in background (fire-and-forget)
           const thumbs = await Promise.allSettled(images.map((url) => generateThumbnail(url)));
