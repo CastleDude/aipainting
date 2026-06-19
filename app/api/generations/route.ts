@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
 function levenshteinRatio(a: string, b: string): number {
   const m = a.length;
@@ -62,41 +63,40 @@ export async function GET(req: NextRequest) {
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !serviceKey) {
+  if (!supabaseUrl || !supabaseKey) {
     return NextResponse.json({ generations: [] });
   }
 
   try {
-    // Extract user ID from JWT in auth cookie
-    const userId = getUserIdFromCookies(req.cookies.getAll());
-    if (!userId) {
-      return NextResponse.json({ generations: [] });
-    }
-
-    // Query directly via REST API with service role (bypasses auth issues)
-    const select = "id,prompt,model,image_url,thumb_url,is_public,created_at";
-    const order = "order=created_at.desc";
-    const limit = "limit=20";
-    const filter = `user_id=eq.${encodeURIComponent(userId)}`;
-
-    const res = await fetch(
-      `${supabaseUrl}/rest/v1/generations?select=${select}&${filter}&${order}&${limit}`,
-      {
-        headers: {
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`,
+    // Use exact same cookie auth as generate route
+    const supabase = createServerClient(supabaseUrl, supabaseKey, {
+      cookies: {
+        getAll() {
+          const cookies = req.cookies.getAll();
+          console.log("[generations] cookies found:", cookies.length, cookies.map(c => c.name));
+          return cookies;
         },
-      }
-    );
+        setAll() {},
+      },
+    });
 
-    if (!res.ok) {
-      console.error("[generations] Query failed:", res.status, await res.text().catch(() => ""));
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log("[generations] getUser result:", user ? `user=${user.id}` : "NO USER");
+
+    if (!user) {
       return NextResponse.json({ generations: [] });
     }
 
-    const data = await res.json();
+    const { data } = await supabase
+      .from("generations")
+      .select("id, prompt, model, image_url, thumb_url, is_public, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    console.log("[generations] found:", data?.length || 0, "records");
     return NextResponse.json({ generations: data || [] });
   } catch (e) {
     console.error("[generations] Error:", e instanceof Error ? e.message : e);
