@@ -107,12 +107,13 @@ export async function checkRateLimitAsync(
       return { allowed: false, retryAfter: Math.ceil((entry.resetAt - now) / 1000) };
     }
     entry.count++;
-    persistToDb(storeKey, entry.count, entry.resetAt);
+    try { persistToDb(storeKey, entry.count, entry.resetAt); } catch {}
     return { allowed: true };
   }
 
-  // Slow path: check Supabase
-  const dbEntry = await fetchFromDb(storeKey);
+  // Slow path: check Supabase (gracefully degrade if unreachable)
+  let dbEntry = null;
+  try { dbEntry = await fetchFromDb(storeKey); } catch { /* Supabase unavailable — use in-memory only */ }
   if (dbEntry && now < dbEntry.resetAt) {
     store.set(storeKey, dbEntry);
     if (dbEntry.count >= config.limit) {
