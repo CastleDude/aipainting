@@ -63,7 +63,7 @@ export function GenerationHistory({
     }
     if (!user) return;
     setLoading(true);
-    fetch("/api/generations")
+    fetch(`/api/generations?t=${Date.now()}`)
       .then((r) => r.json())
       .then((d) => setGenerations(d.generations || []))
       .catch(() => {})
