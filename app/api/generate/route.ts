@@ -178,6 +178,10 @@ export async function POST(req: NextRequest) {
     const { prompt, negativePrompt, model = "schnell", aspectRatio = "1:1", numImages = 4, imageBase64, imageBase64_2, isPublic, async: asyncMode, multiplier } = body;
     const creditMultiplier: number = typeof multiplier === "number" && multiplier > 0 ? multiplier : 1;
 
+    // Auth once — reuse throughout the handler
+    const session = await auth();
+    const authUser = session?.user ? { id: (session.user as any).id, email: session.user.email! } : null;
+
     if (!prompt?.trim()) {
       return NextResponse.json({ error: "Please enter a prompt", code: "empty_prompt" }, { status: 400 });
     }
@@ -226,13 +230,10 @@ export async function POST(req: NextRequest) {
     let genUserId: string | undefined;
 
     if (supabaseUrl && supabaseKey && process.env.NEXT_PUBLIC_DEV_MOCK_USER !== "true") {
-      const session = await auth();
-      const user = session?.user ? { id: (session.user as any).id, email: session.user.email! } : null;
-
-      if (user) {
-      genUserId = user.id;
+      if (authUser) {
+      genUserId = authUser.id;
       // Use local PG for profiles
-      const localProfile = await ensureProfile(user.id, user.email);
+      const localProfile = await ensureProfile(authUser.id, authUser.email);
       const tier = localProfile.tier as SubscriptionTier;
       const numToGenerate = numImages || 1;
       const deductCount = computeDeduction(numToGenerate, model, creditMultiplier);
@@ -242,7 +243,7 @@ export async function POST(req: NextRequest) {
       const resetCredits = shouldResetCredits(localProfile.daily_reset_at, tier);
       if (resetCredits !== null) {
         currentCredits = resetCredits;
-        await pool.query("UPDATE profiles SET credits = $1, daily_reset_at = now() WHERE id = $2", [currentCredits, user.id]);
+        await pool.query("UPDATE profiles SET credits = $1, daily_reset_at = now() WHERE id = $2", [currentCredits, authUser.id]);
       }
 
       const result = canGenerate(tier, currentCredits);
@@ -252,8 +253,8 @@ export async function POST(req: NextRequest) {
 
       // Deduct before generating
       currentCredits = Math.max(0, currentCredits - deductCount);
-      await pool.query("UPDATE profiles SET credits = $1, daily_reset_at = COALESCE(daily_reset_at, now()) WHERE id = $2", [currentCredits, user.id]);
-      await pool.query("INSERT INTO credit_logs (id, user_id, amount, reason) VALUES ($1, $2, $3, $4)", [`gen_${Date.now()}_${user.id.slice(0, 8)}`, user.id, -deductCount, `Generate ${numToGenerate} image(s) [${model}] — ${tier}`]);
+      await pool.query("UPDATE profiles SET credits = $1, daily_reset_at = COALESCE(daily_reset_at, now()) WHERE id = $2", [currentCredits, authUser.id]);
+      await pool.query("INSERT INTO credit_logs (id, user_id, amount, reason) VALUES ($1, $2, $3, $4)", [`gen_${Date.now()}_${authUser.id.slice(0, 8)}`, authUser.id, -deductCount, `Generate ${numToGenerate} image(s) [${model}] — ${tier}`]);
       creditResult = { credits: currentCredits };
     }
     }
@@ -283,8 +284,7 @@ export async function POST(req: NextRequest) {
         const savedIds: string[] = [];
         if (supabaseUrl && supabaseKey && process.env.NEXT_PUBLIC_DEV_MOCK_USER !== "true") {
           try {
-            const session2 = await auth();
-            const saveUser = session2?.user ? { id: (session2.user as any).id } : null;
+            const saveUser = authUser?.id ? { id: authUser.id } : null;
             if (saveUser) {
               const genThumbs = await Promise.allSettled(genImages.map((url) => generateThumbnail(url)));
               const genThumbMap = new Map(genImages.map((url, i) => [url, genThumbs[i]?.status === "fulfilled" ? genThumbs[i].value : null] as const));
@@ -344,8 +344,7 @@ export async function POST(req: NextRequest) {
     const savedIds: string[] = [];
     if (supabaseUrl && supabaseKey && process.env.NEXT_PUBLIC_DEV_MOCK_USER !== "true") {
       try {
-        const session3 = await auth();
-        const saveUser = session3?.user ? { id: (session3.user as any).id } : null;
+        const saveUser = authUser?.id ? { id: authUser.id } : null;
         if (saveUser) {
           // Generate thumbnails in background (fire-and-forget)
           const thumbs = await Promise.allSettled(images.map((url) => generateThumbnail(url)));
