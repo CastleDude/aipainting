@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
-import { TIER_CONFIG } from "@/lib/credits";
+import { getTierConfig } from "@/lib/credits";
 import { getMockGenerations, toggleMockGenerationPublic } from "@/lib/generations";
 import { ImageViewer } from "@/components/ImageViewer";
 import type { Generation } from "@/lib/generations";
@@ -97,22 +97,11 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
   }
 
   const tier = profile.tier;
-  const tierConfig = TIER_CONFIG[tier as keyof typeof TIER_CONFIG] ?? TIER_CONFIG.free;
-  const isFree = tier === "free";
-
-  const dailyLimit = TIER_CONFIG.free.dailyCredits;
-  const dailyUsed = profile.daily_used ?? 0;
-  const dailyRemaining = Math.max(0, dailyLimit - dailyUsed);
-  const dailyPct = Math.min(100, (dailyUsed / dailyLimit) * 100);
-
-  const toolsDailyLimit = 20;
-  const toolsDailyUsed = profile.tools_daily_used ?? 0;
-  const toolsDailyRemaining = Math.max(0, toolsDailyLimit - toolsDailyUsed);
-  const toolsDailyPct = Math.min(100, (toolsDailyUsed / toolsDailyLimit) * 100);
-
-  const monthlyCredits = isFree ? null : tierConfig.monthlyCredits;
-  const monthlyUsed = isFree ? null : Math.max(0, (monthlyCredits ?? 0) - profile.credits);
-  const monthlyPct = monthlyCredits ? Math.min(100, ((monthlyUsed ?? 0) / monthlyCredits) * 100) : 0;
+  const tierConfig = getTierConfig(tier);
+  const credits = profile.credits ?? 0;
+  const monthlyCredits = tierConfig.monthlyCredits;
+  const monthlyUsed = Math.max(0, monthlyCredits - credits);
+  const monthlyPct = monthlyCredits ? Math.min(100, (monthlyUsed / monthlyCredits) * 100) : 0;
 
   const handleTogglePublic = async (id: string) => {
     if (isDevMock) {
@@ -169,62 +158,29 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
             {/* Credit usage card */}
             <div className="rounded-xl border border-border/50 bg-bg-card p-6">
               <h2 className="mb-4 text-lg font-semibold text-text-primary">
-                {isFree ? messages.daily_usage : messages.monthly_credits}
+                {messages.monthly_credits || "Monthly Credits"}
               </h2>
 
-              {/* Image generation usage bar */}
+              {/* Unified credits usage bar */}
               <div className="mb-4">
                 <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-text-muted">{isFree ? messages.images_today : messages.images_this_month}</span>
+                  <span className="text-text-muted">{messages.images_this_month || "This month"}</span>
                   <span className="text-text-secondary font-medium">
-                    {isFree
-                      ? `${dailyUsed} / ${dailyLimit} ${messages.used}`
-                      : `${monthlyUsed} / ${monthlyCredits} ${messages.used}`}
+                    {monthlyUsed} / {monthlyCredits} {messages.used || "used"}
                   </span>
                 </div>
                 <div className="h-3 rounded-full bg-bg-primary/70 border border-border/50 overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all duration-500 min-w-[2px] ${
-                      isFree
-                        ? dailyPct > 80
-                          ? "bg-red-500"
-                          : "bg-accent"
-                        : "bg-gradient-to-r from-purple-500 to-blue-500"
-                    }`}
-                    style={{ width: `${Math.max(isFree ? dailyPct : monthlyPct, 1)}%` }}
+                    className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500 min-w-[2px]"
+                    style={{ width: `${Math.max(monthlyPct, 1)}%` }}
                   />
                 </div>
                 <p className="mt-2 text-xs text-text-muted">
-                  {isFree
-                    ? `${dailyRemaining} ${messages.remaining}`
-                    : `${profile.credits} ${messages.remaining}`}
+                  {credits} {messages.remaining || "remaining"}
                 </p>
               </div>
 
-              {/* Image tools usage bar (free tier only) */}
-              {isFree && (
-                <div className="mb-4 pt-4 border-t border-border/30">
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-text-muted">{messages.tools_daily_usage || "Image Tools Daily"}</span>
-                    <span className="text-text-secondary font-medium">
-                      {toolsDailyUsed} / {toolsDailyLimit} {messages.used}
-                    </span>
-                  </div>
-                  <div className="h-3 rounded-full bg-bg-primary/70 border border-border/50 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 min-w-[2px] ${
-                        toolsDailyPct > 80 ? "bg-red-500" : "bg-accent"
-                      }`}
-                      style={{ width: `${Math.max(toolsDailyPct, 1)}%` }}
-                    />
-                  </div>
-                  <p className="mt-2 text-xs text-text-muted">
-                    {toolsDailyRemaining} {messages.remaining}
-                  </p>
-                </div>
-              )}
-
-              {isFree && (
+              {tier === "free" && (
                 <div className="mt-4 rounded-lg bg-accent/5 border border-accent/20 p-4">
                   <p className="text-sm text-text-secondary">{messages.upgrade_to_unlock}</p>
                   <a
@@ -395,7 +351,7 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
                 ))}
               </ul>
 
-              {!isFree && (
+              {tier !== "free" && (
                 <div className="mt-4 pt-4 border-t border-border/50">
                   <button
                     type="button"

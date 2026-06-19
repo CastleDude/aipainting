@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { createServerClient } from "@supabase/ssr";
-import { canGenerate, getDeductFields, getCreditCount } from "@/lib/credits";
+import { canGenerate, computeDeduction, shouldResetCredits } from "@/lib/credits";
 import { createJob, enqueueJob } from "@/lib/queue";
 import type { SubscriptionTier } from "@/lib/supabase";
 import { STYLE_PROMPTS, RUNWARE_MODELS } from "@/lib/openrouter";
@@ -32,6 +32,7 @@ async function describeImage(base64: string): Promise<string | null> {
   } catch (e) { console.warn("[describeImage]", (e as Error).message); return null; }
 }
 import { generateRunware } from "@/lib/runware";
+import { generateThumbnail } from "@/lib/thumbnail";
 
 // ── Config ──────────────────────────────────────────────
 
@@ -39,7 +40,6 @@ const OPENROUTER_MODELS: Record<string, { id: string; modalities: string[] }> = 
   seedream: { id: "bytedance-seed/seedream-4.5", modalities: ["image"] },
   "nano-banana": { id: "google/gemini-2.5-flash-image", modalities: ["image", "text"] },
   "nano-banana2": { id: "google/gemini-3.1-flash-image-preview", modalities: ["image", "text"] },
-  "banana-pro": { id: "google/gemini-3-pro-image-preview", modalities: ["image", "text"] },
   "gpt-image": { id: "openai/gpt-5-image-mini", modalities: ["image", "text"] },
   "gpt-image-pro": { id: "openai/gpt-5-image", modalities: ["image", "text"] },
 };
@@ -173,7 +173,7 @@ function classifyError(status: number, message: string) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { prompt, negativePrompt, model = "schnell", aspectRatio = "1:1", numImages = 4, speedMode, imageBase64, imageBase64_2, isPublic, async: asyncMode, multiplier } = body;
+    const { prompt, negativePrompt, model = "schnell", aspectRatio = "1:1", numImages = 4, imageBase64, imageBase64_2, isPublic, async: asyncMode, multiplier } = body;
     const creditMultiplier: number = typeof multiplier === "number" && multiplier > 0 ? multiplier : 1;
 
     if (!prompt?.trim()) {
@@ -205,19 +205,17 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Credit check (skip if Supabase not configured) ──
-    let creditResult: { daily_used?: number; credits?: number } | undefined;
+    let creditResult: { credits?: number } | undefined;
 
     // Dev mock mode — request-scoped credit tracking via cookie
     if (process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_DEV_MOCK_USER === "true") {
-      const numToGenerate = speedMode === "fast" ? 1 : (numImages || 1);
-      const deductCount = numToGenerate * creditMultiplier;
-      // Read current daily_used from cookie to persist across requests
-      const cookieName = "mock_daily_used";
+      const numToGenerate = numImages || 1;
+      const deductCount = computeDeduction(numToGenerate, model, creditMultiplier);
+      const cookieName = "mock_credits";
       const cookieVal = req.cookies.get(cookieName)?.value;
-      let dailyUsed = parseInt(cookieVal || "0", 10) || 0;
-      dailyUsed += deductCount;
-      creditResult = { daily_used: dailyUsed };
-      // Will set cookie in response
+      let mockCredits = parseInt(cookieVal || "10", 10) || 10;
+      mockCredits = Math.max(0, mockCredits - deductCount);
+      creditResult = { credits: mockCredits };
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -239,27 +237,27 @@ export async function POST(req: NextRequest) {
       genUserId = user.id;
       const { data: profile } = await supabase
         .from("profiles")
-        .select("id, tier, credits, daily_used, daily_reset_at")
+        .select("id, tier, credits, daily_reset_at")
         .eq("id", user.id)
         .single();
 
       if (profile) {
         const tier = profile.tier as SubscriptionTier;
-        const numToGenerate = speedMode === "fast" ? 1 : (numImages || 1);
-        const deductCount = numToGenerate * creditMultiplier;
+        const numToGenerate = numImages || 1;
+        const deductCount = computeDeduction(numToGenerate, model, creditMultiplier);
         let currentCredits = profile.credits;
-        let currentDailyUsed = profile.daily_used;
 
-        // Check daily reset for free users
-        if (tier === "free" && profile.daily_reset_at) {
-          const resetAt = new Date(profile.daily_reset_at as unknown as string);
-          if (resetAt < new Date(Date.now() - 24 * 60 * 60 * 1000)) {
-            await supabase.from("profiles").update({ daily_used: 0, daily_reset_at: new Date().toISOString() }).eq("id", user.id);
-            currentDailyUsed = 0;
-          }
+        // Monthly credit reset
+        const resetCredits = shouldResetCredits(profile.daily_reset_at as string | null, tier);
+        if (resetCredits !== null) {
+          currentCredits = resetCredits;
+          await supabase.from("profiles").update({
+            credits: currentCredits,
+            daily_reset_at: new Date().toISOString(),
+          }).eq("id", user.id);
         }
 
-        const result = canGenerate(tier, currentCredits, currentDailyUsed);
+        const result = canGenerate(tier, currentCredits);
         if (!result.allowed) {
           return NextResponse.json(
             { error: result.reason, code: "credit_exhausted" },
@@ -268,30 +266,20 @@ export async function POST(req: NextRequest) {
         }
 
         // Deduct before generating to prevent double-spend
-        const deduct = getDeductFields(tier, deductCount);
-        if (Object.keys(deduct).length > 0) {
-          const updates: Record<string, number> = {};
-          if (deduct.daily_used) {
-            currentDailyUsed += deduct.daily_used;
-            updates.daily_used = currentDailyUsed;
-          }
-          if (deduct.credits) {
-            currentCredits = Math.max(0, currentCredits + deduct.credits);
-            updates.credits = currentCredits;
-          }
-          await supabase.from("profiles").update(updates).eq("id", user.id);
+        currentCredits = Math.max(0, currentCredits - deductCount);
+        const updates: Record<string, unknown> = { credits: currentCredits };
+        // Set monthly_reset timestamp on first deduction
+        if (!profile.daily_reset_at) updates.daily_reset_at = new Date().toISOString();
+        await supabase.from("profiles").update(updates).eq("id", user.id);
 
-          if (deduct.credits) {
-            await supabase.from("credit_logs").insert({
-              id: `gen_${Date.now()}_${user.id.slice(0, 8)}`,
-              user_id: user.id,
-              amount: deduct.credits,
-              reason: `Generate ${numToGenerate} image(s) ×${creditMultiplier} — tier: ${tier}`,
-            });
-          }
-        }
+        await supabase.from("credit_logs").insert({
+          id: `gen_${Date.now()}_${user.id.slice(0, 8)}`,
+          user_id: user.id,
+          amount: -deductCount,
+          reason: `Generate ${numToGenerate} image(s) ×${creditMultiplier} [${model}] — ${tier}`,
+        });
 
-        creditResult = { daily_used: currentDailyUsed, credits: currentCredits };
+        creditResult = { credits: currentCredits };
       }
     }
     }
@@ -303,7 +291,7 @@ export async function POST(req: NextRequest) {
       : "";
 
     // ── Async mode: enqueue and return job ID ──
-    if (asyncMode && speedMode !== "fast") {
+    if (asyncMode) {
       const job = createJob(genUserId);
       const genFn = async () => {
         let genImages: string[];
@@ -324,8 +312,10 @@ export async function POST(req: NextRequest) {
             const supabase = createServerClient(supabaseUrl, supabaseKey, { cookies: { getAll() { return req.cookies.getAll(); }, setAll() {} } });
             const { data: { user: saveUser } } = await supabase.auth.getUser();
             if (saveUser) {
+              const genThumbs = await Promise.allSettled(genImages.map((url) => generateThumbnail(url)));
+              const genThumbMap = new Map(genImages.map((url, i) => [url, genThumbs[i]?.status === "fulfilled" ? genThumbs[i].value : null] as const));
               for (const url of genImages) {
-                const { data: inserted, error: insertErr } = await supabase.from("generations").insert({ user_id: saveUser.id, prompt: prompt.trim(), model, image_url: url, is_public: isPublic || false }).select("id").single();
+                const { data: inserted, error: insertErr } = await supabase.from("generations").insert({ user_id: saveUser.id, prompt: prompt.trim(), model, image_url: url, thumb_url: genThumbMap.get(url) ?? null, is_public: isPublic || false }).select("id").single();
                 if (insertErr) {
                   console.error("[generate] Failed to save generation:", JSON.stringify(insertErr));
                 } else {
@@ -345,7 +335,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        return { id: job.id, status: "completed" as const, images: genImages, daily_used: creditResult?.daily_used, credits: creditResult?.credits, saved, generationIds: savedIds, createdAt: job.createdAt };
+        return { id: job.id, status: "completed" as const, images: genImages, credits: creditResult?.credits, saved, generationIds: savedIds, createdAt: job.createdAt };
       };
 
       enqueueJob(job, genFn);
@@ -354,7 +344,7 @@ export async function POST(req: NextRequest) {
 
     let images: string[];
 
-    const genN = speedMode === "fast" ? 1 : numImages;
+    const genN = numImages;
     if (RUNWARE_MODELS.has(model)) {
       // For img2img with two photos: first = inputImage, second = described via Gemini, embedded in prompt
       const img2Hint = image2Desc ? ` Second reference image description: ${image2Desc}.` : "";
@@ -386,12 +376,17 @@ export async function POST(req: NextRequest) {
         });
         const { data: { user: saveUser } } = await supabase.auth.getUser();
         if (saveUser) {
+          // Generate thumbnails in background (fire-and-forget)
+          const thumbs = await Promise.allSettled(images.map((url) => generateThumbnail(url)));
+          const thumbMap = new Map(images.map((url, i) => [url, thumbs[i]?.status === "fulfilled" ? thumbs[i].value : null] as const));
+
           for (const url of images) {
             const { data: inserted, error: insertErr } = await supabase.from("generations").insert({
               user_id: saveUser.id,
               prompt: prompt.trim(),
               model,
               image_url: url,
+              thumb_url: thumbMap.get(url) ?? null,
               is_public: isPublic || false,
             }).select("id").single();
             if (insertErr) {
@@ -421,19 +416,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const result: { images: string[]; daily_used?: number; credits?: number; saved?: number; generationIds?: string[]; multiplier?: number } = { images };
+    const result: { images: string[]; credits?: number; saved?: number; generationIds?: string[]; multiplier?: number } = { images };
     if (creditMultiplier > 1) result.multiplier = creditMultiplier;
-    if (creditResult) {
-      if (creditResult.daily_used !== undefined) result.daily_used = creditResult.daily_used;
-      if (creditResult.credits !== undefined) result.credits = creditResult.credits;
-    }
+    if (creditResult?.credits !== undefined) result.credits = creditResult.credits;
     if (saved > 0) { result.saved = saved; result.generationIds = savedIds; }
     const response = NextResponse.json(result);
 
-    // Dev mock: persist daily_used and generations via cookies for request continuity
+    // Dev mock: persist credits and generations via cookies for request continuity
     if (process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_DEV_MOCK_USER === "true") {
-      if (creditResult?.daily_used !== undefined) {
-        response.cookies.set("mock_daily_used", String(creditResult.daily_used), {
+      if (creditResult?.credits !== undefined) {
+        response.cookies.set("mock_credits", String(creditResult.credits), {
           maxAge: 3600,
           path: "/",
           sameSite: "lax",

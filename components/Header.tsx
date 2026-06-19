@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 import { LoginModal } from "./LoginModal";
 import { useAuth } from "@/components/AuthProvider";
-import { TIER_CONFIG } from "@/lib/credits";
+
 
 interface HeaderProps {
   locale?: string;
@@ -163,11 +163,8 @@ export function Header({ locale, messages, loginModalMessages }: HeaderProps) {
 
             {user && profile && (
                 <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-bg-card border border-border/50 px-2.5 py-1 text-xs text-text-secondary">
-                  <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                  {profile.tier === "free"
-                    ? messages.free_remaining.replace("[[COUNT]]", String(Math.max(0, TIER_CONFIG.free.dailyCredits - profile.daily_used)))
-                    : messages.credits_remaining.replace("[[COUNT]]", String(profile.credits))
-                  }
+                  <img src="/images/score.png" alt="" className="h-3.5 w-3.5" />
+                  {messages.credits_remaining.replace("[[COUNT]]", String(profile.credits))}
                 </span>
               )}
 

@@ -7,8 +7,7 @@ describe("TIER_CONFIG", () => {
   it("has correct tier definitions", async () => {
     const { TIER_CONFIG } = await import("@/lib/credits");
     expect(TIER_CONFIG.free.name).toBe("Free");
-    expect(TIER_CONFIG.free.dailyCredits).toBe(20);
-    expect(TIER_CONFIG.free.monthlyCredits).toBeNull();
+    expect(TIER_CONFIG.free.monthlyCredits).toBe(10);
     expect(TIER_CONFIG.free.price).toBe(0);
 
     expect(TIER_CONFIG.basic.price).toBe(6);
@@ -21,16 +20,12 @@ describe("TIER_CONFIG", () => {
     expect(TIER_CONFIG.ultimate.monthlyCredits).toBe(5000);
   });
 
-  it("free tier has dailyCredits", async () => {
-    const { TIER_CONFIG } = await import("@/lib/credits");
-    expect(TIER_CONFIG.free.dailyCredits).toBe(20);
-  });
-
-  it("paid tiers have no dailyCredits", async () => {
-    const { TIER_CONFIG } = await import("@/lib/credits");
-    expect(TIER_CONFIG.basic.dailyCredits).toBeNull();
-    expect(TIER_CONFIG.premium.dailyCredits).toBeNull();
-    expect(TIER_CONFIG.ultimate.dailyCredits).toBeNull();
+  it("all tiers have monthlyCredits", async () => {
+    const { TIER_CONFIG, TIER_MONTHLY_CREDITS } = await import("@/lib/credits");
+    expect(TIER_MONTHLY_CREDITS.free).toBe(10);
+    expect(TIER_MONTHLY_CREDITS.basic).toBe(500);
+    expect(TIER_MONTHLY_CREDITS.premium).toBe(2000);
+    expect(TIER_MONTHLY_CREDITS.ultimate).toBe(5000);
   });
 });
 
@@ -45,47 +40,45 @@ describe("getTierConfig", () => {
 });
 
 describe("canGenerate", () => {
-  it("free tier with remaining daily returns allowed", async () => {
+  it("returns allowed when credits remain", async () => {
     const { canGenerate } = await import("@/lib/credits");
-    expect(canGenerate("free", 0, 5).allowed).toBe(true);
+    expect(canGenerate("free", 100).allowed).toBe(true);
+    expect(canGenerate("premium", 500).allowed).toBe(true);
   });
 
-  it("free tier with exhausted daily returns not allowed", async () => {
+  it("returns not allowed when credits exhausted", async () => {
     const { canGenerate } = await import("@/lib/credits");
-    expect(canGenerate("free", 0, 20).allowed).toBe(false);
-  });
-
-  it("premium tier with credits returns allowed", async () => {
-    const { canGenerate } = await import("@/lib/credits");
-    expect(canGenerate("premium", 100, 999).allowed).toBe(true);
-  });
-
-  it("premium tier with no credits returns not allowed", async () => {
-    const { canGenerate } = await import("@/lib/credits");
-    expect(canGenerate("premium", 0, 0).allowed).toBe(false);
+    expect(canGenerate("free", 0).allowed).toBe(false);
+    expect(canGenerate("premium", 0).allowed).toBe(false);
   });
 });
 
 describe("getCreditCount", () => {
-  it("returns remaining daily for free tier", async () => {
+  it("returns credits for all tiers", async () => {
     const { getCreditCount } = await import("@/lib/credits");
-    expect(getCreditCount("free", { daily_used: 5, credits: 0 })).toBe(15);
-  });
-
-  it("returns credits for paid tier", async () => {
-    const { getCreditCount } = await import("@/lib/credits");
-    expect(getCreditCount("premium", { daily_used: 0, credits: 500 })).toBe(500);
+    expect(getCreditCount("free", { credits: 10 })).toBe(10);
+    expect(getCreditCount("premium", { credits: 500 })).toBe(500);
   });
 });
 
-describe("getDeductFields", () => {
-  it("returns daily_used increment for free tier", async () => {
-    const { getDeductFields } = await import("@/lib/credits");
-    expect(getDeductFields("free", 3)).toEqual({ daily_used: 3 });
+describe("computeDeduction", () => {
+  it("applies model multiplier correctly", async () => {
+    const { computeDeduction } = await import("@/lib/credits");
+    // 4 images × 1 preset × 1 model = 4
+    expect(computeDeduction(4, "schnell", 1)).toBe(4);
+    // 1 image × 1 preset × 3 model = 3
+    expect(computeDeduction(1, "flux-dev", 1)).toBe(3);
+    // 2 images × 2 preset × 3 model = 12
+    expect(computeDeduction(2, "flux-dev", 2)).toBe(12);
   });
 
-  it("returns negative credits for paid tier", async () => {
-    const { getDeductFields } = await import("@/lib/credits");
-    expect(getDeductFields("premium", 3)).toEqual({ credits: -3 });
+  it("handles unknown model as 1x multiplier", async () => {
+    const { computeDeduction } = await import("@/lib/credits");
+    expect(computeDeduction(1, "unknown-model", 1)).toBe(1);
+  });
+
+  it("minimum deduction is 1", async () => {
+    const { computeDeduction } = await import("@/lib/credits");
+    expect(computeDeduction(0, "schnell", 1)).toBe(1);
   });
 });

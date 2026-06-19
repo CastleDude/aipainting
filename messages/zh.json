@@ -29,7 +29,7 @@
   "gallery": { "title": "社区画廊", "subtitle": "浏览社区分享的AI生成图片", "empty": "还没有图片，成为第一个分享的人！", "create_now": "立即创作", "previous": "上一页", "next": "下一页", "remix": "再创作" },
   "pricing": {
     "title": "简洁透明的定价", "subtitle": "免费开始，需要更多时升级。", "free": "免费版", "basic": "基础版", "premium": "高级版", "ultimate": "旗舰版", "month": "/月",
-    "fast_images": "张快速图片", "get_started": "免费开始", "subscribe": "订阅", "per_month": "每月", "daily": "每天", "faq_title": "定价常见问题",
+    "fast_images": "积分", "get_started": "免费开始", "subscribe": "订阅", "per_month": "每月", "daily": "每天", "faq_title": "定价常见问题",
     "faq_q1": "支持哪些支付方式？", "faq_a1": "我们支持所有主流信用卡（Visa、Mastercard、American Express）、PayPal 和 Apple Pay。所有支付通过 Creem 安全处理。",
     "faq_q2": "可以随时取消订阅吗？", "faq_a2": "可以，一键随时取消。你的套餐在当前账单周期结束前仍然有效——剩余期间不予按比例退款。",
     "faq_q3": "付费套餐有免费试用吗？", "faq_a3": "当然有！每个付费套餐都附带 7 天免费试用，试用期结束前不收取任何费用，我们会在试用到期前 48 小时提醒你。",
@@ -42,7 +42,7 @@
     "title": "AI 图片生成器", "prompt_placeholder": "描述你想要的图片...", "negative_prompt": "负面提示词", "negative_placeholder": "例如：模糊、低质量、水印...",
     "model": "模型", "aspect_ratio": "宽高比", "style": "风格", "num_images": "生成数量", "generate_btn": "开始生成", "generating": "生成中...",
     "download": "下载", "regenerate": "重新生成", "no_results": "生成的图片将显示在这里", "free_remaining": "今日剩余免费次数：[[COUNT]]",
-    "credits_remaining": "剩余积分：[[COUNT]]", "upgrade_hint": "升级到高级版，每月 2,000 张图片", "speed_fast": "快速", "speed_normal": "普通",
+    "credits_remaining": "剩余积分：[[COUNT]]", "upgrade_hint": "升级到高级版，每月 2,000 积分", "speed_fast": "快速", "speed_normal": "普通",
     "negative_toggle": "负面提示词", "add_image": "添加图片", "share_to_gallery": "分享到画廊", "translate_prompt": "翻译为英文",
     "english_hint": "提示词用英文的效果更好", "share_limit": "今日分享次数已达上限（5次/天），升级会员可享更多。",
     "share_similar": "已有相似的图片分享到画廊，请换一个不同的作品。", "shared_to_gallery": "已分享到画廊",

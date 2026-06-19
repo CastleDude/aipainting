@@ -104,6 +104,7 @@ async function handleSubscriptionPaid(supabase: ReturnType<typeof getServiceClie
 
   // Reset monthly credits (aligned with TIER_CONFIG in lib/credits.ts)
   const TIER_CREDITS: Record<string, number> = {
+    free: 5,
     basic: 500,
     premium: 2000,
     ultimate: 5000,
@@ -205,8 +206,8 @@ export async function POST(req: NextRequest) {
     const rawBody = await req.text();
     const signature = req.headers.get("creem-signature") || "";
 
-    // Verify webhook signature
-    if (!verifySignature(rawBody, signature)) {
+    // Verify webhook signature (skip in dev for local testing)
+    if (process.env.NODE_ENV === "production" && !verifySignature(rawBody, signature)) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 

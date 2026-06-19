@@ -96,8 +96,6 @@ export default async function HomePage() {
           free_remaining: t("generate.free_remaining"),
           credits_remaining: t("generate.credits_remaining"),
           upgrade_hint: t("generate.upgrade_hint"),
-          speed_fast: t("generate.speed_fast"),
-          speed_normal: t("generate.speed_normal"),
           negative_toggle: t("generate.negative_toggle"),
           add_image: t("generate.add_image"),
           gallery_title: t("gallery.title"),

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ImageViewer } from "@/components/ImageViewer";
@@ -19,27 +19,30 @@ interface GalleryItem {
   prompt: string;
   model: string;
   image_url: string;
+  thumb_url?: string | null;
   user_name: string;
   created_at: string;
 }
+
+const PAGE_SIZE = 24;
 
 export default function GalleryPage() {
   const { locale } = useParams<{ locale: string }>();
   const t = useTranslations();
   const [items, setItems] = useState<GalleryItem[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [viewerSrc, setViewerSrc] = useState<string | null>(null);
   const [viewerAlt, setViewerAlt] = useState("");
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const limit = 12;
-  const totalPages = Math.ceil(total / limit);
-
-  const fetchItems = useCallback(async () => {
-    setLoading(true);
+  const fetchItems = useCallback(async (pageNum: number, append: boolean) => {
+    if (append) setLoadingMore(true);
+    else setLoading(true);
     try {
-      const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+      const params = new URLSearchParams({ page: String(pageNum), limit: String(PAGE_SIZE) });
       const res = await fetch(`/api/gallery?${params}`);
       const data = await res.json();
       const apiItems = data.items || [];
@@ -48,26 +51,48 @@ export default function GalleryPage() {
           ...g,
           user_name: "You (demo)",
         }));
-        const start = (page - 1) * limit;
-        setItems(mockItems.slice(start, start + limit));
-        setTotal(mockItems.length);
+        const start = (pageNum - 1) * PAGE_SIZE;
+        const slice = mockItems.slice(start, start + PAGE_SIZE);
+        if (append) setItems((prev) => [...prev, ...slice]);
+        else setItems(slice);
+        setHasMore(start + PAGE_SIZE < mockItems.length);
       } else {
-        setItems(apiItems);
-        setTotal(data.total || 0);
+        if (append) setItems((prev) => [...prev, ...apiItems]);
+        else setItems(apiItems);
+        setHasMore(apiItems.length === PAGE_SIZE);
       }
     } catch {
-      const mockItems = getMockGalleryItems().map((g) => ({
-        ...g,
-        user_name: "You (demo)",
-      }));
-      const start = (page - 1) * limit;
-      setItems(mockItems.slice(start, start + limit));
-      setTotal(mockItems.length);
+      if (!append) setItems([]);
+      setHasMore(false);
     }
     setLoading(false);
-  }, [page]);
+    setLoadingMore(false);
+  }, []);
 
-  useEffect(() => { fetchItems(); }, [fetchItems]);
+  // Initial load
+  useEffect(() => {
+    setPage(1);
+    fetchItems(1, false);
+  }, [fetchItems]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!sentinelRef.current || !hasMore || loading || loadingMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setPage((p) => {
+            const next = p + 1;
+            fetchItems(next, true);
+            return next;
+          });
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loading, loadingMore, fetchItems]);
 
   const handleDownload = async (url: string) => {
     try {
@@ -122,9 +147,9 @@ export default function GalleryPage() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="columns-2 sm:columns-3 lg:columns-4 gap-4 space-y-4">
             {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="aspect-square rounded-xl bg-bg-card animate-pulse" />
+              <div key={i} className="break-inside-avoid rounded-xl bg-bg-card animate-pulse" style={{ height: 120 + Math.random() * 200 }} />
             ))}
           </div>
         ) : items.length === 0 ? (
@@ -139,18 +164,18 @@ export default function GalleryPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="columns-2 sm:columns-3 lg:columns-4 gap-4 space-y-4">
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="group relative rounded-xl overflow-hidden border border-border/30 hover:border-accent/40 transition-colors bg-bg-card aspect-square"
+                  className="break-inside-avoid group relative rounded-xl overflow-hidden border border-border/30 hover:border-accent/40 transition-colors bg-bg-card"
                 >
                   <img
-                    src={item.image_url}
+                    src={item.thumb_url || item.image_url}
                     alt={item.prompt}
-                    className="w-full h-full object-cover"
+                    className="w-full h-auto"
                     loading="lazy"
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    decoding="async"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
                     <p className="text-xs text-white/80 line-clamp-2 mb-2">{item.prompt}</p>
@@ -181,23 +206,15 @@ export default function GalleryPage() {
               ))}
             </div>
 
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-3 mt-10">
-                <button
-                  disabled={page <= 1}
-                  onClick={() => { setPage(page - 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                  className="rounded-lg border border-border/50 px-4 py-2 text-sm text-text-secondary hover:text-text-primary disabled:opacity-30 transition-colors"
-                >
-                  {t("gallery.previous")}
-                </button>
-                <span className="text-sm text-text-muted">{page} / {totalPages}</span>
-                <button
-                  disabled={page >= totalPages}
-                  onClick={() => { setPage(page + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                  className="rounded-lg border border-border/50 px-4 py-2 text-sm text-text-secondary hover:text-text-primary disabled:opacity-30 transition-colors"
-                >
-                  {t("gallery.next")}
-                </button>
+            {/* Infinite scroll sentinel */}
+            <div ref={sentinelRef} className="h-4" />
+
+            {loadingMore && (
+              <div className="flex justify-center py-8">
+                <svg className="animate-spin h-6 w-6 text-accent" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
               </div>
             )}
           </>

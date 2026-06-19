@@ -254,9 +254,9 @@ ${framing} Photorealistic, consistent scale, professional quality.`;
     const ratioMap: Record<string, string> = { "4:3": "Horizontal", "3:4": "Vertical" };
     prompt = prompt.replace("{style_desc}", styleMap[paramValues["style"]] || styleMap.random);
     prompt = prompt.replace("{holiday}", paramValues["holiday"] || "birthday");
-    prompt = prompt.replace("{from}", paramValues["from"] || "Anonymous");
-    prompt = prompt.replace("{to}", paramValues["to"] || "You");
-    prompt = prompt.replace("{message}", `TEXT TO RENDER ON CARD: "${paramValues["message"] || "Best wishes!"}"`);
+    prompt = prompt.replace("{from}", paramValues["from"]?.trim() || "Anonymous");
+    prompt = prompt.replace("{to}", paramValues["to"]?.trim() || "You");
+    prompt = prompt.replace("{message}", paramValues["message"]?.trim() || "Best wishes!");
     prompt = prompt.replace("{ratio_desc}", ratioMap[paramValues["ratio"]] || "Vertical");
     const ct = paramValues["custom"]?.trim();
     prompt = prompt.replace("{custom}", ct ? `Additional style instructions (do not render this as text): ${ct}.` : "");
@@ -935,7 +935,16 @@ export default function PresetSection({ messages }: Props) {
           <p className="text-sm text-text-muted mt-1">{messages.subtitle}</p>
         </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {PRESETS.map((preset) => (
+          {/* 9 visible presets — greeting_card, product_ad, photo_together hidden */}
+          {(() => {
+            const order = [
+              "wallpaper", "logo_design", "photo_restoration",
+              "tattoo_design", "interior_design", "cartoon_avatar",
+              "food_design", "package_design", "age_journey",
+            ];
+            const byId = new Map(PRESETS.map((p) => [p.id, p]));
+            return order.map((id) => byId.get(id)).filter(Boolean) as typeof PRESETS;
+          })().map((preset) => (
             <PresetCard key={preset.id} presetId={preset.id} messages={messages} onStart={() => setModalPresetId(preset.id)} />
           ))}
         </div>

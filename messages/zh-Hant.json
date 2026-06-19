@@ -126,7 +126,7 @@
     "no_results": "生成的圖片將顯示在這裡",
     "free_remaining": "今日剩餘免費次數：[[COUNT]]",
     "credits_remaining": "剩餘積分：[[COUNT]]",
-    "upgrade_hint": "升級到高級版，每月 2,000 張圖片",
+    "upgrade_hint": "升級到高級版，每月 2,000 積分",
     "speed_fast": "快速",
     "speed_normal": "普通",
     "negative_toggle": "負面提示詞",

@@ -44,7 +44,8 @@ export async function POST(req: NextRequest) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
     // Create Creem Customer Portal session
-    const response = await fetch("https://api.creem.io/v1/customer-portal/sessions", {
+    const portalApi = process.env.CREEM_API_KEY?.startsWith("creem_test_") ? "https://test-api.creem.io/v1" : "https://api.creem.io/v1";
+    const response = await fetch(`${portalApi}/customer-portal/sessions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

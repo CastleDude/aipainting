@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     const offset = (page - 1) * limit;
 
     // Use PostgREST directly (avoids supabase-js WebSocket issue on Node 20)
-    const select = "id,user_id,prompt,model,image_url,created_at";
+    const select = "id,user_id,prompt,model,image_url,thumb_url,created_at";
     const order = "order=created_at.desc";
     const range = `limit=${limit}&offset=${offset}`;
     const filter = "is_public=eq.true";

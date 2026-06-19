@@ -18,8 +18,6 @@ export interface Profile {
   name: string;
   tier: SubscriptionTier;
   credits: number;
-  daily_used: number;
-  tools_daily_used: number;
   daily_reset_at: string;
   role: "user" | "admin";
   created_at: string;
@@ -92,9 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   function buildMockProfile(): Profile {
     return {
       id: "dev-001", email: "dev@test.local", name: "Dev Tester",
-      tier: "free", credits: 0,
-      daily_used: readMockCookie("mock_daily_used"),
-      tools_daily_used: readMockCookie("mock_tools_daily_used"),
+      tier: "free", credits: readMockCookie("mock_credits") || 10,
       daily_reset_at: new Date().toISOString(),
       role: "admin", created_at: new Date().toISOString(),
     };
@@ -187,8 +183,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: data.user.email!,
           name,
           tier: "free",
-          credits: 0,
-          daily_used: 0,
+          credits: 10,
           role: "user",
         });
         if (!needsConfirmation) {
@@ -224,7 +219,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const resetPassword = useCallback(async (email: string) => {
     const supabase = createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${location.origin}/api/auth`,
+      redirectTo: `${location.origin}/auth/callback`,
     });
     if (error) return { error: error.message };
     return { error: null };
@@ -252,9 +247,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile((prev) => {
         if (!prev) return prev;
         const next = { ...prev };
-        if (daily_used_inc !== undefined) {
-          next.daily_used = (prev.daily_used || 0) + daily_used_inc;
-        }
         if (credits_delta !== undefined) {
           next.credits = Math.max(0, (prev.credits || 0) + credits_delta);
         }
@@ -265,7 +257,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const syncProfileFromApi = useCallback(
-    (fields: { daily_used?: number; credits?: number; tools_daily_used?: number }) => {
+    (fields: { credits?: number }) => {
       setProfile((prev) => {
         if (!prev) return prev;
         return { ...prev, ...fields };

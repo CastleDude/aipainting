@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
-const CREEM_API = "https://api.creem.io/v1";
+function getCreemApi() {
+  const key = process.env.CREEM_API_KEY || "";
+  if (key.startsWith("creem_test_")) return "https://test-api.creem.io/v1";
+  return "https://api.creem.io/v1";
+}
 
 interface CheckoutRequest {
   tier: string;
@@ -73,7 +77,7 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    const response = await fetch(`${CREEM_API}/checkouts`, {
+    const response = await fetch(`${getCreemApi()}/checkouts`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -260,8 +260,6 @@ interface ImageGeneratorProps {
     free_remaining: string;
     credits_remaining: string;
     upgrade_hint: string;
-    speed_fast: string;
-    speed_normal?: string;
     negative_toggle: string;
     add_image: string;
     gallery_title: string;
@@ -307,7 +305,6 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
   }, []);
 
   const [prompt, setPrompt] = useState("");
-  const presetPromptRef = useRef<string | null>(null); // hidden preset prompt, takes priority when set
   const [negativePrompt, setNegativePrompt] = useState("");
   const [model, setModel] = useState("schnell");
   const [multiplier, setMultiplier] = useState(1);
@@ -317,7 +314,6 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
   const [style, setStyle] = useState("photorealistic");
   const pendingStyleRef = useRef<string | null>(null);
   const [numImages, setNumImages] = useState(4);
-  const [speedMode, setSpeedMode] = useState<"fast" | "normal">("normal");
   const [showNegative, setShowNegative] = useState(false);
   const [showRatio, setShowRatio] = useState(false);
   const [showModel, setShowModel] = useState(false);
@@ -345,30 +341,22 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
   const isFreeTier = !profile || profile.tier === "free";
 
   // Local credit count so it updates immediately after generation
-  const [localDailyUsed, setLocalDailyUsed] = useState<number | null>(null);
   const [localCredits, setLocalCredits] = useState<number | null>(null);
 
-  const freeRemaining = isFreeTier
-    ? Math.max(0, 20 - (localDailyUsed ?? profile?.daily_used ?? 0))
-    : (localCredits ?? profile?.credits ?? 0);
-
-  const creditLabel = isFreeTier
-    ? messages.free_remaining.replace("[[COUNT]]", String(freeRemaining))
-    : messages.credits_remaining.replace("[[COUNT]]", String(freeRemaining));
+  const currentCredits = localCredits ?? profile?.credits ?? 0;
+  const creditLabel = messages.credits_remaining.replace("[[COUNT]]", String(currentCredits));
 
   // ── Preset event listener (from PresetSection modal) ──
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<PresetApplyEvent>).detail;
-      presetPromptRef.current = detail.prompt;
-      setPrompt(`✦ ${detail.presetId}`);
+      setPrompt(detail.prompt);
       setNegativePrompt("");
       setModel(detail.model);
       if (detail.aspectRatio) { setAspectRatio(detail.aspectRatio); pendingAspectRef.current = detail.aspectRatio; }
       if (detail.style) { setStyle(detail.style); pendingStyleRef.current = detail.style; }
       if (detail.numImages) {
         setNumImages(detail.numImages);
-        setSpeedMode(detail.numImages > 1 ? "normal" : "fast");
       }
       if (detail.imageBase64) {
         setImagePreview(detail.imageBase64);
@@ -435,10 +423,10 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
   };
 
   const handleGenerate = async () => {
-    if (!presetPromptRef.current && !prompt.trim()) return;
+    if (!prompt.trim()) return;
     setError(null);
 
-    let finalPrompt = presetPromptRef.current || prompt.trim();
+    let finalPrompt = prompt.trim();
 
     // Translate to English if toggle is on — shows "Translating..." before generating
     if (translateOn) {
@@ -464,7 +452,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
     pendingStyleRef.current = null;
     pendingImg2Ref.current = null;
 
-    const isAsync = speedMode === "normal";
+    const isAsync = numImages > 1;
 
     try {
       const res = await fetch("/api/generate", {
@@ -473,7 +461,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
         body: JSON.stringify({
           prompt: finalPrompt,
           negativePrompt: negativePrompt.trim() || undefined,
-          model, aspectRatio: pendingAspectRef.current || aspectRatio, style: pendingStyleRef.current || style, numImages, speedMode,
+          model, aspectRatio: pendingAspectRef.current || aspectRatio, style: pendingStyleRef.current || style, numImages,
           imageBase64: imageBase64 || undefined,
           imageBase64_2: pendingImg2Ref.current || imageBase64_2 || undefined,
           async: isAsync || undefined,
@@ -506,9 +494,9 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
             if (statusData.status === "completed") {
               setImages(statusData.images || []);
               if (statusData.generationIds) setGenerationIds(statusData.generationIds);
-              if (typeof statusData.daily_used === "number") {
-                setLocalDailyUsed(statusData.daily_used);
-                syncProfileFromApi({ daily_used: statusData.daily_used });
+              if (typeof statusData.credits === "number") {
+                setLocalCredits(statusData.credits);
+                syncProfileFromApi({ credits: statusData.credits });
               } else if (typeof statusData.credits === "number") {
                 setLocalCredits(statusData.credits);
                 syncProfileFromApi({ credits: statusData.credits });
@@ -542,9 +530,9 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
       // Sync mode (fast)
       setImages(data.images);
       if (data.generationIds) setGenerationIds(data.generationIds);
-      if (typeof data.daily_used === "number") {
-        setLocalDailyUsed(data.daily_used);
-        syncProfileFromApi({ daily_used: data.daily_used });
+      if (typeof data.credits === "number") {
+        setLocalCredits(data.credits);
+        syncProfileFromApi({ credits: data.credits });
       } else if (typeof data.credits === "number") {
         setLocalCredits(data.credits);
         syncProfileFromApi({ credits: data.credits });
@@ -727,7 +715,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
           <textarea
             ref={promptRef}
             value={prompt}
-            onChange={(e) => { presetPromptRef.current = null; setPrompt(e.target.value); }}
+            onChange={(e) => setPrompt(e.target.value)}
             placeholder={messages.prompt_placeholder}
             maxLength={2000}
             onKeyDown={(e) => {
@@ -876,7 +864,6 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
                     key={n}
                     onClick={() => {
                       setNumImages(n);
-                      if (n > 1) setSpeedMode("normal");
                       setShowNum(false);
                     }}
                     className={cn(
@@ -894,41 +881,11 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Speed mode toggle */}
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => {
-                if (speedMode === "normal") {
-                  setSpeedMode("fast");
-                  setNumImages(1);
-                } else {
-                  setSpeedMode("normal");
-                  setNumImages(4);
-                }
-              }}
-              title={speedMode === "normal" ? "Switch to Fast: only 1 image, but 2-3x faster" : "Switch to Normal: generate multiple images at once"}
-              className={cn(
-                "relative h-6 w-10 rounded-full transition-all border",
-                speedMode === "fast"
-                  ? "bg-accent/30 border-accent/40"
-                  : "bg-bg-card border-border"
-              )}
-            >
-              <span
-                className={cn(
-                  "absolute top-[3px] h-4 w-4 rounded-full transition-all",
-                  speedMode === "fast" ? "bg-accent left-0.5" : "bg-accent/35 left-[22px]"
-                )}
-              />
-            </button>
-            <span className={cn("text-[11px] transition-colors", speedMode === "fast" ? "text-accent font-medium" : "text-text-muted")}>{speedMode === "fast" ? messages.speed_fast : (messages.speed_normal || "Normal")}</span>
-          </div>
-
           {/* Generate button */}
         <button
           data-generate-btn
           onClick={handleGenerate}
-          disabled={loading || (!presetPromptRef.current && !prompt.trim())}
+          disabled={loading || !prompt.trim()}
           className={cn(
             "h-10 rounded-xl px-8 text-sm font-semibold transition-all flex items-center gap-2",
             loading || !prompt.trim()
@@ -959,7 +916,8 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
 
       {/* Credit banner */}
       <div className="mt-5 h-[60px] rounded-xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-border/30 flex items-center justify-center px-4">
-        <p className="text-xs text-text-secondary">
+        <p className="text-xs text-text-secondary flex items-center gap-1">
+          <img src="/images/score.png" alt="" className="h-3.5 w-3.5 inline" />
           {creditLabel}
           {isFreeTier && (
             <>

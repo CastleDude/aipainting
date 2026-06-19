@@ -17,28 +17,22 @@ export default function AuthCallbackPage() {
   );
 
   useEffect(() => {
-    const hash = window.location.hash;
-    const isRecovery = hash.includes("type=recovery");
-
-    if (!isRecovery) {
-      router.replace("/");
-      return;
-    }
-
     let cancelled = false;
 
     async function init() {
+      // Check if session already established
       const { data } = await supabase.auth.getSession();
       if (data.session && !cancelled) {
         setStatus("ready");
         return;
       }
 
+      // Wait for auth state change
       const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
         if (cancelled) return;
-        if (session && event === "SIGNED_IN") {
+        if (session) {
           setStatus("ready");
-        } else if (event === "SIGNED_OUT" || !session) {
+        } else if (event === "SIGNED_OUT") {
           setStatus("error");
           setError("Invalid or expired reset link.");
         }
@@ -46,10 +40,9 @@ export default function AuthCallbackPage() {
 
       const timeout = setTimeout(() => {
         if (!cancelled && status === "loading") {
-          setStatus("error");
-          setError("Could not verify your session. Please try again.");
+          router.replace("/");
         }
-      }, 8000);
+      }, 5000);
 
       return () => {
         sub.subscription.unsubscribe();

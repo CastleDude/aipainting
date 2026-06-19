@@ -126,7 +126,7 @@
     "no_results": "生成された画像がここに表示されます",
     "free_remaining": "本日の無料生成残り回数: [[COUNT]]",
     "credits_remaining": "クレジット残り: [[COUNT]]",
-    "upgrade_hint": "プレミアムにアップグレードして月2,000枚",
+    "upgrade_hint": "プレミアムにアップグレードして月2,000クレジット",
     "speed_fast": "高速",
     "speed_normal": "通常",
     "negative_toggle": "ネガティブプロンプト",

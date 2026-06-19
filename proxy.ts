@@ -11,7 +11,7 @@ const PROTECTED_ROUTES = ["/dashboard", "/admin"];
 // Routes that require admin role
 const ADMIN_ROUTES = ["/admin"];
 
-export default async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Dev mock mode — skip all auth checks (development only)

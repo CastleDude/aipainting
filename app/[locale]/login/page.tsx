@@ -10,7 +10,6 @@ export default async function LoginPageServer({
   const messages = await getMessages();
   const loginMessages = messages.login_modal as Record<string, string>;
 
-  // Flatten login_modal messages for the LoginPage component
   const pageMessages = {
     login: (loginMessages?.login as string) || "Log In",
     signup: (loginMessages?.signup as string) || "Sign Up",

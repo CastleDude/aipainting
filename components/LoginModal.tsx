@@ -337,7 +337,7 @@ export function LoginModal({ open, onClose, initialMode, messages }: LoginModalP
                 />
               </div>
 
-              {/* Password field — not shown in forgot_password mode */}
+              {/* Password field — shown in login and signup modes */}
               {mode !== "forgot_password" && (
                 <div>
                   <label className="mb-2 block text-sm font-medium text-text-secondary">{messages.password}</label>
@@ -365,10 +365,10 @@ export function LoginModal({ open, onClose, initialMode, messages }: LoginModalP
                 {submitting
                   ? "…"
                   : mode === "forgot_password"
-                    ? messages.send_reset_link
-                    : mode === "login"
-                      ? messages.login_btn
-                      : messages.signup_btn}
+                  ? messages.send_reset_link
+                  : mode === "login"
+                    ? messages.login_btn
+                    : messages.signup_btn}
               </button>
 
               {/* Google OAuth — login & signup modes */}
@@ -406,7 +406,7 @@ export function LoginModal({ open, onClose, initialMode, messages }: LoginModalP
                 </button>
               )}
 
-              {/* Back to login — forgot_password mode only */}
+              {/* Back to login — forgot_password mode */}
               {mode === "forgot_password" && (
                 <button
                   type="button"

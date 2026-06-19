@@ -39,8 +39,6 @@ const TOOLS: { key: Tool; free: "forever" | "limited" }[] = [
   { key: "compress", free: "forever" },
   { key: "remove_bg", free: "limited" },
   { key: "replace_bg", free: "limited" },
-  { key: "smooth", free: "limited" },
-  { key: "upscale", free: "limited" },
   { key: "filters", free: "forever" },
 ];
 
@@ -152,7 +150,6 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
   const [dragOver, setDragOver] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const { profile, syncProfileFromApi, deductLocalCredits } = useAuth();
-  const [freeUsed, setFreeUsed] = useState(profile?.tools_daily_used ?? 0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const openFileDialog = useCallback(() => {
@@ -344,11 +341,8 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
   useEffect(() => { panYRef.current = panY; }, [panY]);
   useEffect(() => { displaySizeRef.current = displaySize; }, [displaySize]);
 
-  const isPaid = profile && profile.tier !== "free";
-  const FREE_LIMIT = 20;
   const isLimitedTool = TOOLS.find((t) => t.key === tool)?.free === "limited";
-  // Paid users burn credits; free users have a daily cap
-  const creditsRemaining = isPaid ? (profile?.credits ?? 0) : FREE_LIMIT - freeUsed;
+  const creditsRemaining = profile?.credits ?? 0;
   const blocked = isLimitedTool && creditsRemaining <= 0;
 
   const uploadBoxRef = useRef<HTMLDivElement>(null);
@@ -478,19 +472,21 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
       const ctx = canvas.getContext("2d")!;
       ctx.drawImage(img, 0, 0);
 
+      const isPng = cf.file.type === "image/png" || cf.name.toLowerCase().endsWith(".png");
+      const mimeType = isPng ? "image/png" : "image/jpeg";
       const tryCompress = (q: number): Promise<{ url: string; size: number }> => {
         return new Promise((resolve) => {
           canvas.toBlob(
             (blob) => {
               if (!blob) { resolve({ url: cf.url, size: cf.origSize }); return; }
-              if (blob.size > maxKB * 1024 && q > 10) {
+              if (!isPng && blob.size > maxKB * 1024 && q > 10) {
                 tryCompress(q - 10).then(resolve);
               } else {
                 resolve({ url: URL.createObjectURL(blob), size: blob.size });
               }
             },
-            "image/jpeg",
-            q / 100,
+            mimeType,
+            isPng ? undefined : q / 100,
           );
         });
       };
@@ -508,10 +504,40 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
     const JSZip = (await import("jszip")).default;
     const zip = new JSZip();
     for (const cf of files) {
-      const response = await fetch(cf.resultUrl!);
-      const blob = await response.blob();
-      zip.file(cf.name.replace(/(\.[\w\d]+)$/, "_compressed$1"), blob);
+      try {
+        // Convert resultUrl to a valid zip entry
+        // resultUrl can be blob: URL (from canvas.toBlob) or cf.url (original file URL)
+        // For blob: URLs, convert to base64 data URL for stable zip inclusion
+        let data: string;
+        if (cf.resultUrl!.startsWith("blob:")) {
+          const response = await fetch(cf.resultUrl!);
+          const blob = await response.blob();
+          data = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+        } else {
+          // Original URL (compression skipped) — fetch as base64
+          try {
+            const response = await fetch(cf.resultUrl!);
+            const blob = await response.blob();
+            data = await new Promise<string>((resolve) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.readAsDataURL(blob);
+            });
+          } catch {
+            continue; // Skip unreachable external URLs silently
+          }
+        }
+        const ext = cf.file.type === "image/png" || cf.name.toLowerCase().endsWith(".png") ? ".png" : ".jpg";
+        zip.file(cf.name.replace(/(\.[\w\d]+)$/, `_compressed${ext}`), data.split(",")[1], { base64: true });
+      } catch {
+        console.warn("[compress] Skipped file:", cf.name);
+      }
     }
+    if (Object.keys(zip.files).length === 0) return;
     const zipBlob = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(zipBlob);
     const a = document.createElement("a");
@@ -1002,20 +1028,22 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
     const ctx = canvas.getContext("2d")!;
     ctx.drawImage(image, 0, 0);
 
+    const isPng = imageName.toLowerCase().endsWith(".png") || (image.src && image.src.startsWith("data:image/png"));
+    const mimeType = isPng ? "image/png" : "image/jpeg";
     const tryCompress = (q: number) => {
       canvas.toBlob(
         (blob) => {
           if (!blob) return;
           const url = URL.createObjectURL(blob);
-          if (blob.size > maxKB * 1024 && q > 10) {
+          if (!isPng && blob.size > maxKB * 1024 && q > 10) {
             tryCompress(q - 10);
           } else {
             setResultUrl(url);
             setCompressInfo({ orig: 0, comp: blob.size });
           }
         },
-        "image/jpeg",
-        q / 100,
+        mimeType,
+        isPng ? undefined : q / 100,
       );
     };
 
@@ -1034,27 +1062,16 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
 
   // Shared: deduct credit/usage
   const deductUsage = useCallback(() => {
-    if (isPaid) {
-      deductLocalCredits(undefined, -1);
-    } else {
-      setFreeUsed((p) => p + 1);
-    }
+    deductLocalCredits(undefined, -1);
     if (profile) {
       const sb = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       );
-      if (isPaid) {
-        const newCredits = Math.max(0, (profile.credits ?? 0) - 1);
-        sb.from("profiles").update({ credits: newCredits }).eq("id", profile.id).then(() => {});
-      } else {
-        sb.from("profiles")
-          .update({ tools_daily_used: freeUsed + 1, daily_reset_at: new Date().toISOString() })
-          .eq("id", profile.id)
-          .then(() => {});
-      }
+      const newCredits = Math.max(0, (profile.credits ?? 0) - 1);
+      sb.from("profiles").update({ credits: newCredits }).eq("id", profile.id).then(() => {});
     }
-  }, [isPaid, deductLocalCredits, profile, freeUsed]);
+  }, [deductLocalCredits, profile]);
 
   // Convert HTMLImageElement to a JPEG data URL, resizing if needed
   const imageToDataUrl = useCallback((img: HTMLImageElement, maxDim = 1024): string => {
@@ -1763,35 +1780,13 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
           {/* Usage / Credits */}
           {isLimitedTool && (
             <div className="rounded-xl border border-border/50 bg-bg-card p-3">
-              {isPaid ? (
-                <>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-text-primary">{messages.credits_remaining || "Credits"}</span>
-                    <span className="text-sm text-accent-hover font-semibold">{creditsRemaining}</span>
-                  </div>
-                  <p className="mt-1 text-xs text-text-muted">
-                    {messages.per_use || "1 credit per use"}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-text-primary">{messages.free_today}</span>
-                    <span className="text-sm text-accent-hover font-semibold">
-                      {creditsRemaining}/{FREE_LIMIT}
-                    </span>
-                  </div>
-                  <div className="h-2 rounded-full bg-bg-secondary overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-accent transition-all duration-300"
-                      style={{ width: `${((FREE_LIMIT - creditsRemaining) / FREE_LIMIT) * 100}%` }}
-                    />
-                  </div>
-                  <p className="mt-2 text-xs text-text-muted">
-                    {messages.remaining.replace("[[COUNT]]", String(creditsRemaining))}
-                  </p>
-                </>
-              )}
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-text-primary">{messages.credits_remaining || "Credits"}</span>
+                <span className="text-sm text-accent-hover font-semibold">{creditsRemaining}</span>
+              </div>
+              <p className="mt-1 text-xs text-text-muted">
+                {messages.per_use || "1 credit per use"}
+              </p>
             </div>
           )}
 

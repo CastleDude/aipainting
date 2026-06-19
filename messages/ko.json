@@ -126,7 +126,7 @@
     "no_results": "생성된 이미지가 여기에 표시됩니다",
     "free_remaining": "오늘 남은 무료 생성 횟수: [[COUNT]]회",
     "credits_remaining": "크레딧 남음: [[COUNT]]",
-    "upgrade_hint": "프리미엄으로 업그레이드하면 월 2,000장",
+    "upgrade_hint": "프리미엄으로 업그레이드하면 월 2,000크레딧",
     "speed_fast": "고속",
     "speed_normal": "일반",
     "negative_toggle": "부정 프롬프트",

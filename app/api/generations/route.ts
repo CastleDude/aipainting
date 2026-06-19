@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
 
     const { data } = await supabase
       .from("generations")
-      .select("id, prompt, model, image_url, is_public, created_at")
+      .select("id, prompt, model, image_url, thumb_url, is_public, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(20);
@@ -225,6 +225,24 @@ export async function PATCH(req: NextRequest) {
       .update({ is_public })
       .eq("id", id)
       .eq("user_id", user.id);
+
+    // Enforce gallery limit: max 50 public images, delete oldest excess
+    if (is_public) {
+      const { data: publicIds } = await supabase
+        .from("generations")
+        .select("id")
+        .eq("is_public", true)
+        .order("created_at", { ascending: true })
+        .range(0, 999999);
+
+      if (publicIds && publicIds.length > 50) {
+        const toRemove = publicIds.slice(0, publicIds.length - 50);
+        await supabase
+          .from("generations")
+          .update({ is_public: false })
+          .in("id", toRemove.map((g: { id: string }) => g.id));
+      }
+    }
 
     return NextResponse.json({ ok: true, is_public });
   } catch {

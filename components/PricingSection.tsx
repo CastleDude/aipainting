@@ -36,8 +36,8 @@ const plans = [
     key: "free" as const,
     highlight: false,
     monthly: TIER_CONFIG.free.price,
-    images: String(TIER_CONFIG.free.dailyCredits),
-    period: "daily" as const,
+    images: String(TIER_CONFIG.free.monthlyCredits),
+    period: "monthly" as const,
     features: TIER_CONFIG.free.features,
   },
   {
@@ -158,7 +158,7 @@ export function PricingSection({ messages }: PricingSectionProps) {
                 <span className="text-text-secondary">{messages.fast_images}</span>
                 <span className="text-text-muted text-sm">
                   {" "}
-                  ({plan.period === "daily" ? messages.daily : messages.per_month})
+                  ({messages.per_month})
                 </span>
               </div>
 
