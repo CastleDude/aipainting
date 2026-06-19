@@ -496,10 +496,10 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
               if (statusData.generationIds) setGenerationIds(statusData.generationIds);
               if (typeof statusData.credits === "number") {
                 setLocalCredits(statusData.credits);
-                syncProfileFromApi({ credits: statusData.credits });
+                refreshProfile();
               } else if (typeof statusData.credits === "number") {
                 setLocalCredits(statusData.credits);
-                syncProfileFromApi({ credits: statusData.credits });
+                refreshProfile();
               }
               refreshProfile();
               if (messages.save_reminder) {
@@ -532,10 +532,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
       if (data.generationIds) setGenerationIds(data.generationIds);
       if (typeof data.credits === "number") {
         setLocalCredits(data.credits);
-        syncProfileFromApi({ credits: data.credits });
-      } else if (typeof data.credits === "number") {
-        setLocalCredits(data.credits);
-        syncProfileFromApi({ credits: data.credits });
+        await refreshProfile();
       }
       refreshProfile();
 
