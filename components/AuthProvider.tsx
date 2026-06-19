@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = useCallback(async () => {
     if (!session?.user) return;
     try {
-      const res = await fetch("/api/profile");
+      const res = await fetch(`/api/profile?_t=${Date.now()}`);
       if (res.ok) {
         const data = await res.json();
         setProfile(data.profile);
