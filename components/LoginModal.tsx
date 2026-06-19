@@ -158,9 +158,6 @@ export function LoginModal({ open, onClose, initialMode, messages }: LoginModalP
         if (result.error) {
           setError(result.error);
           setSubmitting(false);
-        } else if (result.needsConfirmation) {
-          setVerifyEmail(email);
-          setSubmitting(false);
         } else {
           setSuccess(true);
           setTimeout(() => onClose(), 2000);

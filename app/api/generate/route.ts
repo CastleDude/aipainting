@@ -4,6 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import { canGenerate, computeDeduction, shouldResetCredits } from "@/lib/credits";
 import { createJob, enqueueJob } from "@/lib/queue";
 import pool, { ensureProfile } from "@/lib/db";
+import { auth } from "@/lib/auth";
 import type { SubscriptionTier } from "@/lib/supabase";
 import { STYLE_PROMPTS, RUNWARE_MODELS } from "@/lib/openrouter";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
@@ -225,14 +226,8 @@ export async function POST(req: NextRequest) {
     let genUserId: string | undefined;
 
     if (supabaseUrl && supabaseKey && process.env.NEXT_PUBLIC_DEV_MOCK_USER !== "true") {
-      const supabase = createServerClient(supabaseUrl, supabaseKey, {
-        cookies: {
-          getAll() { return req.cookies.getAll(); },
-          setAll() {},
-        },
-      });
-
-      const { data: { user } } = await supabase.auth.getUser();
+      const session = await auth();
+      const user = session?.user ? { id: (session.user as any).id, email: session.user.email! } : null;
 
       if (user) {
       genUserId = user.id;
@@ -288,8 +283,8 @@ export async function POST(req: NextRequest) {
         const savedIds: string[] = [];
         if (supabaseUrl && supabaseKey && process.env.NEXT_PUBLIC_DEV_MOCK_USER !== "true") {
           try {
-            const supabase = createServerClient(supabaseUrl, supabaseKey, { cookies: { getAll() { return req.cookies.getAll(); }, setAll() {} } });
-            const { data: { user: saveUser } } = await supabase.auth.getUser();
+            const session2 = await auth();
+            const saveUser = session2?.user ? { id: (session2.user as any).id } : null;
             if (saveUser) {
               const genThumbs = await Promise.allSettled(genImages.map((url) => generateThumbnail(url)));
               const genThumbMap = new Map(genImages.map((url, i) => [url, genThumbs[i]?.status === "fulfilled" ? genThumbs[i].value : null] as const));

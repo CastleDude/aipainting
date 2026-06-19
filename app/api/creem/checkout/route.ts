@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { auth } from "@/lib/auth";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 function getCreemApi() {
@@ -47,19 +47,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Get authenticated user
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return req.cookies.getAll(); },
-          setAll() {},
-        },
-      }
-    );
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const session = await auth();
+    if (!session?.user) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
@@ -69,10 +58,10 @@ export async function POST(req: NextRequest) {
       product_id: productId,
       success_url: `${siteUrl}/${locale}/dashboard?checkout=success`,
       customer: {
-        email: user.email,
+        email: session.user.email,
       },
       metadata: {
-        user_id: user.id,
+        user_id: (session.user as any).id,
         tier,
       },
     };

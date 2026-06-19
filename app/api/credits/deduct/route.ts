@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { auth } from "@/lib/auth";
 import { TOOL_CREDIT_COST, shouldResetCredits } from "@/lib/credits";
 import type { SubscriptionTier } from "@/lib/supabase";
 import pool, { ensureProfile } from "@/lib/db";
@@ -12,17 +12,12 @@ export async function POST(req: NextRequest) {
 
     const cost = TOOL_CREDIT_COST[tool] ?? 1;
 
-    // Auth via Supabase
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { getAll() { return req.cookies.getAll(); }, setAll() {} } },
-    );
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const userId = (session.user as any).id;
 
     // Get profile from local PG
-    const localProfile = await ensureProfile(user.id, user.email);
+    const localProfile = await ensureProfile(userId, session.user.email);
     let currentCredits = localProfile.credits;
 
     const resetCredits = shouldResetCredits(localProfile.daily_reset_at, localProfile.tier as SubscriptionTier);
@@ -35,7 +30,7 @@ export async function POST(req: NextRequest) {
     const newCredits = Math.max(0, currentCredits - cost);
     await pool.query(
       "UPDATE profiles SET credits = $1, daily_reset_at = COALESCE(daily_reset_at, now()) WHERE id = $2",
-      [newCredits, user.id],
+      [newCredits, userId],
     );
 
     return NextResponse.json({ success: true, credits: newCredits, cost, tier: localProfile.tier });

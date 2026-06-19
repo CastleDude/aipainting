@@ -102,8 +102,6 @@ export function LoginPage({ locale, messages }: LoginPageProps) {
         const result = await signUp(email, password, name || email.split("@")[0]);
         if (result.error) {
           setError(result.error);
-        } else if (result.needsConfirmation) {
-          setVerifyEmail(email);
         } else {
           setSuccess(true);
           setTimeout(() => router.push(`/${locale}`), 1500);

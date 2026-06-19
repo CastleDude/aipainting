@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { auth } from "@/lib/auth";
 import pool from "@/lib/db";
 
 export async function GET(req: NextRequest) {
@@ -11,14 +11,9 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Auth via Supabase (keeps working)
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { getAll() { return req.cookies.getAll(); }, setAll() {} } },
-    );
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ generations: [] });
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ generations: [] });
+    const user = { id: (session.user as any).id };
 
     // Query local PostgreSQL
     const { rows } = await pool.query(
@@ -36,12 +31,8 @@ export async function GET(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { getAll() { return req.cookies.getAll(); }, setAll() {} } },
-    );
-    const { data: { user } } = await supabase.auth.getUser();
+    const session = await auth();
+    const user = session?.user ? { id: (session.user as any).id } : null;
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = new URL(req.url);
@@ -62,13 +53,9 @@ export async function DELETE(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { getAll() { return req.cookies.getAll(); }, setAll() {} } },
-  );
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = { id: (session.user as any).id };
 
   const body = await req.json();
   const { id, is_public } = body;
