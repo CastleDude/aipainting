@@ -20,10 +20,9 @@ export async function POST(req: NextRequest) {
 
     await pool.query("INSERT INTO password_reset_tokens (user_id, token, expires) VALUES ($1, $2, $3)", [user.id, token, expires]);
 
-    // Send email (best effort)
-    if (process.env.SMTP_USER) {
-      try { await sendResetEmail(email.toLowerCase(), token); } catch (e) { console.error("[reset-password] Email failed:", e); }
-    }
+    // Send email
+    console.log("[reset-password] SMTP config:", process.env.SMTP_USER ? `user=${process.env.SMTP_USER} host=${process.env.SMTP_HOST}` : "NOT CONFIGURED");
+    try { await sendResetEmail(email.toLowerCase(), token); console.log("[reset-password] Email sent to", email); } catch (e) { console.error("[reset-password] Email failed:", e); }
 
     return NextResponse.json({ ok: true });
   } catch (e) {
