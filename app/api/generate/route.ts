@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import { createServerClient } from "@supabase/ssr";
 import { canGenerate, computeDeduction, shouldResetCredits } from "@/lib/credits";
 import { createJob, enqueueJob } from "@/lib/queue";
+import pool, { ensureProfile } from "@/lib/db";
 import type { SubscriptionTier } from "@/lib/supabase";
 import { STYLE_PROMPTS, RUNWARE_MODELS } from "@/lib/openrouter";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
@@ -235,52 +236,30 @@ export async function POST(req: NextRequest) {
 
       if (user) {
       genUserId = user.id;
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id, tier, credits, daily_reset_at")
-        .eq("id", user.id)
-        .single();
+      // Use local PG for profiles
+      const localProfile = await ensureProfile(user.id, user.email);
+      const tier = localProfile.tier as SubscriptionTier;
+      const numToGenerate = numImages || 1;
+      const deductCount = computeDeduction(numToGenerate, model, creditMultiplier);
+      let currentCredits = localProfile.credits;
 
-      if (profile) {
-        const tier = profile.tier as SubscriptionTier;
-        const numToGenerate = numImages || 1;
-        const deductCount = computeDeduction(numToGenerate, model, creditMultiplier);
-        let currentCredits = profile.credits;
-
-        // Monthly credit reset
-        const resetCredits = shouldResetCredits(profile.daily_reset_at as string | null, tier);
-        if (resetCredits !== null) {
-          currentCredits = resetCredits;
-          await supabase.from("profiles").update({
-            credits: currentCredits,
-            daily_reset_at: new Date().toISOString(),
-          }).eq("id", user.id);
-        }
-
-        const result = canGenerate(tier, currentCredits);
-        if (!result.allowed) {
-          return NextResponse.json(
-            { error: result.reason, code: "credit_exhausted" },
-            { status: 402 },
-          );
-        }
-
-        // Deduct before generating to prevent double-spend
-        currentCredits = Math.max(0, currentCredits - deductCount);
-        const updates: Record<string, unknown> = { credits: currentCredits };
-        // Set monthly_reset timestamp on first deduction
-        if (!profile.daily_reset_at) updates.daily_reset_at = new Date().toISOString();
-        await supabase.from("profiles").update(updates).eq("id", user.id);
-
-        await supabase.from("credit_logs").insert({
-          id: `gen_${Date.now()}_${user.id.slice(0, 8)}`,
-          user_id: user.id,
-          amount: -deductCount,
-          reason: `Generate ${numToGenerate} image(s) ×${creditMultiplier} [${model}] — ${tier}`,
-        });
-
-        creditResult = { credits: currentCredits };
+      // Monthly credit reset
+      const resetCredits = shouldResetCredits(localProfile.daily_reset_at, tier);
+      if (resetCredits !== null) {
+        currentCredits = resetCredits;
+        await pool.query("UPDATE profiles SET credits = $1, daily_reset_at = now() WHERE id = $2", [currentCredits, user.id]);
       }
+
+      const result = canGenerate(tier, currentCredits);
+      if (!result.allowed) {
+        return NextResponse.json({ error: result.reason, code: "credit_exhausted" }, { status: 402 });
+      }
+
+      // Deduct before generating
+      currentCredits = Math.max(0, currentCredits - deductCount);
+      await pool.query("UPDATE profiles SET credits = $1, daily_reset_at = COALESCE(daily_reset_at, now()) WHERE id = $2", [currentCredits, user.id]);
+      await pool.query("INSERT INTO credit_logs (id, user_id, amount, reason) VALUES ($1, $2, $3, $4)", [`gen_${Date.now()}_${user.id.slice(0, 8)}`, user.id, -deductCount, `Generate ${numToGenerate} image(s) [${model}] — ${tier}`]);
+      creditResult = { credits: currentCredits };
     }
     }
 
@@ -315,17 +294,19 @@ export async function POST(req: NextRequest) {
               const genThumbs = await Promise.allSettled(genImages.map((url) => generateThumbnail(url)));
               const genThumbMap = new Map(genImages.map((url, i) => [url, genThumbs[i]?.status === "fulfilled" ? genThumbs[i].value : null] as const));
               for (const url of genImages) {
-                const { data: inserted, error: insertErr } = await supabase.from("generations").insert({ user_id: saveUser.id, prompt: prompt.trim(), model, image_url: url, thumb_url: genThumbMap.get(url) ?? null, is_public: isPublic || false }).select("id").single();
-                if (insertErr) {
-                  console.error("[generate] Failed to save generation:", JSON.stringify(insertErr));
-                } else {
+                try {
+                  const { rows: [inserted] } = await pool.query(
+                    "INSERT INTO generations (user_id, prompt, model, image_url, thumb_url, is_public) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+                    [saveUser.id, prompt.trim(), model, url, genThumbMap.get(url) ?? null, isPublic || false],
+                  );
                   saved++;
                   if (inserted) savedIds.push(inserted.id);
+                } catch (e) {
+                  console.error("[generate] Failed to save generation:", e instanceof Error ? e.message : e);
                 }
               }
               if (saved > 0) {
-                const { data: genList } = await supabase.from("generations").select("id").eq("user_id", saveUser.id).order("created_at", { ascending: false }).range(20, 999999);
-                if (genList && genList.length > 0) await supabase.from("generations").delete().in("id", genList.map((g: { id: string }) => g.id));
+                await pool.query("DELETE FROM generations WHERE id IN (SELECT id FROM generations WHERE user_id = $1 ORDER BY created_at DESC OFFSET 20)", [saveUser.id]);
               }
             } else {
               console.warn("[generate] User not authenticated, skipping save to generations");
@@ -381,32 +362,24 @@ export async function POST(req: NextRequest) {
           const thumbMap = new Map(images.map((url, i) => [url, thumbs[i]?.status === "fulfilled" ? thumbs[i].value : null] as const));
 
           for (const url of images) {
-            const { data: inserted, error: insertErr } = await supabase.from("generations").insert({
-              user_id: saveUser.id,
-              prompt: prompt.trim(),
-              model,
-              image_url: url,
-              thumb_url: thumbMap.get(url) ?? null,
-              is_public: isPublic || false,
-            }).select("id").single();
-            if (insertErr) {
-              console.error("[generate] Failed to save generation:", JSON.stringify(insertErr));
-            } else {
+            try {
+              const { rows: [inserted] } = await pool.query(
+                "INSERT INTO generations (user_id, prompt, model, image_url, thumb_url, is_public) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+                [saveUser.id, prompt.trim(), model, url, thumbMap.get(url) ?? null, isPublic || false],
+              );
               saved++;
               if (inserted) savedIds.push(inserted.id);
+            } catch (e) {
+              console.error("[generate] Failed to save generation:", e instanceof Error ? e.message : e);
             }
           }
           // Prune oldest if > 20
           if (saved > 0) {
-            const { data: genList } = await supabase
-              .from("generations")
-              .select("id")
-              .eq("user_id", saveUser.id)
-              .order("created_at", { ascending: false })
-              .range(20, 999999);
-            if (genList && genList.length > 0) {
-              await supabase.from("generations").delete().in("id", genList.map((g: { id: string }) => g.id));
-            }
+            await pool.query(
+              `DELETE FROM generations WHERE id IN (
+                SELECT id FROM generations WHERE user_id = $1 ORDER BY created_at DESC OFFSET 20
+              )`, [saveUser.id],
+            );
           }
         } else {
           console.warn("[generate] User not authenticated, skipping save to generations");

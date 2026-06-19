@@ -2,74 +2,43 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { TOOL_CREDIT_COST, shouldResetCredits } from "@/lib/credits";
 import type { SubscriptionTier } from "@/lib/supabase";
+import pool, { ensureProfile } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { tool } = body;
-
-    if (!tool) {
-      return NextResponse.json({ error: "Missing tool name" }, { status: 400 });
-    }
+    if (!tool) return NextResponse.json({ error: "Missing tool name" }, { status: 400 });
 
     const cost = TOOL_CREDIT_COST[tool] ?? 1;
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      // Dev mock mode — return success for local testing without Supabase
-      return NextResponse.json({ success: true, mock: true, cost });
-    }
-
-    const supabase = createServerClient(supabaseUrl, supabaseKey, {
-      cookies: {
-        getAll() { return req.cookies.getAll(); },
-        setAll() {},
-      },
-    });
-
+    // Auth via Supabase
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { getAll() { return req.cookies.getAll(); }, setAll() {} } },
+    );
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id, tier, credits, daily_reset_at")
-      .eq("id", user.id)
-      .single();
+    // Get profile from local PG
+    const localProfile = await ensureProfile(user.id, user.email);
+    let currentCredits = localProfile.credits;
 
-    if (!profile) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
-    }
-
-    let currentCredits = profile.credits;
-
-    // Monthly credit reset
-    const resetCredits = shouldResetCredits(profile.daily_reset_at, profile.tier as SubscriptionTier);
-    if (resetCredits !== null) {
-      currentCredits = resetCredits;
-    }
+    const resetCredits = shouldResetCredits(localProfile.daily_reset_at, localProfile.tier as SubscriptionTier);
+    if (resetCredits !== null) currentCredits = resetCredits;
 
     if (currentCredits <= 0) {
       return NextResponse.json({ error: "Insufficient credits" }, { status: 402 });
     }
 
     const newCredits = Math.max(0, currentCredits - cost);
-    const updates: Record<string, unknown> = { credits: newCredits };
-    if (!profile.daily_reset_at) updates.daily_reset_at = new Date().toISOString();
-    if (resetCredits !== null) updates.daily_reset_at = new Date().toISOString();
-    const { error: updateErr } = await supabase
-      .from("profiles")
-      .update(updates)
-      .eq("id", user.id);
+    await pool.query(
+      "UPDATE profiles SET credits = $1, daily_reset_at = COALESCE(daily_reset_at, now()) WHERE id = $2",
+      [newCredits, user.id],
+    );
 
-    if (updateErr) {
-      return NextResponse.json({ error: "Failed to deduct credits" }, { status: 500 });
-    }
-
-    return NextResponse.json({ success: true, credits: newCredits, cost, tier: profile.tier });
+    return NextResponse.json({ success: true, credits: newCredits, cost, tier: localProfile.tier });
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }

@@ -1,26 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// Use Supabase REST API directly to avoid supabase-js WebSocket crash on Node 20
-function supabaseUrl() { return process.env.NEXT_PUBLIC_SUPABASE_URL!; }
-function serviceKey() { return process.env.SUPABASE_SERVICE_ROLE_KEY!; }
-
-async function supabaseGet(path: string) {
-  const res = await fetch(`${supabaseUrl()}/rest/v1/${path}`, {
-    headers: {
-      apikey: serviceKey(),
-      Authorization: `Bearer ${serviceKey()}`,
-    },
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Supabase ${res.status}: ${body}`);
-  }
-  return res.json();
-}
+import pool from "@/lib/db";
 
 export async function GET(req: NextRequest) {
   try {
-    // Dev mock mode — read from cookie
+    // Dev mock mode
     if (process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_DEV_MOCK_USER === "true") {
       const cookieVal = req.cookies.get("mock_generations")?.value;
       const allItems: Array<{ id: string; prompt: string; model: string; image_url: string; is_public: boolean; created_at: string }> = cookieVal ? JSON.parse(decodeURIComponent(cookieVal)) : [];
@@ -29,10 +12,7 @@ export async function GET(req: NextRequest) {
       const page = parseInt(url.searchParams.get("page") || "1");
       const limit = Math.min(parseInt(url.searchParams.get("limit") || "24"), 48);
       const offset = (page - 1) * limit;
-      const items = publicItems.slice(offset, offset + limit).map((g) => ({
-        ...g,
-        user_name: "You (demo)",
-      }));
+      const items = publicItems.slice(offset, offset + limit).map((g) => ({ ...g, user_name: "You (demo)" }));
       return NextResponse.json({ items, total: publicItems.length, page, limit });
     }
 
@@ -41,45 +21,20 @@ export async function GET(req: NextRequest) {
     const limit = Math.min(parseInt(url.searchParams.get("limit") || "24"), 48);
     const offset = (page - 1) * limit;
 
-    // Use PostgREST directly (avoids supabase-js WebSocket issue on Node 20)
-    const select = "id,user_id,prompt,model,image_url,thumb_url,created_at";
-    const order = "order=created_at.desc";
-    const range = `limit=${limit}&offset=${offset}`;
-    const filter = "is_public=eq.true";
-
-    // Get count via Prefer header
-    const countRes = await fetch(
-      `${supabaseUrl()}/rest/v1/generations?select=id&${filter}&${order}&limit=0`,
-      {
-        headers: {
-          apikey: serviceKey(),
-          Authorization: `Bearer ${serviceKey()}`,
-          Prefer: "count=exact",
-        },
-      }
-    );
-    const total = parseInt(countRes.headers.get("content-range")?.split("/")[1] || "0");
-
-    const data = await supabaseGet(
-      `generations?select=${select}&${filter}&${order}&${range}`
+    // Local PG query with join for user names
+    const { rows: items } = await pool.query(
+      `SELECT g.id, g.user_id, g.prompt, g.model, g.image_url, g.thumb_url, g.created_at, COALESCE(p.name, 'Anonymous') as user_name
+       FROM generations g LEFT JOIN profiles p ON g.user_id = p.id
+       WHERE g.is_public = true
+       ORDER BY g.created_at DESC LIMIT $1 OFFSET $2`,
+      [limit, offset],
     );
 
-    // Fetch profiles for user names
-    const userIds = [...new Set((data || []).map((g: { user_id: string }) => g.user_id))];
-    let nameMap = new Map<string, string>();
-    if (userIds.length > 0) {
-      const profiles = await supabaseGet(
-        `profiles?select=id,name&id=in.(${userIds.join(",")})`
-      );
-      (profiles || []).forEach((p: { id: string; name: string }) => nameMap.set(p.id, p.name));
-    }
+    const { rows: [count] } = await pool.query(
+      "SELECT COUNT(*)::int as total FROM generations WHERE is_public = true",
+    );
 
-    const items = (data || []).map((g: { user_id: string }) => ({
-      ...g,
-      user_name: nameMap.get(g.user_id) || "Anonymous",
-    }));
-
-    return NextResponse.json({ items, total, page, limit });
+    return NextResponse.json({ items, total: count?.total || 0, page, limit });
   } catch (e) {
     console.error("[gallery] Error:", e instanceof Error ? e.message : e);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

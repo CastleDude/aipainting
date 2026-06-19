@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
+import pool from "@/lib/db";
 
 // Service role client for admin DB writes
 function getServiceClient() {
@@ -51,42 +52,23 @@ interface WebhookPayload {
   };
 }
 
-async function handleCheckoutCompleted(supabase: ReturnType<typeof getServiceClient>, payload: WebhookPayload) {
+async function handleCheckoutCompleted(_supabase: ReturnType<typeof getServiceClient>, payload: WebhookPayload) {
   const { data } = payload;
   const userId = data.metadata?.user_id;
   const tier = data.metadata?.tier || "premium";
   const subscription = data.subscription;
+  if (!userId) { console.error("[creem] No user_id in checkout metadata"); return; }
 
-  if (!userId) {
-    console.error("[creem] No user_id in checkout metadata");
-    return;
-  }
-
-  // Insert order record
-  await supabase.from("orders").upsert({
-    id: data.id,
-    user_id: userId,
-    amount: data.amount || 0,
-    currency: data.currency || "USD",
-    tier,
-    status: "completed",
-    creem_checkout_id: data.id,
-  });
-
-  // Update profile tier (use update to avoid resetting credits column)
-  await supabase.from("profiles").update({ tier }).eq("id", userId);
-
-  // If subscription, insert subscription record
+  await pool.query(
+    "INSERT INTO orders (id, user_id, amount, currency, tier, status, creem_checkout_id) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT (id) DO UPDATE SET status = 'completed'",
+    [data.id, userId, data.amount || 0, data.currency || "USD", tier, "completed", data.id],
+  );
+  await pool.query("UPDATE profiles SET tier = $1 WHERE id = $2", [tier, userId]);
   if (subscription) {
-    await supabase.from("subscriptions").upsert({
-      id: subscription.id,
-      user_id: userId,
-      tier,
-      status: subscription.status,
-      creem_subscription_id: subscription.id,
-      current_period_start: subscription.current_period_start,
-      current_period_end: subscription.current_period_end,
-    });
+    await pool.query(
+      "INSERT INTO subscriptions (id, user_id, tier, status, creem_subscription_id, current_period_start, current_period_end) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT (id) DO UPDATE SET status = $4",
+      [subscription.id, userId, tier, subscription.status, subscription.id, subscription.current_period_start, subscription.current_period_end],
+    );
   }
 }
 
@@ -102,37 +84,14 @@ async function handleSubscriptionPaid(supabase: ReturnType<typeof getServiceClie
 
   if (!sub) return;
 
-  // Reset monthly credits (aligned with TIER_CONFIG in lib/credits.ts)
   const TIER_CREDITS: Record<string, number> = {
-    free: 5,
-    basic: 500,
-    premium: 2000,
-    ultimate: 5000,
+    free: 10, basic: 500, premium: 2000, ultimate: 5000,
   };
   const monthlyCredits = TIER_CREDITS[sub.tier] || 0;
 
-  await supabase
-    .from("profiles")
-    .update({ credits: monthlyCredits })
-    .eq("id", sub.user_id);
-
-  // Audit trail
-  await supabase.from("credit_logs").insert({
-    id: `sub_paid_${payload.id}`,
-    user_id: sub.user_id,
-    amount: monthlyCredits,
-    reason: `Monthly credit reset for ${sub.tier} subscription`,
-  });
-
-  // Update subscription period
-  await supabase
-    .from("subscriptions")
-    .update({
-      status: "active",
-      current_period_start: subscription.current_period_start,
-      current_period_end: subscription.current_period_end,
-    })
-    .eq("creem_subscription_id", subscription.id);
+  await pool.query("UPDATE profiles SET credits = $1 WHERE id = $2", [monthlyCredits, sub.user_id]);
+  await pool.query("INSERT INTO credit_logs (id, user_id, amount, reason) VALUES ($1, $2, $3, $4)", [`sub_paid_${payload.id}`, sub.user_id, monthlyCredits, `Monthly credit reset for ${sub.tier} subscription`]);
+  await pool.query("UPDATE subscriptions SET status = 'active', current_period_start = $1, current_period_end = $2 WHERE creem_subscription_id = $3", [subscription.current_period_start, subscription.current_period_end, subscription.id]);
 }
 
 async function handleSubscriptionCanceled(supabase: ReturnType<typeof getServiceClient>, payload: WebhookPayload) {
@@ -162,12 +121,7 @@ async function handleSubscriptionExpired(supabase: ReturnType<typeof getServiceC
       .update({ tier: "free", credits: 0 })
       .eq("id", sub.user_id);
 
-    await supabase.from("credit_logs").insert({
-      id: `sub_expired_${payload.id}`,
-      user_id: sub.user_id,
-      amount: 0,
-      reason: "Subscription expired — downgraded to free",
-    });
+    await pool.query("INSERT INTO credit_logs (id, user_id, amount, reason) VALUES ($1, $2, 0, $3)", [`sub_expired_${payload.id}`, sub.user_id, "Subscription expired — downgraded to free"]);
   }
 
   await supabase
