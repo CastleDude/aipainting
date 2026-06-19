@@ -39,7 +39,7 @@ const cspHeader = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // No standalone — use `next start` directly
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "*.supabase.co" },
