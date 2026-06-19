@@ -55,6 +55,8 @@ export function GenerationHistory({
     setTimeout(() => setToast(null), 3000);
   };
 
+  const authLoading = !mounted || loading;
+
   const fetchGenerations = useCallback(() => {
     if (isDevMock) {
       setGenerations(getMockGenerations());
@@ -62,6 +64,8 @@ export function GenerationHistory({
       return;
     }
     if (!user) {
+      // Auth still loading — keep waiting, don't set empty yet
+      if (authLoading) return;
       setGenerations([]);
       setLoading(false);
       return;
@@ -72,7 +76,7 @@ export function GenerationHistory({
       .then((d) => setGenerations(d.generations || []))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [user, isDevMock]);
+  }, [user, isDevMock, authLoading]);
 
   useEffect(() => {
     if (!mounted) return;
