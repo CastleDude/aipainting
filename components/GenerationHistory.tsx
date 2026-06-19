@@ -305,19 +305,7 @@ export function GenerationHistory({
     );
   }
 
-  if (!profile || !user) {
-    return (
-      <div className="min-h-screen pt-24 pb-12 text-center">
-        <p className="text-text-muted mb-4">Please log in to view history.</p>
-        <button
-          onClick={() => window.dispatchEvent(new CustomEvent("open-login-modal", { detail: { mode: "login" } }))}
-          className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover cursor-pointer"
-        >
-          Log In
-        </button>
-      </div>
-    );
-  }
+  // Let the API handle auth — don't block rendering
 
   return (
     <div className="min-h-screen pt-20 pb-12">
