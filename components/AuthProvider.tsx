@@ -106,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const result = await nextAuthSignIn("credentials", { email, password, redirect: false });
       if (result?.error) return { error: "Invalid email or password" };
+      window.location.href = "/";
       return { error: null };
     } catch {
       return { error: "Network error" };
