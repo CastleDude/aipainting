@@ -160,6 +160,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, [fetchProfile]);
 
+  // ── Inactivity timeout (30 min) — auto sign out ──
+  useEffect(() => {
+    if (!user || isDevMock) return;
+    const TIMEOUT_MS = 2 * 60 * 60 * 1000; // 2 hours
+    let timer: ReturnType<typeof setTimeout>;
+
+    const resetTimer = () => {
+      clearTimeout(timer);
+      timer = setTimeout(async () => {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+      }, TIMEOUT_MS);
+    };
+
+    const events = ["mousedown", "keydown", "touchstart", "scroll"];
+    events.forEach((e) => window.addEventListener(e, resetTimer, { passive: true }));
+    resetTimer();
+
+    return () => {
+      clearTimeout(timer);
+      events.forEach((e) => window.removeEventListener(e, resetTimer));
+    };
+  }, [user, isDevMock]);
+
   const signUp = useCallback(
     async (email: string, password: string, name: string) => {
       const supabase = createClient();

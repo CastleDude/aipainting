@@ -55,28 +55,20 @@ export function GenerationHistory({
     setTimeout(() => setToast(null), 3000);
   };
 
-  const isAuthReady = mounted && !authLoading;
-
   const fetchGenerations = useCallback(() => {
     if (isDevMock) {
       setGenerations(getMockGenerations());
       setLoading(false);
       return;
     }
-    if (!user) {
-      // Auth still loading — keep waiting, don't set empty yet
-      if (!isAuthReady) return;
-      setGenerations([]);
-      setLoading(false);
-      return;
-    }
+    if (!user) return;
     setLoading(true);
     fetch("/api/generations")
       .then((r) => r.json())
       .then((d) => setGenerations(d.generations || []))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [user, isDevMock, authLoading]);
+  }, [user, isDevMock]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -302,7 +294,7 @@ export function GenerationHistory({
     );
   }
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen pt-24 pb-12 text-center">
         <div className="flex flex-col items-center gap-4">
