@@ -224,14 +224,6 @@ export function Header({ locale, messages, loginModalMessages }: HeaderProps) {
                       {messages.dashboard}
                     </a>
 
-                    <a
-                      href={`${localePath}/history`}
-                      onClick={() => setMenuOpen(false)}
-                      className="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-card-hover transition-colors"
-                    >
-                      {messages.history}
-                    </a>
-
                     {profile?.tier === "free" && (
                       <a
                         href={`${localePath}/pricing`}

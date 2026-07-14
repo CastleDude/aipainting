@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { getTierConfig } from "@/lib/credits";
 import { getMockGenerations, toggleMockGenerationPublic } from "@/lib/generations";
+import { GenerationHistory } from "@/components/GenerationHistory";
 import { ImageViewer } from "@/components/ImageViewer";
 import type { Generation } from "@/lib/generations";
 
@@ -47,6 +48,10 @@ interface DashboardMessages {
   feedback_placeholder?: string;
   feedback_submit?: string;
   feedback_submitting?: string;
+  share_limit?: string;
+  share_similar?: string;
+  today?: string;
+  yesterday?: string;
 }
 
 export function Dashboard({ locale, messages }: { locale: string; messages: DashboardMessages }) {
@@ -157,90 +162,26 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
           </p>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+        <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
           {/* Main content */}
           <div className="space-y-6 lg:order-2">
+
             {/* Generation history */}
-            <div className="rounded-xl border border-border/50 bg-bg-card p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-lg font-semibold text-text-primary">{messages.history}</h2>
-                <span className="text-xs text-text-muted">{messages.history_count}</span>
-                <div className="flex-1" />
-                <a
-                  href={`${localePath}/history`}
-                  className="text-sm text-accent hover:text-accent-hover transition-colors"
-                >
-                  {messages.manage_history} →
-                </a>
-              </div>
-              {generations.length === 0 ? (
-                <p className="text-sm text-text-muted py-8 text-center">{messages.no_history}</p>
-              ) : (
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                  {generations.map((gen) => (
-                    <div
-                      key={gen.id}
-                      className="group relative aspect-square rounded-lg overflow-hidden border border-border/30 hover:border-accent/40 transition-colors"
-                    >
-                      <img
-                        src={gen.image_url}
-                        alt={gen.prompt}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 pb-6">
-                        <button
-                          onClick={() => { setViewerSrc(gen.image_url); setViewerAlt(gen.prompt); }}
-                          className="rounded-full bg-white/20 p-2 text-white hover:bg-white/35 transition-colors cursor-pointer"
-                          title={messages.view}
-                        >
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={async () => {
-                            try {
-                              const res = await fetch(gen.image_url);
-                              const blob = await res.blob();
-                              const url = URL.createObjectURL(blob);
-                              const a = document.createElement("a");
-                              a.href = url;
-                              a.download = `ai-painting-${Date.now()}.png`;
-                              a.click();
-                              URL.revokeObjectURL(url);
-                            } catch { window.open(gen.image_url, "_blank"); }
-                          }}
-                          className="rounded-full bg-white/20 p-2 text-white hover:bg-white/35 transition-colors cursor-pointer"
-                          title={messages.download}
-                        >
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                          </svg>
-                        </button>
-                      </div>
-                      {/* Gallery share badge */}
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleTogglePublic(gen.id); }}
-                        className={`absolute bottom-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer z-10 ${
-                          gen.is_public
-                            ? "bg-accent text-white shadow-lg shadow-accent/30 hover:bg-accent-hover"
-                            : "bg-black/40 text-white/25 hover:text-white/60 hover:bg-black/50"
-                        }`}
-                        title={gen.is_public ? "Remove from gallery" : "Share to gallery"}
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <rect x={3} y={3} width={7} height={7} rx={1} />
-                          <rect x={14} y={3} width={7} height={7} rx={1} />
-                          <rect x={3} y={14} width={7} height={7} rx={1} />
-                          <rect x={14} y={14} width={7} height={7} rx={1} />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <div>
+            <GenerationHistory locale={locale} messages={{
+              title: messages.history || "History",
+              history_count: messages.history_count || "",
+              no_history: messages.no_history || "No history yet",
+              view: messages.view || "View",
+              download: messages.download || "Download",
+              remix: "Remix", edit: "Edit", delete: "Delete",
+              batch_delete: "Delete Selected", select_all: "Select All",
+              cancel: "Cancel", confirm_delete: "Confirm Delete",
+              deleted: "Deleted", save_reminder: "",
+              share_limit: messages.share_limit || "",
+              share_similar: messages.share_similar || "",
+              today: messages.today || "Today", yesterday: messages.yesterday || "Yesterday",
+            }} />
             </div>
 
           </div>
@@ -248,7 +189,7 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
           {/* Sidebar */}
           <div className="space-y-6 lg:order-1">
             {/* Account info */}
-            <div className="rounded-xl border border-border/50 bg-bg-card p-6">
+            <div className="rounded-xl border border-border/50 bg-bg-card p-4">
               <h2 className="mb-4 text-lg font-semibold text-text-primary">{messages.account_info}</h2>
 
               <div className="space-y-3 text-sm">
@@ -280,7 +221,7 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
             </div>
 
             {/* Credit usage card */}
-            <div className="rounded-xl border border-border/50 bg-bg-card p-6">
+            <div className="rounded-xl border border-border/50 bg-bg-card p-4">
               <h2 className="mb-4 text-lg font-semibold text-text-primary">
                 {messages.monthly_credits || "Monthly Credits"}
               </h2>
@@ -319,7 +260,7 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
 
 
             {/* Plan features */}
-            <div className="rounded-xl border border-border/50 bg-bg-card p-6">
+            <div className="rounded-xl border border-border/50 bg-bg-card p-4">
               <h2 className="mb-4 text-lg font-semibold text-text-primary">{messages.plan_features}</h2>
               <ul className="space-y-2">
                 {tierConfig.features.map((f: string, i: number) => (
@@ -362,7 +303,7 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
             </div>
 
             {/* Feedback */}
-            <div className="rounded-xl border border-border/50 bg-bg-card p-6">
+            <div className="rounded-xl border border-border/50 bg-bg-card p-4">
               <h2 className="mb-4 text-lg font-semibold text-text-primary">{messages.feedback_title || "留言反馈"}</h2>
               <FeedbackForm messages={messages} />
             </div>
