@@ -50,6 +50,14 @@ interface DashboardMessages {
   feedback_submitting?: string;
   share_limit?: string;
   share_similar?: string;
+  remix?: string;
+  edit?: string;
+  delete?: string;
+  batch_delete?: string;
+  select_all?: string;
+  cancel?: string;
+  confirm_delete?: string;
+  deleted?: string;
   today?: string;
   yesterday?: string;
 }
@@ -174,10 +182,10 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
               no_history: messages.no_history || "No history yet",
               view: messages.view || "View",
               download: messages.download || "Download",
-              remix: "Remix", edit: "Edit", delete: "Delete",
-              batch_delete: "Delete Selected", select_all: "Select All",
-              cancel: "Cancel", confirm_delete: "Confirm Delete",
-              deleted: "Deleted", save_reminder: "",
+              remix: messages.remix || "Remix", edit: messages.edit || "Edit", delete: messages.delete || "Delete",
+              batch_delete: messages.batch_delete || "Delete Selected", select_all: messages.select_all || "Select All",
+              cancel: messages.cancel || "Cancel", confirm_delete: messages.confirm_delete || "Confirm Delete",
+              deleted: messages.deleted || "Deleted", save_reminder: "",
               share_limit: messages.share_limit || "",
               share_similar: messages.share_similar || "",
               today: messages.today || "Today", yesterday: messages.yesterday || "Yesterday",
