@@ -46,13 +46,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers,
   trustHost: true,
   secret: process.env.AUTH_SECRET,
-  // 用 __Secure- 代替 __Host- 前缀，避免 nginx 代理下浏览器拒绝 cookie
-  cookies: {
-    csrfToken: {
-      name: "__Secure-authjs.csrf-token",
-      options: { httpOnly: true, sameSite: "lax", path: "/", secure: true },
-    },
-  },
+  useSecureCookies: false,
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
