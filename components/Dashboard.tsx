@@ -80,7 +80,7 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
   if (!mounted || loading) {
     return (
       <div className="min-h-screen pt-20 pb-12">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="animate-pulse space-y-6">
             <div className="h-8 w-48 rounded-lg bg-bg-card" />
             <div className="h-40 rounded-xl bg-bg-card" />
@@ -148,56 +148,18 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
 
   return (
     <div className="min-h-screen pt-20 pb-12">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 flex items-baseline gap-5">
           <h1 className="text-2xl font-bold text-text-primary">{messages.title}</h1>
-          <p className="mt-1 text-text-muted">
+          <p className="text-text-muted">
             {messages.welcome}, {profile.name || user.email?.split("@")[0]}
           </p>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
           {/* Main content */}
-          <div className="space-y-6 lg:col-span-2">
-            {/* Credit usage card */}
-            <div className="rounded-xl border border-border/50 bg-bg-card p-6">
-              <h2 className="mb-4 text-lg font-semibold text-text-primary">
-                {messages.monthly_credits || "Monthly Credits"}
-              </h2>
-
-              {/* Unified credits usage bar */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-text-muted">{messages.images_this_month || "This month"}</span>
-                  <span className="text-text-secondary font-medium">
-                    {monthlyUsed} / {monthlyCredits} {messages.used || "used"}
-                  </span>
-                </div>
-                <div className="h-3 rounded-full bg-bg-primary/70 border border-border/50 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500 min-w-[2px]"
-                    style={{ width: `${Math.max(monthlyPct, 1)}%` }}
-                  />
-                </div>
-                <p className="mt-2 text-xs text-text-muted">
-                  {credits} {messages.remaining || "remaining"}
-                </p>
-              </div>
-
-              {tier === "free" && (
-                <div className="mt-4 rounded-lg bg-accent/5 border border-accent/20 p-4">
-                  <p className="text-sm text-text-secondary">{messages.upgrade_to_unlock}</p>
-                  <a
-                    href={`${localePath}/pricing`}
-                    className="mt-3 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover transition-colors"
-                  >
-                    {messages.upgrade_now}
-                  </a>
-                </div>
-              )}
-            </div>
-
+          <div className="space-y-6 lg:order-2">
             {/* Generation history */}
             <div className="rounded-xl border border-border/50 bg-bg-card p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -309,7 +271,7 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:order-1">
             {/* Account info */}
             <div className="rounded-xl border border-border/50 bg-bg-card p-6">
               <h2 className="mb-4 text-lg font-semibold text-text-primary">{messages.account_info}</h2>
@@ -341,6 +303,45 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
                 )}
               </div>
             </div>
+
+            {/* Credit usage card */}
+            <div className="rounded-xl border border-border/50 bg-bg-card p-6">
+              <h2 className="mb-4 text-lg font-semibold text-text-primary">
+                {messages.monthly_credits || "Monthly Credits"}
+              </h2>
+
+              {/* Unified credits usage bar */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span className="text-text-muted">{messages.images_this_month || "This month"}</span>
+                  <span className="text-text-secondary font-medium">
+                    {monthlyUsed} / {monthlyCredits} {messages.used || "used"}
+                  </span>
+                </div>
+                <div className="h-3 rounded-full bg-bg-primary/70 border border-border/50 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500 min-w-[2px]"
+                    style={{ width: `${Math.max(monthlyPct, 1)}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-text-muted">
+                  {credits} {messages.remaining || "remaining"}
+                </p>
+              </div>
+
+              {tier === "free" && (
+                <div className="mt-4 rounded-lg bg-accent/5 border border-accent/20 p-4">
+                  <p className="text-sm text-text-secondary">{messages.upgrade_to_unlock}</p>
+                  <a
+                    href={`${localePath}/pricing`}
+                    className="mt-3 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover transition-colors"
+                  >
+                    {messages.upgrade_now}
+                  </a>
+                </div>
+              )}
+            </div>
+
 
             {/* Plan features */}
             <div className="rounded-xl border border-border/50 bg-bg-card p-6">
