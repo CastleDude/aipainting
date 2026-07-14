@@ -15,6 +15,7 @@ export default async function AdminLayout({
     credits: messages.admin?.credits || "Credits",
     subscriptions: messages.admin?.subscriptions || "Subscriptions",
     settings: messages.admin?.settings || "Settings",
+    feedback: "留言管理",
     back_to_site: messages.admin?.back_to_site || "Back to Site",
   };
 

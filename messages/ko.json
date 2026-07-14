@@ -142,7 +142,7 @@
     "switch_to_seedream": "Flux Schnell로 전환 (무료, 전 세계 사용 가능)",
     "presets": {
       "title": "빠른 프리셋",
-      "credit_multiplier": "[[COUNT]]배 크레딧",
+      "credit_multiplier": "[[[COUNT]]]배 크레딧",
       "photo_restoration": {
         "name": "오래된 사진 복원",
         "desc": "오래되거나 손상된 사진을 복원하고 개선합니다"
@@ -177,7 +177,25 @@
           "general": "일반 축하"
         }
       }
-    }
+    },
+    "credit_cost": "소비: [[COUNT]]크레딧",
+    "credit_insufficient": "(크레딧 부족)",
+    "guest_credits": "매일 무료 [[COUNT]]/5",
+    "guest_banner": "매일 무료 [[COUNT]]/5 · 가입 시 10/일",
+    "admin_alerts": "{count}명의 유료 사용자 크레딧 소진",
+    "style_photorealistic": "포토리얼",
+    "style_anime": "애니메이션",
+    "style_digital-art": "디지털 아트",
+    "style_oil-painting": "유화",
+    "style_cinematic": "시네마틱",
+    "style_ghibli": "지브리",
+    "style_3d-render": "3D 렌더",
+    "style_line-art": "라인 아트",
+    "moderation_title": "콘텐츠 위반",
+    "moderation_hint": "콘텐츠 위반입니다. 프롬프트를 조정해 주세요.",
+    "moderation_ban": "위반 횟수가 너무 많습니다. 나중에 다시 시도해 주세요.",
+    "enhance_btn": "✨ 향상",
+    "enhancing_btn": "✨ 향상 중..."
   },
   "image_tools": {
     "browser_hint": "최적의 사용을 위해 Chrome 또는 Edge 브라우저를 권장합니다",
@@ -186,6 +204,7 @@
     "tabs": {
       "crop": "자르기",
       "compress": "압축",
+      "format": "포맷",
       "remove_bg": "배경 제거",
       "replace_bg": "배경 교체",
       "smooth": "피부 보정",
@@ -195,6 +214,7 @@
     "descriptions": {
       "crop": "원하는 화면 비율로 이미지를 자르세요. 영구 무료입니다.",
       "compress": "화질 손실 없이 이미지를 압축하세요. 영구 무료입니다.",
+      "format": "이미지 형식 일괄 변환.",
       "remove_bg": "AI 기반 배경 제거. 하루 20회 무료 사용.",
       "replace_bg": "원하는 색상이나 이미지로 AI 배경 교체. 하루 20회 무료 사용.",
       "smooth": "AI 피부 보정 및 얼굴 리터칭. 하루 20회 무료 사용.",
@@ -213,7 +233,7 @@
     "remaining": "오늘 남은 무료 사용 횟수: [[COUNT]]회",
     "upgrade": "업그레이드로 무제한 이용",
     "credits_remaining": "크레딧",
-    "per_use": "1회당 1크레딧",
+    "per_use": "1회당 [[COUNT]]크레딧",
     "crop": {
       "aspect_ratio": "화면 비율",
       "freeform": "자유형",
@@ -266,7 +286,11 @@
       "max_hint": "최대 15장까지 한 번에 처리할 수 있습니다. JPG, PNG, WebP 등을 지원합니다.",
       "too_many": "한 번에 15장까지만 업로드할 수 있습니다. 다시 선택해 주세요.",
       "download_all": "전체 다운로드",
-      "delete_all": "전체 삭제"
+      "delete_all": "전체 삭제",
+      "reset_results": "초기화",
+      "auto": "균형",
+      "quality_mode": "품질 우선",
+      "size_mode": "크기 우선"
     },
     "remove_bg": {
       "action": "배경 제거하기"
@@ -368,7 +392,22 @@
     "showcase_replace_bg_feature3": "확대/축소 및 이동으로 완벽한 배치",
     "showcase_replace_bg_feature4": "확정 전 즉시 미리보기",
     "before": "처리 전",
-    "after": "처리 후"
+    "after": "처리 후",
+    "format": {
+      "target": "변환 형식",
+      "convert": "모두 변환",
+      "download_all": "전체 DL",
+      "reset": "초기화",
+      "delete_all": "전체 삭제",
+      "hint": "모든 처리는 브라우저에서 로컬로 수행됩니다.",
+      "max_hint": "한 번에 최대 15장까지.",
+      "too_many": "15장까지만 가능합니다.",
+      "jpeg": "JPEG",
+      "png": "PNG",
+      "webp": "WebP",
+      "avif": "AVIF",
+      "ico": "ICO"
+    }
   },
   "header": {
     "home": "홈",
@@ -421,7 +460,12 @@
     "save_reminder": "이미지를 빠르게 저장해 주세요. 최근 20건의 생성 기록만 보관됩니다.",
     "manage_history": "기록 관리",
     "view": "보기",
-    "download": "다운로드"
+    "download": "다운로드",
+    "feedback_title": "피드백",
+    "feedback_placeholder": "의견을 남겨주세요... (최대 200자)",
+    "feedback_submit": "제출",
+    "feedback_submitting": "제출 중...",
+    "feedback_success": "제출되었습니다, 감사합니다!"
   },
   "history": {
     "title": "생성 기록",
@@ -557,7 +601,7 @@
     "period_end": "기간 종료",
     "cancel_action": "취소",
     "confirm_cancel_sub": "이 구독을 취소하시겠습니까? 사용자가 무료 요금제로 다운그레이드됩니다.",
-    "error_prefix": "오류: "
+    "error_prefix": "오류:"
   },
   "testimonials": {
     "title": "전 세계 크리에이터들의 사랑을 받는",
@@ -628,6 +672,7 @@
         "style_fresh": "새로운 느낌",
         "style_vintage": "빈티지",
         "ratio": "비율",
+        "ratio_original": "원본",
         "custom": "사용자 정의",
         "custom_placeholder": "예: 하늘을 더 파랗게, 왼쪽 사람 제거..."
       }
@@ -979,6 +1024,7 @@
         "custom": "사용자 정의",
         "custom_placeholder": "예: 금박 효과, 꽃 장식 추가..."
       }
-    }
+    },
+    "ratio_original": "원본"
   }
 }

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { PRESETS, getPreset } from "@/lib/presets";
+import { MODEL_COST_MULTIPLIER } from "@/lib/openrouter";
 import type { ExampleImage } from "@/lib/presets";
 import { getRandomGreeting } from "@/lib/greetings";
 
@@ -78,7 +79,7 @@ function RoundIcon({ src, alt }: { src: string; alt: string }) {
   return <img src={src} alt={alt} className="h-10 w-10 rounded-full object-cover shrink-0" />;
 }
 
-// ── Compute total credit cost ──
+// ── Compute base cost (without model multiplier — API applies that) ──
 function calcCost(presetId: string, paramValues: Record<string, string>): number {
   const preset = getPreset(presetId);
   if (!preset) return 1;
@@ -91,6 +92,12 @@ function calcCost(presetId: string, paramValues: Record<string, string>): number
     }
   }
   return cost;
+}
+
+// Total cost includes model multiplier (what user sees in UI)
+function costWithModel(presetId: string, paramValues: Record<string, string>): number {
+  const preset = getPreset(presetId);
+  return calcCost(presetId, paramValues) * (MODEL_COST_MULTIPLIER[preset?.defaultModel || ""] || 1);
 }
 
 // ── Build final prompt ──
@@ -440,9 +447,11 @@ function PresetModal({
   }, []);
 
   const totalCost = calcCost(presetId, paramValues);
+  const shownCost = costWithModel(presetId, paramValues);
+  const ageJourneyModelMult = MODEL_COST_MULTIPLIER["seedream"] || 1;
   const displayCost = presetId === "age_journey" ? (
-    selectedAges.length <= 1 ? 2 : selectedAges.length === 2 ? 4 : selectedAges.length === 3 ? 5 : selectedAges.length === 4 ? 7 : 8
-  ) : totalCost;
+    selectedAges.length <= 1 ? 2 * ageJourneyModelMult : selectedAges.length === 2 ? 4 * ageJourneyModelMult : selectedAges.length === 3 ? 5 * ageJourneyModelMult : selectedAges.length === 4 ? 7 * ageJourneyModelMult : 8 * ageJourneyModelMult
+  ) : shownCost;
 
   const applyTemplate = (attrs: Record<string, string>) => {
     const next = { ...paramValues };

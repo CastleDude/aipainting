@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
 import { NextRequest, NextResponse } from "next/server";
+import { logVisit } from "@/lib/analytics";
 
 const i18nMiddleware = createMiddleware(routing);
 
@@ -43,6 +44,15 @@ export default async function proxy(request: NextRequest) {
       }
     }
   }
+
+  // Log visitor analytics (fire-and-forget, non-blocking)
+  const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "127.0.0.1";
+  logVisit({
+    ip: clientIp,
+    page: request.nextUrl.pathname,
+    referrer: request.headers.get("referer") || undefined,
+    userAgent: request.headers.get("user-agent") || undefined,
+  });
 
   return i18nMiddleware(request);
 }

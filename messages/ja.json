@@ -142,7 +142,7 @@
     "switch_to_seedream": "Flux Schnellに切り替え（無料、グローバル対応）",
     "presets": {
       "title": "クイックプリセット",
-      "credit_multiplier": "[[COUNT]]倍クレジット",
+      "credit_multiplier": "[[[COUNT]]]倍クレジット",
       "photo_restoration": {
         "name": "古い写真の修復",
         "desc": "古くなったり破損した写真を修復・強化します"
@@ -177,7 +177,25 @@
           "general": "一般的なお祝い"
         }
       }
-    }
+    },
+    "credit_cost": "消費: [[COUNT]]クレジット",
+    "credit_insufficient": "(クレジット不足)",
+    "guest_credits": "毎日無料 [[COUNT]]/5",
+    "guest_banner": "毎日無料 [[COUNT]]/5 · 登録で10/日",
+    "admin_alerts": "{count}人の有料ユーザーのクレジットが枯渇",
+    "style_photorealistic": "フォトリアル",
+    "style_anime": "アニメ",
+    "style_digital-art": "デジタルアート",
+    "style_oil-painting": "油絵",
+    "style_cinematic": "シネマティック",
+    "style_ghibli": "ジブリ",
+    "style_3d-render": "3Dレンダー",
+    "style_line-art": "線画",
+    "moderation_title": "コンテンツ違反",
+    "moderation_hint": "コンテンツ違反です。プロンプトを調整してください。",
+    "moderation_ban": "違反が多すぎます。後でもう一度お試しください。",
+    "enhance_btn": "✨ 強化",
+    "enhancing_btn": "✨ 強化中..."
   },
   "image_tools": {
     "browser_hint": "ChromeまたはEdgeでのご利用を推奨します",
@@ -186,6 +204,7 @@
     "tabs": {
       "crop": "切り抜き",
       "compress": "圧縮",
+      "format": "フォーマット",
       "remove_bg": "背景除去",
       "replace_bg": "背景差し替え",
       "smooth": "美肌加工",
@@ -195,6 +214,7 @@
     "descriptions": {
       "crop": "画像を任意のアスペクト比に切り抜き。永久無料。",
       "compress": "画質を保ったまま画像を圧縮。永久無料。",
+      "format": "画像形式を一括変換。JPEG/PNG/WebP/AVIF/ICO対応。",
       "remove_bg": "AIによる背景除去。1日20回無料。",
       "replace_bg": "AIによる背景差し替え。単色・画像どちらも対応。1日20回無料。",
       "smooth": "AI美肌加工・顔補正。1日20回無料。",
@@ -213,7 +233,7 @@
     "remaining": "本日の無料利用残り: [[COUNT]]回",
     "upgrade": "アップグレードして無制限に",
     "credits_remaining": "クレジット",
-    "per_use": "1回につき1クレジット",
+    "per_use": "1回につき[[COUNT]]クレジット",
     "crop": {
       "aspect_ratio": "アスペクト比",
       "freeform": "自由形式",
@@ -266,7 +286,11 @@
       "max_hint": "一度に最大15枚まで。JPG、PNG、WebPなどに対応。",
       "too_many": "一度にアップロードできるのは15枚までです。選択し直してください。",
       "download_all": "すべてダウンロード",
-      "delete_all": "すべて削除"
+      "delete_all": "すべて削除",
+      "reset_results": "リセット",
+      "auto": "バランス",
+      "quality_mode": "品質優先",
+      "size_mode": "サイズ優先"
     },
     "remove_bg": {
       "action": "背景を除去"
@@ -368,7 +392,22 @@
     "showcase_replace_bg_feature3": "ズーム＆パンで完璧な配置に",
     "showcase_replace_bg_feature4": "確定前の即時プレビュー",
     "before": "処理前",
-    "after": "処理後"
+    "after": "処理後",
+    "format": {
+      "target": "変換形式",
+      "convert": "すべて変換",
+      "download_all": "すべてDL",
+      "reset": "リセット",
+      "delete_all": "すべて削除",
+      "hint": "すべてブラウザ内で処理。ICO最大256×256。",
+      "max_hint": "一度に最大15枚まで。",
+      "too_many": "15枚までです。",
+      "jpeg": "JPEG",
+      "png": "PNG",
+      "webp": "WebP",
+      "avif": "AVIF",
+      "ico": "ICO"
+    }
   },
   "header": {
     "home": "ホーム",
@@ -421,7 +460,12 @@
     "save_reminder": "画像はお早めに保存してください。直近20件の生成履歴のみ保持されます。",
     "manage_history": "履歴を管理",
     "view": "表示",
-    "download": "ダウンロード"
+    "download": "ダウンロード",
+    "feedback_title": "フィードバック",
+    "feedback_placeholder": "フィードバックを書く...(最大200文字)",
+    "feedback_submit": "送信",
+    "feedback_submitting": "送信中...",
+    "feedback_success": "送信しました、ありがとうございます！"
   },
   "history": {
     "title": "生成履歴",
@@ -557,7 +601,7 @@
     "period_end": "期間終了",
     "cancel_action": "キャンセル",
     "confirm_cancel_sub": "このサブスクリプションをキャンセルしますか？ユーザーは無料プランにダウングレードされます。",
-    "error_prefix": "エラー： "
+    "error_prefix": "エラー："
   },
   "testimonials": {
     "title": "世界中のクリエイターに愛用",
@@ -628,6 +672,7 @@
         "style_fresh": "フレッシュ",
         "style_vintage": "ビンテージ",
         "ratio": "アスペクト比",
+        "ratio_original": "オリジナル",
         "custom": "カスタム指示",
         "custom_placeholder": "例：空を青く、左側の人を削除..."
       }
@@ -979,6 +1024,7 @@
         "custom": "カスタム指示",
         "custom_placeholder": "例：金箔効果、花の装飾を追加..."
       }
-    }
+    },
+    "ratio_original": "オリジナル"
   }
 }

@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { verifyAdmin } from "@/lib/admin-guard";
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
+import pool from "@/lib/db";
 
 async function guard(req: NextRequest) {
-  const adminId = await verifyAdmin(req);
+  const adminId = await verifyAdmin();
   if (!adminId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -22,34 +15,33 @@ export async function GET(req: NextRequest) {
     const denied = await guard(req);
     if (denied) return denied;
 
-    const supabase = getServiceClient();
     const url = new URL(req.url);
-    const search = url.searchParams.get("search") || "";
+    const search = url.searchParams.get("search")?.trim() || "";
     const page = parseInt(url.searchParams.get("page") || "1");
     const limit = Math.min(parseInt(url.searchParams.get("limit") || "20"), 50);
     const offset = (page - 1) * limit;
 
-    let query = supabase
-      .from("profiles")
-      .select("id, email, name, tier, credits, daily_used, role, created_at", {
-        count: "exact",
-      });
+    let countQuery = "SELECT COUNT(*) AS count FROM profiles";
+    let dataQuery = "SELECT id, email, name, tier, credits, role, created_at FROM profiles";
+    const params: string[] = [];
 
     if (search) {
-      query = query.or(`email.ilike.%${search}%,name.ilike.%${search}%`);
+      const clause = " WHERE email ILIKE $1 OR name ILIKE $2";
+      countQuery += clause;
+      dataQuery += clause;
+      params.push(`%${search}%`, `%${search}%`);
     }
 
-    const { data, count, error } = await query
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+    dataQuery += " ORDER BY created_at DESC LIMIT $" + (params.length + 1) + " OFFSET $" + (params.length + 2);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const [countResult, dataResult] = await Promise.all([
+      pool.query(countQuery, params),
+      pool.query(dataQuery, [...params, limit, offset]),
+    ]);
 
     return NextResponse.json({
-      users: data,
-      total: count || 0,
+      users: dataResult.rows,
+      total: parseInt(countResult.rows[0]?.count || "0", 10),
       page,
       limit,
     });
@@ -63,7 +55,6 @@ export async function PATCH(req: NextRequest) {
     const denied = await guard(req);
     if (denied) return denied;
 
-    const supabase = getServiceClient();
     const body = await req.json();
     const { userId, updates } = body;
 
@@ -71,25 +62,23 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
-    // Only allow updating certain fields
-    const allowed = ["tier", "credits", "daily_used", "tools_daily_used", "role", "name"] as const;
-    const safe: Record<string, unknown> = {};
+    const allowed = ["tier", "credits", "role", "name"] as const;
+    const sets: string[] = [];
+    const vals: unknown[] = [];
+    let i = 1;
     for (const key of allowed) {
-      if (key in updates) safe[key] = updates[key];
+      if (key in updates) {
+        sets.push(`${key} = $${i++}`);
+        vals.push(updates[key]);
+      }
     }
 
-    if (Object.keys(safe).length === 0) {
+    if (sets.length === 0) {
       return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
     }
 
-    const { error } = await supabase
-      .from("profiles")
-      .update(safe)
-      .eq("id", userId);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    vals.push(userId);
+    await pool.query(`UPDATE profiles SET ${sets.join(", ")} WHERE id = $${i}`, vals);
 
     return NextResponse.json({ success: true });
   } catch {
@@ -99,12 +88,11 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const adminId = await verifyAdmin(req);
+    const adminId = await verifyAdmin();
     if (!adminId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const supabase = getServiceClient();
     const body = await req.json();
     const { ids } = body;
 
@@ -112,40 +100,14 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
-    // Prevent self-deletion
     if (ids.includes(adminId)) {
       return NextResponse.json({ error: "Cannot delete yourself" }, { status: 400 });
     }
 
-    // Delete users one by one — try auth first, fall back to profiles-only
-    let deleted = 0;
-    const errors: string[] = [];
-    for (const id of ids) {
-      const { error } = await supabase.auth.admin.deleteUser(id);
-      if (!error) {
-        deleted++;
-        continue;
-      }
-      // Fallback: user only exists in profiles, or auth record is corrupted
-      if (error.message?.includes("user_not_found") || error.code === "user_not_found" ||
-          error.message?.includes("Database error") || error.code === "unexpected_failure") {
-        console.warn(`[users/delete] Auth delete failed for ${id}, falling back to profiles delete: ${error.message}`);
-        const { error: profileError } = await supabase.from("profiles").delete().eq("id", id);
-        if (profileError) {
-          errors.push(`${id}: ${profileError.message}`);
-        } else {
-          deleted++;
-        }
-      } else {
-        errors.push(`${id}: ${error.message}`);
-      }
-    }
+    const placeholders = ids.map((_, idx) => `$${idx + 1}`).join(", ");
+    await pool.query(`DELETE FROM profiles WHERE id IN (${placeholders})`, ids);
 
-    if (errors.length > 0) {
-      return NextResponse.json({ error: errors.join("; "), deleted }, { status: errors.length === ids.length ? 500 : 207 });
-    }
-
-    return NextResponse.json({ success: true, deleted });
+    return NextResponse.json({ success: true, deleted: ids.length });
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }

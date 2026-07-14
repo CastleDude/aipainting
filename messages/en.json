@@ -5,15 +5,15 @@
     "description": "Create stunning AI-generated images with the latest models. No registration required. Free to start."
   },
   "hero": {
-    "title": "Create Stunning AI Images",
-    "badge": "Free, unlimited, no registration required",
-    "subtitle": "Free, unlimited, no sign-up required. Powered by the latest AI models — bring your ideas to life in seconds.",
+    "title": "Create Stunning AI Images for Free",
+    "badge": "Free · Unlimited · No Registration · 8 Languages",
+    "subtitle": "The world's most powerful free AI image generator. Flux, SDXL, Gemini & more — no sign-up, no limits, no watermarks. Just type and create.",
     "cta": "Start Creating Free",
     "secondary": "View Pricing"
   },
   "home": {
-    "why_title": "Why AI Painting?",
-    "why_subtitle": "AI Painting brings together the world's most advanced AI image models in one place. No complicated setup, no expensive hardware — just type your idea and watch it come to life in seconds.",
+    "why_title": "Why 50,000+ Creators Choose AI Painting",
+    "why_subtitle": "AI Painting brings together the world's most advanced AI image models in one place. No complicated setup, no expensive hardware — just type your idea and watch it come to life in seconds. And the best part? It's completely free.",
     "features": {
       "multi_model": {
         "title": "Multiple AI Models",
@@ -139,7 +139,25 @@
     "share_similar": "Similar image already shared. Try a different creation.",
     "reference_image_added": "Reference image added",
     "reference_image_hint": "AI will reference this image's style and content",
-    "switch_to_seedream": "Switch to Flux Schnell (free, works globally)"
+    "switch_to_seedream": "Switch to Flux Schnell (free, works globally)",
+    "credit_cost": "Cost: [[COUNT]] credit(s)",
+    "credit_insufficient": "(Insufficient credits)",
+    "guest_credits": "Daily Free [[COUNT]]/5 credits",
+    "guest_banner": "Daily Free [[COUNT]]/5 credits · Sign up for 10/day",
+    "admin_alerts": "{count} paid user(s) out of credits",
+    "style_photorealistic": "Photorealistic",
+    "style_anime": "Anime / Manga",
+    "style_digital-art": "Digital Art",
+    "style_oil-painting": "Oil Painting",
+    "style_cinematic": "Cinematic",
+    "style_ghibli": "Studio Ghibli",
+    "style_3d-render": "3D Render",
+    "style_line-art": "Line Art",
+    "moderation_title": "Content Violation",
+    "moderation_hint": "Content violation. Please adjust your prompt.",
+    "moderation_ban": "Too many violations. Please try again later.",
+    "enhance_btn": "✨ Enhance",
+    "enhancing_btn": "✨ Enhancing..."
   },
   "image_tools": {
     "browser_hint": "Use Chrome or Edge for best experience",
@@ -148,6 +166,7 @@
     "tabs": {
       "crop": "Crop",
       "compress": "Compress",
+      "format": "Format",
       "remove_bg": "Remove BG",
       "replace_bg": "Replace BG",
       "smooth": "Smooth Skin",
@@ -157,6 +176,7 @@
     "descriptions": {
       "crop": "Crop images to any aspect ratio. Free forever.",
       "compress": "Compress images without quality loss. Free forever.",
+      "format": "Batch convert image formats. Free forever.",
       "remove_bg": "AI-powered background removal. 20 free uses per day.",
       "replace_bg": "AI background replacement with any color or image. 20 free uses per day.",
       "smooth": "AI skin smoothing & face retouching. 20 free uses per day.",
@@ -175,7 +195,7 @@
     "remaining": "[[COUNT]] free uses remaining today",
     "upgrade": "Upgrade for unlimited",
     "credits_remaining": "Credits",
-    "per_use": "1 credit per use",
+    "per_use": "[[COUNT]] credit(s) per use",
     "crop": {
       "aspect_ratio": "Aspect Ratio",
       "freeform": "Freeform",
@@ -228,7 +248,11 @@
       "max_hint": "Max 15 images at a time. Supports JPG, PNG, WebP and more.",
       "too_many": "Only 15 images allowed at a time. Please reselect.",
       "download_all": "Download All",
-      "delete_all": "Delete All"
+      "delete_all": "Delete All",
+      "reset_results": "Reset Results",
+      "auto": "Balanced",
+      "quality_mode": "Quality",
+      "size_mode": "Size"
     },
     "remove_bg": {
       "action": "Remove Background"
@@ -330,7 +354,22 @@
     "showcase_replace_bg_feature3": "Zoom and pan for perfect positioning",
     "showcase_replace_bg_feature4": "Instant preview before finalizing",
     "before": "Before",
-    "after": "After"
+    "after": "After",
+    "format": {
+      "target": "Target Format",
+      "convert": "Convert All",
+      "download_all": "Download All",
+      "reset": "Reset",
+      "delete_all": "Delete All",
+      "hint": "All processing is done locally in your browser. ICO max 256×256.",
+      "max_hint": "Up to 15 images at a time.",
+      "too_many": "Only 15 images allowed at a time.",
+      "jpeg": "JPEG",
+      "png": "PNG",
+      "webp": "WebP",
+      "avif": "AVIF",
+      "ico": "ICO"
+    }
   },
   "header": {
     "home": "Home",
@@ -383,7 +422,12 @@
     "save_reminder": "Please save your images promptly. We only keep the last 20 generations.",
     "manage_history": "Manage History",
     "view": "View",
-    "download": "Download"
+    "download": "Download",
+    "feedback_title": "Feedback",
+    "feedback_placeholder": "Share your feedback... (max 200 chars)",
+    "feedback_submit": "Submit",
+    "feedback_submitting": "Submitting...",
+    "feedback_success": "Submitted, thank you!"
   },
   "history": {
     "title": "Generation History",
@@ -590,6 +634,7 @@
         "style_fresh": "Fresh Look",
         "style_vintage": "Vintage Feel",
         "ratio": "Aspect Ratio",
+        "ratio_original": "Original",
         "custom": "Custom Instructions",
         "custom_placeholder": "e.g. Make the sky bluer, remove the person on the left..."
       }
@@ -941,6 +986,7 @@
         "custom": "Custom Instructions",
         "custom_placeholder": "e.g. Add gold foil stamping..."
       }
-    }
+    },
+    "ratio_original": "Original"
   }
 }

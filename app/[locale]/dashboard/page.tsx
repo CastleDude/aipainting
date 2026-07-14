@@ -59,6 +59,11 @@ export default async function DashboardPage({
     manage_history: messages.dashboard?.manage_history || "Manage History",
     view: messages.dashboard?.view || "View",
     download: messages.dashboard?.download || "Download",
+    feedback_title: messages.dashboard?.feedback_title,
+    feedback_success: messages.dashboard?.feedback_success,
+    feedback_placeholder: messages.dashboard?.feedback_placeholder,
+    feedback_submit: messages.dashboard?.feedback_submit,
+    feedback_submitting: messages.dashboard?.feedback_submitting,
   };
 
   return <Dashboard locale={locale} messages={dashboardMessages} />;

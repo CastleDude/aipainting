@@ -9,9 +9,9 @@ export interface GenerateParams {
 
 // prettier-ignore
 export const AI_MODELS = {
-  "schnell":      { id: "schnell", name: "Flux Schnell (Fast)", provider: "Runware" },
+  "schnell":      { id: "schnell", name: "AIPaint 2.0", provider: "Runware" },
   "sdxl":         { id: "sdxl", name: "SDXL (Quality)", provider: "Runware" },
-  "flux-dev":     { id: "flux-dev", name: "Flux Dev (Pro)", provider: "Runware" },
+  "flux-dev":     { id: "flux-dev", name: "AIPaint 2.5", provider: "Runware" },
   "seedream":     { id: "bytedance-seed/seedream-4.5", name: "Seedream 4.5", provider: "ByteDance" },
   "nano-banana":  { id: "google/gemini-2.5-flash-image", name: "Nano Banana", provider: "Google" },
   "nano-banana2": { id: "google/gemini-3.1-flash-image-preview", name: "Nano Banana 2", provider: "Google" },
@@ -23,12 +23,12 @@ export const RUNWARE_MODELS = new Set(["schnell", "sdxl", "flux-dev"]);
 
 /** Credit cost multiplier per model — applied on top of preset base cost */
 export const MODEL_COST_MULTIPLIER: Record<string, number> = {
-  schnell: 1,          // ~$0.0006/img → profitable at all tiers
-  sdxl: 2,             // ~$0.0013/img → profitable
-  "flux-dev": 3,       // ~$0.003/img → profitable
+  schnell: 1,          // ~$0.0006/img
+  sdxl: 2,             // ~$0.0013/img
+  "flux-dev": 2,       // AIPaint 2.5
   seedream: 8,         // ~$0.04/img (OpenRouter)
-  "nano-banana": 8,    // ~$0.04/img (OpenRouter)
-  "nano-banana2": 4,   // ~$0.005/img (OpenRouter)
+  "nano-banana": 10,   // 10 credits
+  "nano-banana2": 10,  // 10 credits
   "gpt-image": 8,      // ~$0.01/img (OpenRouter)
   "gpt-image-pro": 12, // ~$0.04/img (OpenRouter)
 };

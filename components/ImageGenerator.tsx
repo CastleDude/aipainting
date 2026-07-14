@@ -275,6 +275,16 @@ interface ImageGeneratorProps {
     reference_image_added?: string;
     reference_image_hint?: string;
     switch_to_seedream?: string;
+    moderation_title?: string;
+    moderation_hint?: string;
+    moderation_ban?: string;
+    enhance_btn?: string;
+    enhancing_btn?: string;
+    guest_credits?: string;
+    guest_banner?: string;
+    credit_cost?: string;
+    credit_insufficient?: string;
+    style_labels?: Record<string, string>;
   };
   children?: React.ReactNode;
 }
@@ -305,7 +315,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
   }, []);
 
   const [prompt, setPrompt] = useState("");
-  const [negativePrompt, setNegativePrompt] = useState("");
+  const [negativePrompt, setNegativePrompt] = useState("blurry, low quality, distorted, watermark, text, signature, bad anatomy, deformed, disfigured, extra fingers, mutated");
   const [model, setModel] = useState("schnell");
   const [multiplier, setMultiplier] = useState(1);
   const [lastPresetId, setLastPresetId] = useState<string | null>(null);
@@ -334,6 +344,17 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
   const [sharingIdx, setSharingIdx] = useState<number | null>(null);
   const [translateOn, setTranslateOn] = useState(false);
   const [translating, setTranslating] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
+  const enhancePrompt = async () => {
+    if (!prompt.trim() || enhancing) return;
+    setEnhancing(true);
+    try {
+      const res = await fetch("/api/enhance-prompt", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: prompt.trim() }) });
+      const data = await res.json();
+      if (data.enhanced) setPrompt(data.enhanced);
+    } catch {}
+    setEnhancing(false);
+  };
   const fileInputRef = useRef<HTMLInputElement>(null);
   const promptRef = useRef<HTMLTextAreaElement>(null);
 
@@ -351,7 +372,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<PresetApplyEvent>).detail;
       setPrompt(detail.prompt);
-      setNegativePrompt("");
+      setNegativePrompt("blurry, low quality, distorted, watermark, text, signature, bad anatomy, deformed, disfigured, extra fingers, mutated");
       setModel(detail.model);
       if (detail.aspectRatio) { setAspectRatio(detail.aspectRatio); pendingAspectRef.current = detail.aspectRatio; }
       if (detail.style) { setStyle(detail.style); pendingStyleRef.current = detail.style; }
@@ -404,8 +425,9 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
     const data = consumeRemixImage();
     if (data) {
       setImagePreview(data.url);
-      setImageBase64(data.url);
+      // Only show as preview, not send as reference image
       if (data.prompt) setPrompt(data.prompt);
+      if (data.model) setModel(data.model);
       promptRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, []);
@@ -659,14 +681,14 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
         {/* Main input box */}
         <div className="relative rounded-2xl border border-border bg-bg-card p-4 sm:p-5">
           {/* Hint: prompts work better in English */}
-          <div className="absolute top-3 right-4 z-10 flex items-center gap-1.5">
-            <span className="text-[10px] text-text-muted">
+          <div className="absolute top-[4px] right-4 z-10 flex items-center gap-1.5">
+            <span className="text-[11px] text-text-muted">
               {messages.english_hint || "提示词用英文的效果更好"}
             </span>
           </div>
 
-          {/* Reference image upload */}
-          <div className="mb-3 flex items-center gap-3">
+          {/* Reference image + prompt (side by side) */}
+          <div className="mb-3 flex items-start gap-3">
             {imagePreview ? (
               <div className="relative shrink-0 rounded-xl overflow-hidden border border-border/50" style={{ width: 72, height: 72 }}>
                 <img
@@ -676,7 +698,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
                 />
                 <button
                   onClick={handleRemoveImage}
-                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white/80 hover:bg-red-500/80 hover:text-white flex items-center justify-center text-[10px] transition-all cursor-pointer"
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white/80 hover:bg-red-500/80 hover:text-white flex items-center justify-center text-[11px] transition-all cursor-pointer"
                 >
                   ✕
                 </button>
@@ -693,12 +715,6 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
                 <span className="text-[9px] leading-tight">{messages.add_image}</span>
               </button>
             )}
-            {imagePreview && (
-              <div className="text-xs text-text-muted leading-snug">
-                <p className="text-text-secondary font-medium">{messages.reference_image_added || "参考图片已添加"}</p>
-                <p>{messages.reference_image_hint || "AI 将参考此图片风格和内容进行创作"}</p>
-              </div>
-            )}
             <input
               ref={fileInputRef}
               type="file"
@@ -706,52 +722,52 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
               onChange={handleImageUpload}
               className="hidden"
             />
+            <textarea
+              ref={promptRef}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder={messages.prompt_placeholder}
+              maxLength={2000}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleGenerate();
+                }
+              }}
+              className="flex-1 resize-none bg-transparent px-1 pb-2 text-sm text-text-primary placeholder:text-text-muted outline-none"
+              style={{ height: 120 }}
+            />
           </div>
-
-          {/* Positive prompt */}
-          <textarea
-            ref={promptRef}
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder={messages.prompt_placeholder}
-            maxLength={2000}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleGenerate();
-              }
-            }}
-            className="w-full resize-none bg-transparent px-1 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none"
-            style={{ height: 120 }}
-          />
-          {/* Character count + negative toggle in one row */}
-          <div className="flex items-center justify-between">
+          {/* Toolbar row: negative label + char count + enhance */}
+          <div className="flex items-center justify-between mb-1">
             <button
               onClick={() => setShowNegative(!showNegative)}
-              className={cn(
-                "text-[10px] transition-colors",
-                showNegative ? "text-accent font-medium" : "text-text-muted"
-              )}
+              className={cn("text-[11px] transition-colors", showNegative ? "text-accent font-medium" : "text-text-muted")}
               type="button"
             >
               {messages.negative_toggle}
             </button>
-            <span className={cn(
-              "text-[10px] transition-colors",
-              prompt.length > 1800 ? "text-red-400 font-medium" : prompt.length > 1400 ? "text-amber-400" : "text-text-muted"
-            )}>
-              {prompt.length}/{2000}
-            </span>
+            <div className="flex items-center gap-[10px]">
+              <span className={cn(
+                "text-[11px] transition-colors",
+                prompt.length > 1800 ? "text-red-400 font-medium" : prompt.length > 1400 ? "text-amber-400" : "text-text-muted"
+              )}>
+                {prompt.length}/{2000}
+              </span>
+              <button onClick={enhancePrompt} disabled={enhancing || !prompt.trim()} className="rounded-lg bg-amber-500/15 border border-amber-500/30 px-3 py-1 text-xs font-medium text-amber-400 hover:bg-amber-500/25 disabled:opacity-30 transition-all" type="button">
+                {enhancing ? (messages.enhancing_btn || '✦ 润色中...') : (messages.enhance_btn || '✨ AI 润色')}
+              </button>
+            </div>
           </div>
 
-          {/* Negative prompt — hidden by default */}
+          {/* Negative prompt */}
           {showNegative && (
             <textarea
               value={negativePrompt}
               onChange={(e) => setNegativePrompt(e.target.value)}
               placeholder={messages.negative_placeholder}
-              className="w-full resize-none bg-transparent px-1 py-2 text-xs text-text-primary placeholder:text-text-muted outline-none"
-              style={{ height: 60 }}
+              className="w-full resize-none bg-transparent px-1 py-0 text-xs text-text-primary placeholder:text-text-muted outline-none"
+              style={{ height: 24 }}
             />
           )}
         </div>

@@ -3,16 +3,16 @@
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthProvider";
-import { createBrowserClient } from "@supabase/ssr";
+import { TOOL_CREDIT_COST } from "@/lib/credits";
 
 import { consumeEditImage } from "@/lib/history-bridge";
 
-type Tool = "crop" | "compress" | "remove_bg" | "replace_bg" | "smooth" | "upscale" | "filters";
+type Tool = "crop" | "compress" | "format" | "remove_bg" | "replace_bg" | "smooth" | "upscale" | "filters";
 
 interface Messages {
   title: string; subtitle: string;
-  crop: string; compress: string; remove_bg: string; replace_bg: string; smooth: string; upscale: string; filters: string;
-  desc_crop: string; desc_compress: string; desc_remove_bg: string; desc_replace_bg: string; desc_smooth: string; desc_upscale: string; desc_filters: string;
+  crop: string; compress: string; format: string; remove_bg: string; replace_bg: string; smooth: string; upscale: string; filters: string;
+  desc_crop: string; desc_compress: string; desc_format: string; desc_remove_bg: string; desc_replace_bg: string; desc_smooth: string; desc_upscale: string; desc_filters: string;
   upload: string; drop: string; no_image: string;
   processing: string; download: string; reset: string;
   free_label: string; free_forever: string; free_today: string;
@@ -23,7 +23,9 @@ interface Messages {
   crop_shape: string; crop_shape_rect: string; crop_shape_circle: string; crop_shape_ellipse: string; crop_shape_star: string; crop_corner_radius: string;
   star_points: string; star_outer: string; star_inner: string; star_corner: string;
   ellipse_width: string; ellipse_height: string;
-  compress_quality: string; compress_max: string; compress_orig: string; compress_new: string; compress_saved: string; compress_hint: string; compress_max_hint: string; compress_too_many: string; compress_download_all: string; compress_delete_all: string;
+  compress_quality: string; compress_max: string; compress_orig: string; compress_new: string; compress_saved: string; compress_hint: string; compress_max_hint: string; compress_too_many: string; compress_download_all: string; compress_delete_all: string; compress_reset: string; compress_auto: string; compress_quality_mode: string; compress_size_mode: string;
+  format_target: string; format_convert: string; format_download_all: string; format_reset: string; format_delete_all: string; format_hint: string; format_max_hint: string; format_too_many: string;
+  format_jpeg: string; format_png: string; format_webp: string; format_avif: string; format_ico: string;
   remove_bg_action: string;
   replace_bg_color: string; replace_bg_image: string; replace_bg_custom: string; replace_bg_apply: string;
   smooth_intensity: string; smooth_light: string; smooth_medium: string; smooth_strong: string; smooth_apply: string;
@@ -37,6 +39,7 @@ interface Messages {
 const TOOLS: { key: Tool; free: "forever" | "limited" }[] = [
   { key: "crop", free: "forever" },
   { key: "compress", free: "forever" },
+  { key: "format", free: "forever" },
   { key: "remove_bg", free: "limited" },
   { key: "replace_bg", free: "limited" },
   { key: "filters", free: "forever" },
@@ -191,6 +194,10 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
   // Compress state
   const [quality, setQuality] = useState(80);
   const [maxKB, setMaxKB] = useState(500);
+  // Compress mode: "auto" = optimal balance, "quality" = manual quality, "size" = manual max size
+  const [compressMode, setCompressMode] = useState<"auto" | "quality" | "size">("auto");
+  const compressModeRef = useRef(compressMode);
+  useEffect(() => { compressModeRef.current = compressMode; }, [compressMode]);
   const [compressInfo, setCompressInfo] = useState<{ orig: number; comp: number } | null>(null);
   type CompressFile = {
     id: number;
@@ -200,12 +207,34 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
     origSize: number;
     compSize?: number;
     resultUrl?: string;
+    resultBlob?: Blob;
     compressing?: boolean;
   };
   const [compressFiles, setCompressFiles] = useState<CompressFile[]>([]);
   const compressIdRef = useRef(0);
   const compressFilesRef = useRef(compressFiles);
   useEffect(() => { compressFilesRef.current = compressFiles; }, [compressFiles]);
+
+  // Format conversion state
+  const FORMATS = ["jpeg", "png", "webp", "avif", "ico"] as const;
+  type FormatKey = typeof FORMATS[number];
+  const [targetFormat, setTargetFormat] = useState<FormatKey>("jpeg");
+  type FormatFile = {
+    id: number;
+    file: File;
+    name: string;
+    url: string;
+    origSize: number;
+    convSize?: number;
+    resultUrl?: string;
+    resultBlob?: Blob;
+    converting?: boolean;
+  };
+  const [formatFiles, setFormatFiles] = useState<FormatFile[]>([]);
+  const formatIdRef = useRef(0);
+  const formatFilesRef = useRef(formatFiles);
+  useEffect(() => { formatFilesRef.current = formatFiles; }, [formatFiles]);
+  const MAX_FORMAT_FILES = 15;
 
   // Replace BG state
   const [bgColor, setBgColor] = useState("#ffffff");
@@ -454,6 +483,30 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
     setCompressFiles((prev) => { prev.forEach((f) => URL.revokeObjectURL(f.url)); return []; });
   }, []);
 
+  const resetCompressResults = useCallback(() => {
+    setCompressFiles((prev) => prev.map((f) => {
+      if (f.resultUrl && f.resultUrl !== f.url) URL.revokeObjectURL(f.resultUrl);
+      return { ...f, compSize: undefined, resultUrl: undefined, resultBlob: undefined, compressing: false };
+    }));
+  }, []);
+
+  // Check if a canvas image has transparent pixels (alpha < 255).
+  // Samples every 4th pixel for performance on large images.
+  const hasTransparency = (ctx: CanvasRenderingContext2D, w: number, h: number): boolean => {
+    try {
+      const imageData = ctx.getImageData(0, 0, w, h);
+      const data = imageData.data;
+      // Sample: check every 4th pixel's alpha (stride = 16 bytes = 4 pixels)
+      for (let i = 3; i < data.length; i += 16) {
+        if (data[i] < 255) return true;
+      }
+    } catch {
+      // getImageData may fail on tainted canvases (cross-origin images)
+      return false;
+    }
+    return false;
+  };
+
   const batchCompress = useCallback(async () => {
     const files = compressFilesRef.current;
     for (const cf of files) {
@@ -472,44 +525,326 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
       const ctx = canvas.getContext("2d")!;
       ctx.drawImage(img, 0, 0);
 
-      const isPng = cf.file.type === "image/png" || cf.name.toLowerCase().endsWith(".png");
-      const mimeType = isPng ? "image/png" : "image/jpeg";
-      const tryCompress = (q: number): Promise<{ url: string; size: number }> => {
-        return new Promise((resolve) => {
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) { resolve({ url: cf.url, size: cf.origSize }); return; }
-              if (!isPng && blob.size > maxKB * 1024 && q > 10) {
-                tryCompress(q - 10).then(resolve);
-              } else {
-                resolve({ url: URL.createObjectURL(blob), size: blob.size });
-              }
-            },
-            mimeType,
-            isPng ? undefined : q / 100,
-          );
-        });
-      };
+      // Detect transparency: PNG with alpha uses UPNG (preserves transparency, real compression),
+      // opaque images use JPEG (smaller, faster)
+      const transparent = hasTransparency(ctx, img.naturalWidth, img.naturalHeight);
 
-      const result = await tryCompress(quality);
+      let result: { url: string; blob: Blob; size: number };
+
+      // Determine starting quality based on mode:
+      // - "quality": user's exact quality
+      // - "auto" / "size": start high and auto-reduce
+      const startQ = compressModeRef.current === "quality" ? quality : (compressModeRef.current === "size" ? 90 : 80);
+      const shouldAutoReduce = compressModeRef.current !== "quality";
+      // For size mode, only maxKB matters. For auto mode, also compare with origSize.
+      const isTooLarge = (size: number) =>
+        compressModeRef.current === "size"
+          ? size > maxKB * 1024
+          : (size > cf.origSize || size > maxKB * 1024);
+
+      if (transparent) {
+        // Use UPNG.js for true PNG compression with alpha preservation
+        const { default: UPNG } = await import("upng-js");
+        const imageData = ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
+
+        // Map quality (1-100) to color palette size (4-0, where 0=lossless)
+        const qualityToColors = (q: number): number => {
+          if (q >= 95) return 0;    // lossless
+          if (q >= 80) return 256;  // 256 colors
+          if (q >= 60) return 128;
+          if (q >= 40) return 64;
+          if (q >= 20) return 32;
+          if (q >= 10) return 16;
+          if (q >= 5)  return 8;
+          return 4;                  // 1-4% → 4 colors (extreme compression)
+        };
+
+        const compressPNG = (q: number): { blob: Blob; size: number } => {
+          const cnum = qualityToColors(q);
+          const pngBuffer = UPNG.encode([imageData.data.buffer], img.naturalWidth, img.naturalHeight, cnum);
+          const blob = new Blob([pngBuffer], { type: "image/png" });
+          return { blob, size: blob.size };
+        };
+
+        let currentQ = startQ;
+        let pngResult = compressPNG(currentQ);
+        if (shouldAutoReduce) {
+          while (isTooLarge(pngResult.size) && currentQ > 1) {
+            currentQ = Math.max(1, currentQ - 5);
+            pngResult = compressPNG(currentQ);
+          }
+        }
+        // Fallback: if result is still larger than original, keep original (undoable compression)
+        if (pngResult.size >= cf.origSize) {
+          result = { url: cf.url, blob: cf.file, size: cf.origSize };
+        } else {
+          result = { url: URL.createObjectURL(pngResult.blob), blob: pngResult.blob, size: pngResult.size };
+        }
+      } else {
+        // JPEG for opaque images
+        const mimeType = "image/jpeg";
+        const tryCompress = (q: number): Promise<{ url: string; blob: Blob; size: number }> => {
+          return new Promise((resolve) => {
+            canvas.toBlob(
+              (blob) => {
+                if (!blob) { resolve({ url: cf.url, blob: cf.file, size: cf.origSize }); return; }
+                if (shouldAutoReduce && blob.size >= cf.origSize && q > 1) {
+                  tryCompress(Math.max(1, q - 5)).then(resolve);
+                } else if (shouldAutoReduce && isTooLarge(blob.size) && q > 1) {
+                  tryCompress(Math.max(1, q - 5)).then(resolve);
+                } else {
+                  resolve({ url: URL.createObjectURL(blob), blob, size: blob.size });
+                }
+              },
+              mimeType,
+              q / 100,
+            );
+          });
+        };
+        result = await tryCompress(startQ);
+        // Fallback: if compressed >= original, keep original (revoke useless blob URL)
+        if (result.size >= cf.origSize) {
+          if (result.url !== cf.url) URL.revokeObjectURL(result.url);
+          result = { url: cf.url, blob: cf.file, size: cf.origSize };
+        }
+      }
       setCompressFiles((prev) => prev.map((f) =>
-        f.id === cf.id ? { ...f, compSize: result.size, resultUrl: result.url, compressing: false } : f
+        f.id === cf.id ? { ...f, compSize: result.size, resultUrl: result.url, resultBlob: result.blob, compressing: false } : f
       ));
     }
   }, [quality, maxKB]);
 
+  // ─── Format Conversion ───────────────────────────────────────────────────
+
+  // Hand-rolled ICO encoder: 6-byte header + 16-byte directory + embedded PNG
+  const encodeICO = (pngBlob: Blob, width: number, height: number): Blob => {
+    const clampedW = Math.min(width, 256);
+    const clampedH = Math.min(height, 256);
+    const w = clampedW === 256 ? 0 : clampedW; // ICO uses 0 for 256
+    const h = clampedH === 256 ? 0 : clampedH;
+    // We'll return the final blob after reading the PNG
+    return new Blob(["PLACEHOLDER"], { type: "image/x-icon" }); // Replaced below
+  };
+
+  const encodeICOSync = (pngBuffer: ArrayBuffer, width: number, height: number): Blob => {
+    const clampedW = Math.min(width, 256);
+    const clampedH = Math.min(height, 256);
+    const w = clampedW >= 256 ? 0 : clampedW; // 0 means 256 in ICO spec
+    const h = clampedH >= 256 ? 0 : clampedH;
+    const pngSize = pngBuffer.byteLength;
+    const offset = 6 + 16; // header + 1 directory entry
+    const header = new ArrayBuffer(offset);
+    const dv = new DataView(header);
+    // ICO header
+    dv.setUint16(0, 0, true);      // reserved
+    dv.setUint16(2, 1, true);      // type: ICO
+    dv.setUint16(4, 1, true);      // count: 1 image
+    // Directory entry
+    dv.setUint8(6, w);             // width
+    dv.setUint8(7, h);             // height
+    dv.setUint8(8, 0);             // color palette (0 = no palette for PNG)
+    dv.setUint8(9, 0);             // reserved
+    dv.setUint16(10, 1, true);     // color planes
+    dv.setUint16(12, 32, true);    // bits per pixel
+    dv.setUint32(14, pngSize, true); // image size
+    dv.setUint32(18, offset, true);  // offset to image data
+    // Combine header + PNG
+    const ico = new Uint8Array(offset + pngSize);
+    ico.set(new Uint8Array(header), 0);
+    ico.set(new Uint8Array(pngBuffer), offset);
+    return new Blob([ico], { type: "image/x-icon" });
+  };
+
+  const addFormatFiles = useCallback((fileList: FileList | null) => {
+    if (!fileList) return;
+    setFormatFiles((prev) => {
+      const available = MAX_FORMAT_FILES - prev.length;
+      if (available <= 0) return prev;
+      const toAdd: FormatFile[] = [];
+      for (let i = 0; i < fileList.length && toAdd.length < available; i++) {
+        const f = fileList[i];
+        if (!f.type.startsWith("image/")) continue;
+        formatIdRef.current += 1;
+        toAdd.push({
+          id: formatIdRef.current,
+          file: f,
+          name: f.name,
+          url: URL.createObjectURL(f),
+          origSize: f.size,
+        });
+      }
+      return [...prev, ...toAdd];
+    });
+  }, []);
+
+  const removeFormatFile = useCallback((id: number) => {
+    setFormatFiles((prev) => {
+      const item = prev.find((f) => f.id === id);
+      if (item) URL.revokeObjectURL(item.url);
+      return prev.filter((f) => f.id !== id);
+    });
+  }, []);
+
+  const clearAllFormatFiles = useCallback(() => {
+    setFormatFiles((prev) => { prev.forEach((f) => URL.revokeObjectURL(f.url)); return []; });
+  }, []);
+
+  const resetFormatResults = useCallback(() => {
+    setFormatFiles((prev) => prev.map((f) => {
+      if (f.resultUrl && f.resultUrl !== f.url) URL.revokeObjectURL(f.resultUrl);
+      return { ...f, convSize: undefined, resultUrl: undefined, resultBlob: undefined, converting: false };
+    }));
+  }, []);
+
+  const FORMAT_QUALITY: Record<FormatKey, number | null> = {
+    jpeg: 0.92,
+    png: null,
+    webp: 0.80,
+    avif: 0.50,
+    ico: null,
+  };
+
+  const getFormatMime = (fmt: FormatKey): string => {
+    switch (fmt) {
+      case "jpeg": return "image/jpeg";
+      case "png": case "ico": return "image/png";
+      case "webp": return "image/webp";
+      case "avif": return "image/avif";
+    }
+  };
+
+  const getOutputExt = (fmt: FormatKey): string => {
+    switch (fmt) {
+      case "jpeg": return ".jpg";
+      case "png": return ".png";
+      case "webp": return ".webp";
+      case "avif": return ".avif";
+      case "ico": return ".ico";
+    }
+  };
+
+  const getConvertedFilename = (originalName: string, fmt: FormatKey): string => {
+    return originalName.replace(/(\.[\w\d]+)$/, getOutputExt(fmt));
+  };
+
+  const batchConvert = useCallback(async () => {
+    const files = formatFilesRef.current;
+    for (const ff of files) {
+      if (ff.convSize !== undefined) continue;
+      setFormatFiles((prev) => prev.map((f) => f.id === ff.id ? { ...f, converting: true } : f));
+
+      const img = new window.Image();
+      await new Promise<void>((resolve) => {
+        img.onload = () => resolve();
+        img.src = ff.url;
+      });
+
+      const canvas = document.createElement("canvas");
+      let w = img.naturalWidth, h = img.naturalHeight;
+      // ICO: clamp to 256x256, keep aspect ratio
+      if (targetFormat === "ico") {
+        const maxDim = 256;
+        if (w > maxDim || h > maxDim) {
+          const ratio = Math.min(maxDim / w, maxDim / h);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
+        }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, w, h);
+
+      try {
+        let blob: Blob;
+        if (targetFormat === "ico") {
+          // Encode as PNG first, then wrap in ICO container
+          const pngBlob = await new Promise<Blob>((resolve) => {
+            canvas.toBlob((b) => resolve(b!), "image/png");
+          });
+          const pngBuf = await pngBlob.arrayBuffer();
+          blob = encodeICOSync(pngBuf, w, h);
+        } else {
+          const quality = FORMAT_QUALITY[targetFormat];
+          blob = await new Promise<Blob>((resolve) => {
+            canvas.toBlob(
+              (b) => resolve(b!),
+              getFormatMime(targetFormat),
+              quality ?? undefined,
+            );
+          });
+        }
+
+        const resultUrl = URL.createObjectURL(blob);
+        setFormatFiles((prev) => prev.map((f) =>
+          f.id === ff.id ? { ...f, convSize: blob.size, resultUrl, resultBlob: blob, converting: false } : f
+        ));
+      } catch {
+        setFormatFiles((prev) => prev.map((f) =>
+          f.id === ff.id ? { ...f, convSize: ff.origSize, resultUrl: ff.url, converting: false } : f
+        ));
+      }
+    }
+  }, [targetFormat]);
+
+  const formatDownloadAllAsZip = useCallback(async () => {
+    const files = formatFilesRef.current.filter((f) => f.resultUrl && f.convSize !== undefined);
+    if (files.length === 0) return;
+    const JSZip = (await import("jszip")).default;
+    const zip = new JSZip();
+    for (const ff of files) {
+      try {
+        let data: string;
+        if (ff.resultBlob) {
+          data = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(ff.resultBlob!);
+          });
+        } else {
+          const response = await fetch(ff.resultUrl!);
+          const blob = await response.blob();
+          data = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+        }
+        zip.file(getConvertedFilename(ff.name, targetFormat), data.split(",")[1], { base64: true });
+      } catch {
+        console.warn("[format] Skipped file:", ff.name);
+      }
+    }
+    if (Object.keys(zip.files).length === 0) return;
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "converted_images.zip";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, [targetFormat]);
+
+  // ─── Download All (Compress) ─────────────────────────────────────────────
+
   const downloadAllAsZip = useCallback(async () => {
-    const files = compressFilesRef.current.filter((f) => f.resultUrl);
+    const files = compressFilesRef.current.filter((f) => f.resultUrl && f.compSize !== undefined);
     if (files.length === 0) return;
     const JSZip = (await import("jszip")).default;
     const zip = new JSZip();
     for (const cf of files) {
       try {
-        // Convert resultUrl to a valid zip entry
-        // resultUrl can be blob: URL (from canvas.toBlob) or cf.url (original file URL)
-        // For blob: URLs, convert to base64 data URL for stable zip inclusion
         let data: string;
-        if (cf.resultUrl!.startsWith("blob:")) {
+        // Use stored blob directly — more reliable than re-fetching blob URLs
+        if (cf.resultBlob) {
+          data = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(cf.resultBlob!);
+          });
+        } else if (cf.resultUrl!.startsWith("blob:")) {
           const response = await fetch(cf.resultUrl!);
           const blob = await response.blob();
           data = await new Promise<string>((resolve) => {
@@ -518,7 +853,6 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
             reader.readAsDataURL(blob);
           });
         } else {
-          // Original URL (compression skipped) — fetch as base64
           try {
             const response = await fetch(cf.resultUrl!);
             const blob = await response.blob();
@@ -528,10 +862,12 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
               reader.readAsDataURL(blob);
             });
           } catch {
-            continue; // Skip unreachable external URLs silently
+            console.warn("[compress] Cannot fetch URL for:", cf.name);
+            continue;
           }
         }
-        const ext = cf.file.type === "image/png" || cf.name.toLowerCase().endsWith(".png") ? ".png" : ".jpg";
+        // Determine extension from blob type (PNG for transparent, JPEG otherwise)
+        const ext = cf.resultBlob?.type === "image/png" ? ".png" : ".jpg";
         zip.file(cf.name.replace(/(\.[\w\d]+)$/, `_compressed${ext}`), data.split(",")[1], { base64: true });
       } catch {
         console.warn("[compress] Skipped file:", cf.name);
@@ -546,7 +882,8 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Revoke after a short delay to ensure the download starts
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }, []);
 
   const handleFile = useCallback(
@@ -559,12 +896,20 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
           return;
         }
         addCompressFiles(files);
+      } else if (tool === "format") {
+        const files = e.target.files;
+        if (files && files.length > MAX_FORMAT_FILES) {
+          setToast(messages.format_too_many);
+          setTimeout(() => setToast(null), 3000);
+          return;
+        }
+        addFormatFiles(files);
       } else {
         const file = e.target.files?.[0];
         if (file) loadImage(file);
       }
     },
-    [loadImage, tool, addCompressFiles, messages],
+    [loadImage, tool, addCompressFiles, addFormatFiles, messages],
   );
 
   const handleDrop = useCallback(
@@ -579,12 +924,19 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
           return;
         }
         addCompressFiles(files);
+      } else if (tool === "format") {
+        if (files.length > MAX_FORMAT_FILES) {
+          setToast(messages.format_too_many);
+          setTimeout(() => setToast(null), 3000);
+          return;
+        }
+        addFormatFiles(files);
       } else {
         const file = files?.[0];
         if (file && file.type.startsWith("image/")) loadImage(file);
       }
     },
-    [loadImage, tool, addCompressFiles, messages],
+    [loadImage, tool, addCompressFiles, addFormatFiles, messages],
   );
 
   const handleBgImage = useCallback(
@@ -1020,7 +1372,7 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
   }, [image, displaySize, zoom, panX, panY, cropRect, cropW, cropH, cropShape, cornerRadius, ellipseW, ellipseH, starPoints, starOuter, starInner, starCornerR]);
 
   // ---- COMPRESS ----
-  const applyCompress = useCallback(() => {
+  const applyCompress = useCallback(async () => {
     if (!image) return;
     const canvas = document.createElement("canvas");
     canvas.width = image.width;
@@ -1028,28 +1380,60 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
     const ctx = canvas.getContext("2d")!;
     ctx.drawImage(image, 0, 0);
 
-    const isPng = imageName.toLowerCase().endsWith(".png") || (image.src && image.src.startsWith("data:image/png"));
-    const mimeType = isPng ? "image/png" : "image/jpeg";
-    const tryCompress = (q: number) => {
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) return;
-          const url = URL.createObjectURL(blob);
-          if (!isPng && blob.size > maxKB * 1024 && q > 10) {
-            tryCompress(q - 10);
-          } else {
-            setResultUrl(url);
-            setCompressInfo({ orig: 0, comp: blob.size });
-          }
-        },
-        mimeType,
-        isPng ? undefined : q / 100,
-      );
-    };
+    const origSize = image.src.length * 0.75; // approximate bytes from base64/data URL
+    const origBytes = Math.round(origSize);
+    const transparent = hasTransparency(ctx, image.width, image.height);
 
-    const origSize = image.src.length * 0.75; // approximate
-    setCompressInfo({ orig: Math.round(origSize), comp: 0 });
-    tryCompress(quality);
+    if (transparent) {
+      // Use UPNG.js for true PNG compression with alpha preservation
+      const { default: UPNG } = await import("upng-js");
+      const imageData = ctx.getImageData(0, 0, image.width, image.height);
+
+      const qualityToColors = (q: number): number => {
+        if (q >= 95) return 0;
+        if (q >= 80) return 256;
+        if (q >= 60) return 128;
+        if (q >= 40) return 64;
+        if (q >= 20) return 32;
+        if (q >= 10) return 16;
+        if (q >= 5)  return 8;
+        return 4;
+      };
+
+      let currentQ = quality;
+      let pngBuffer = UPNG.encode([imageData.data.buffer], image.width, image.height, qualityToColors(currentQ));
+      let pngBlob = new Blob([pngBuffer], { type: "image/png" });
+      while ((pngBlob.size > origBytes || pngBlob.size > maxKB * 1024) && currentQ > 1) {
+        currentQ = Math.max(10, currentQ - 10);
+        pngBuffer = UPNG.encode([imageData.data.buffer], image.width, image.height, qualityToColors(currentQ));
+        pngBlob = new Blob([pngBuffer], { type: "image/png" });
+      }
+      setResultUrl(URL.createObjectURL(pngBlob));
+      setCompressInfo({ orig: origBytes, comp: pngBlob.size });
+    } else {
+      const mimeType = "image/jpeg";
+      const tryCompress = (q: number) => {
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return;
+            const url = URL.createObjectURL(blob);
+            if (blob.size > origBytes && q > 1) {
+              tryCompress(Math.max(1, q - 5));
+            } else if (blob.size > maxKB * 1024 && q > 1) {
+              tryCompress(Math.max(1, q - 5));
+            } else {
+              setResultUrl(url);
+              setCompressInfo({ orig: origBytes, comp: blob.size });
+            }
+          },
+          mimeType,
+          q / 100,
+        );
+      };
+
+      setCompressInfo({ orig: origBytes, comp: 0 });
+      tryCompress(quality);
+    }
   }, [image, quality, maxKB]);
 
   useEffect(() => {
@@ -1060,16 +1444,16 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
 
   // ---- AI Tools (via Doubao Seedream API) ----
 
-  // Shared: deduct credit/usage
-  const deductUsage = useCallback(() => {
-    deductLocalCredits(undefined, -1);
+  // Shared: deduct credits for tool usage
+  const deductUsage = useCallback((toolName: string) => {
+    const cost = TOOL_CREDIT_COST[toolName] || 1;
+    deductLocalCredits(undefined, -cost);
     if (profile) {
-      const sb = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      );
-      const newCredits = Math.max(0, (profile.credits ?? 0) - 1);
-      sb.from("profiles").update({ credits: newCredits }).eq("id", profile.id).then(() => {});
+      fetch("/api/credits/deduct", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tool: toolName }),
+      }).catch(() => {});
     }
   }, [deductLocalCredits, profile]);
 
@@ -1090,7 +1474,7 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
   const runRemoveBg = useCallback(async () => {
     if (!image || blocked) return;
     setProcessing(true);
-    deductUsage();
+    deductUsage("remove_bg");
     let ok = false;
     try {
       const dataUrl = imageToDataUrl(image);
@@ -1117,7 +1501,7 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
   const runBgCutout = useCallback(async () => {
     if (!image || blocked) return;
     setProcessing(true);
-    deductUsage();
+    deductUsage("replace_bg");
     try {
       const dataUrl = imageToDataUrl(image);
       const res = await fetch("/api/image-tools", {
@@ -1263,7 +1647,7 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
   const runSmooth = useCallback(async () => {
     if (!image || blocked) return;
     setProcessing(true);
-    deductUsage();
+    deductUsage("smooth");
     let ok = false;
     try {
       const dataUrl = imageToDataUrl(image);
@@ -1291,7 +1675,7 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
   const runUpscale = useCallback(async () => {
     if (!image || blocked) return;
     setProcessing(true);
-    deductUsage();
+    deductUsage("upscale");
     let ok = false;
     try {
       const dataUrl = imageToDataUrl(image);
@@ -1586,9 +1970,9 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
             className={cn(
               "relative rounded-2xl border-2 border-dashed aspect-[4/3] max-w-[800px] overflow-hidden transition-colors",
               dragOver ? "border-accent bg-accent/5" : "border-border/50 bg-bg-card",
-              (tool === "compress" ? compressFiles.length === 0 : !image) && "cursor-pointer",
+              ((tool === "compress" || tool === "format") ? (tool === "compress" ? compressFiles.length === 0 : formatFiles.length === 0) : !image) && "cursor-pointer",
             )}
-          onClick={() => (tool === "compress" ? compressFiles.length === 0 : !image) && openFileDialog()}
+          onClick={() => (tool === "compress" || tool === "format") ? (tool === "compress" ? compressFiles.length === 0 : formatFiles.length === 0) && openFileDialog() : !image && openFileDialog()}
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
@@ -1639,8 +2023,13 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
                         </div>
                       )}
                       {cf.compSize !== undefined && (
-                        <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-success font-medium">
-                          -{Math.round((1 - cf.compSize / cf.origSize) * 100)}%
+                        <span className={cn(
+                          "absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium",
+                          cf.compSize < cf.origSize ? "text-success" : "text-text-muted",
+                        )}>
+                          {cf.compSize < cf.origSize
+                            ? `↓${Math.round((1 - cf.compSize / cf.origSize) * 100)}%`
+                            : "—"}
                         </span>
                       )}
                     </div>
@@ -1653,6 +2042,56 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
                       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                       </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          ) : tool === "format" ? (
+            formatFiles.length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center p-8">
+                  <svg className="mx-auto h-12 w-12 text-text-muted mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                  </svg>
+                  <p className="text-text-secondary font-medium mb-1">{messages.upload}</p>
+                  <p className="text-text-muted text-sm mb-2">{messages.drop}</p>
+                  <p className="text-text-muted text-xs">{messages.format_max_hint}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="absolute inset-0 p-3">
+                <div className="flex items-center justify-between mb-2 py-1">
+                  <p className="text-text-muted text-xs">{messages.format_max_hint}</p>
+                  <button onClick={(ev) => { ev.stopPropagation(); clearAllFormatFiles(); }} className="text-xs text-danger/70 hover:text-danger transition-colors cursor-pointer shrink-0">
+                    {messages.format_delete_all}
+                  </button>
+                </div>
+                <div className="grid grid-cols-5 gap-2">
+                  {formatFiles.map((ff) => (
+                    <div key={ff.id} className="relative group cursor-default" onClick={(ev) => ev.stopPropagation()}>
+                      <img src={ff.url} alt={ff.name} className="w-full aspect-square object-cover rounded-lg" />
+                      <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button onClick={(ev) => { ev.stopPropagation(); removeFormatFile(ff.id); }} className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center text-sm hover:bg-danger/60 transition-colors cursor-pointer">×</button>
+                      </div>
+                      {ff.converting && (
+                        <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                          <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                        </div>
+                      )}
+                      {ff.convSize !== undefined && (
+                        <span className={cn("absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium", ff.convSize < ff.origSize ? "text-success" : "text-text-muted")}>
+                          {ff.convSize < ff.origSize ? `↓${Math.round((1 - ff.convSize / ff.origSize) * 100)}%` : "—"}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                  {formatFiles.length < MAX_FORMAT_FILES && (
+                    <button onClick={(ev) => { ev.stopPropagation(); openFileDialog(); }} className="aspect-square rounded-lg border-2 border-dashed border-border/50 flex items-center justify-center text-text-muted hover:border-accent/50 hover:text-text-secondary transition-colors">
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                     </button>
                   )}
                 </div>
@@ -1785,7 +2224,7 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
                 <span className="text-sm text-accent-hover font-semibold">{creditsRemaining}</span>
               </div>
               <p className="mt-1 text-xs text-text-muted">
-                {messages.per_use || "1 credit per use"}
+                {messages.per_use.replace("[[COUNT]]", String(TOOL_CREDIT_COST[tool] || 1))}
               </p>
             </div>
           )}
@@ -1830,12 +2269,20 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
                   </span>
                   {compressFiles.length > 0 && (
                     compressFiles.every((f) => f.compSize !== undefined) ? (
-                      <button
-                        onClick={downloadAllAsZip}
-                        className="ml-auto rounded-lg bg-accent px-4 py-1.5 text-sm font-medium text-white transition-all hover:bg-accent-hover"
-                      >
-                        {messages.compress_download_all} (.zip)
-                      </button>
+                      <>
+                        <button
+                          onClick={resetCompressResults}
+                          className="ml-auto rounded-lg px-3 py-1.5 text-xs font-medium text-text-muted hover:text-text-secondary hover:bg-bg-secondary transition-colors cursor-pointer"
+                        >
+                          {messages.compress_reset}
+                        </button>
+                        <button
+                          onClick={downloadAllAsZip}
+                          className="rounded-lg bg-accent px-4 py-1.5 text-sm font-medium text-white transition-all hover:bg-accent-hover"
+                        >
+                          {messages.compress_download_all} (.zip)
+                        </button>
+                      </>
                     ) : (
                       <button
                         onClick={batchCompress}
@@ -1845,6 +2292,32 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
                         {compressFiles.some((f) => f.compressing)
                           ? messages.processing
                           : `${messages.compress} (${compressFiles.length}/${MAX_COMPRESS_FILES})`}
+                      </button>
+                    )
+                  )}
+                </>
+              )}
+              {tool === "format" && (
+                <>
+                  <span className="group relative shrink-0">
+                    <span className="inline-flex w-[18px] h-[18px] rounded-full border-2 border-accent/50 text-accent text-[11px] items-center justify-center cursor-help hover:bg-accent hover:text-white hover:border-accent transition-all font-bold">?</span>
+                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-60 rounded-lg border border-border bg-bg-primary p-3 shadow-lg text-xs text-text-secondary leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 pointer-events-none">
+                      {messages.format_hint}
+                    </span>
+                  </span>
+                  {formatFiles.length > 0 && (
+                    formatFiles.every((f) => f.convSize !== undefined) ? (
+                      <>
+                        <button onClick={resetFormatResults} className="ml-auto rounded-lg px-3 py-1.5 text-xs font-medium text-text-muted hover:text-text-secondary hover:bg-bg-secondary transition-colors cursor-pointer">
+                          {messages.format_reset}
+                        </button>
+                        <button onClick={formatDownloadAllAsZip} className="rounded-lg bg-accent px-4 py-1.5 text-sm font-medium text-white transition-all hover:bg-accent-hover">
+                          {messages.format_download_all} (.zip)
+                        </button>
+                      </>
+                    ) : (
+                      <button onClick={batchConvert} disabled={formatFiles.some((f) => f.converting)} className="ml-auto rounded-lg bg-accent px-4 py-1.5 text-sm font-medium text-white transition-all hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed">
+                        {formatFiles.some((f) => f.converting) ? messages.processing : `${messages.format_convert} (${formatFiles.length}/${MAX_FORMAT_FILES})`}
                       </button>
                     )
                   )}
@@ -2195,33 +2668,57 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
             {/* Compress controls */}
             {tool === "compress" && (
               <div className="flex flex-col flex-1 min-h-0 space-y-3">
-                <div className="shrink-0">
-                  <label className="text-xs font-medium text-text-secondary mb-0.5 block leading-tight">
-                    {messages.compress_quality}: {quality}%
-                  </label>
-                  <input
-                    type="range"
-                    min={10}
-                    max={100}
-                    value={quality}
-                    onChange={(e) => setQuality(Number(e.target.value))}
-                    className="w-full accent-accent h-1"
-                  />
+                <div className="shrink-0 inline-flex rounded-lg bg-bg-secondary p-0.5">
+                  {([
+                    ["auto", messages.compress_auto],
+                    ["quality", messages.compress_quality_mode],
+                    ["size", messages.compress_size_mode],
+                  ] as const).map(([mode, label]) => (
+                    <button
+                      key={mode}
+                      onClick={() => setCompressMode(mode)}
+                      className={cn(
+                        "rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer whitespace-nowrap",
+                        compressMode === mode
+                          ? "bg-bg-primary text-text-primary shadow-sm"
+                          : "text-text-muted hover:text-text-secondary",
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
-                <div className="shrink-0">
-                  <label className="text-xs font-medium text-text-secondary mb-0.5 block leading-tight">
-                    {messages.compress_max}: {maxKB} KB
-                  </label>
-                  <input
-                    type="range"
-                    min={50}
-                    max={2000}
-                    step={50}
-                    value={maxKB}
-                    onChange={(e) => setMaxKB(Number(e.target.value))}
-                    className="w-full accent-accent h-1"
-                  />
-                </div>
+                {compressMode === "quality" && (
+                  <div className="shrink-0">
+                    <label className="text-xs font-medium text-text-secondary mb-0.5 block leading-tight">
+                      {messages.compress_quality}: {quality}%
+                    </label>
+                    <input
+                      type="range"
+                      min={1}
+                      max={100}
+                      value={quality}
+                      onChange={(e) => setQuality(Number(e.target.value))}
+                      className="w-full accent-accent h-1"
+                    />
+                  </div>
+                )}
+                {compressMode === "size" && (
+                  <div className="shrink-0">
+                    <label className="text-xs font-medium text-text-secondary mb-0.5 block leading-tight">
+                      {messages.compress_max}: {maxKB} KB
+                    </label>
+                    <input
+                      type="range"
+                      min={1}
+                      max={2000}
+                      step={10}
+                      value={maxKB}
+                      onChange={(e) => setMaxKB(Number(e.target.value))}
+                      className="w-full accent-accent h-1"
+                    />
+                  </div>
+                )}
                 {compressFiles.length > 0 && (
                   <div className="flex-1 overflow-y-auto space-y-1 min-h-0">
                       {compressFiles.map((cf, idx) => (
@@ -2233,7 +2730,14 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
                             <p className="text-[10px] text-text-muted">
                               {formatSize(cf.origSize)}
                               {cf.compSize !== undefined && (
-                                <span className="text-success ml-1">→ {formatSize(cf.compSize)} ({Math.round((1 - cf.compSize / cf.origSize) * 100)}%)</span>
+                                <span className={cn(
+                                  "ml-1",
+                                  cf.compSize < cf.origSize ? "text-success" : "text-text-muted",
+                                )}>
+                                  → {formatSize(cf.compSize)} ({cf.compSize < cf.origSize
+                                    ? `↓${Math.round((1 - cf.compSize / cf.origSize) * 100)}%`
+                                    : "—"})
+                                </span>
                               )}
                               {cf.compressing && <span className="text-accent ml-1">…</span>}
                             </p>
@@ -2241,7 +2745,7 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
                           {cf.resultUrl && (
                             <a
                               href={cf.resultUrl}
-                              download={cf.name.replace(/(\.[\w\d]+)$/, "_compressed$1")}
+                              download={cf.name.replace(/(\.[\w\d]+)$/, cf.resultBlob?.type === "image/png" ? "_compressed.png" : "_compressed.jpg")}
                               className="shrink-0 rounded-lg bg-success/10 px-1.5 py-0.5 text-[10px] font-medium text-success hover:bg-success/20 transition-colors"
                             >
                               {messages.download}
@@ -2256,6 +2760,57 @@ export function ImageTools({ messages, cropPhotoSizes }: { messages: Messages; c
                         </div>
                       ))}
                     </div>
+                )}
+              </div>
+            )}
+
+            {/* Format controls */}
+            {tool === "format" && (
+              <div className="flex flex-col flex-1 min-h-0 space-y-3">
+                <div className="shrink-0">
+                  <label className="text-xs font-medium text-text-secondary mb-1.5 block">{messages.format_target}</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {FORMATS.map((fmt) => (
+                      <button
+                        key={fmt}
+                        onClick={() => setTargetFormat(fmt)}
+                        className={cn(
+                          "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer",
+                          targetFormat === fmt ? "bg-accent text-white" : "bg-bg-secondary text-text-secondary hover:text-text-primary",
+                        )}
+                      >
+                        {messages[`format_${fmt}` as keyof Messages]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {formatFiles.length > 0 && (
+                  <div className="flex-1 overflow-y-auto space-y-1 min-h-0">
+                    {formatFiles.map((ff, idx) => (
+                      <div key={ff.id} className="flex items-center gap-1.5 rounded-lg border border-border/50 bg-bg-secondary/50 p-1.5">
+                        <span className="text-[10px] text-text-muted w-4 text-right shrink-0 mr-1">{idx + 1}</span>
+                        <img src={ff.url} alt={ff.name} className="w-8 h-8 rounded object-cover shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-text-primary truncate">{ff.name}</p>
+                          <p className="text-[10px] text-text-muted">
+                            {formatSize(ff.origSize)}
+                            {ff.convSize !== undefined && (
+                              <span className={cn("ml-1", ff.convSize < ff.origSize ? "text-success" : "text-text-muted")}>
+                                → {formatSize(ff.convSize)} ({getConvertedFilename(ff.name, targetFormat)}) ({ff.convSize < ff.origSize ? `↓${Math.round((1 - ff.convSize / ff.origSize) * 100)}%` : "—"})
+                              </span>
+                            )}
+                            {ff.converting && <span className="text-accent ml-1">…</span>}
+                          </p>
+                        </div>
+                        {ff.resultUrl && (
+                          <a href={ff.resultUrl} download={getConvertedFilename(ff.name, targetFormat)} className="shrink-0 rounded-lg bg-success/10 px-1.5 py-0.5 text-[10px] font-medium text-success hover:bg-success/20 transition-colors">
+                            {messages.download}
+                          </a>
+                        )}
+                        <button onClick={() => removeFormatFile(ff.id)} className="shrink-0 w-5 h-5 rounded-full text-text-muted hover:text-danger transition-colors text-xs cursor-pointer">×</button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             )}

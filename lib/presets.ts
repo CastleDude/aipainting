@@ -103,8 +103,9 @@ export const PRESETS: Preset[] = [
         id: "ratio",
         labelKey: "presets.photo_restoration.params.ratio",
         type: "select",
-        defaultValue: "1:1",
+        defaultValue: "original",
         options: [
+          { value: "original", labelKey: "ratio_original" },
           { value: "1:1", labelKey: "ratio_1x1" },
           { value: "4:3", labelKey: "ratio_4x3" },
           { value: "16:9", labelKey: "ratio_16x9" },

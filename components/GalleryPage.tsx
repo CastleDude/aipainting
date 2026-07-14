@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ImageViewer } from "@/components/ImageViewer";
 import { getMockGalleryItems } from "@/lib/generations";
+import { setRemixImage } from "@/lib/history-bridge";
 
 export const GALLERY_META: Record<string, { title: string; description: string }> = {
   en: { title: "Community Gallery — AI Painting", description: "Explore AI-generated images shared by the community." },
@@ -28,6 +29,7 @@ const PAGE_SIZE = 24;
 
 export default function GalleryPage() {
   const { locale } = useParams<{ locale: string }>();
+  const router = useRouter();
   const t = useTranslations();
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [page, setPage] = useState(1);
@@ -182,6 +184,15 @@ export default function GalleryPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] text-white/50">{item.user_name}</span>
                       <div className="flex gap-2">
+                        <button
+                          onClick={() => { setRemixImage(item.image_url, item.prompt, item.model); router.push('/' + locale); }}
+                          className="rounded-full bg-white/20 p-1.5 text-white hover:bg-white/35 transition-colors"
+                          title="Remix"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+                          </svg>
+                        </button>
                         <button
                           onClick={() => { setViewerSrc(item.image_url); setViewerAlt(item.prompt); }}
                           className="rounded-full bg-white/20 p-1.5 text-white hover:bg-white/35 transition-colors"

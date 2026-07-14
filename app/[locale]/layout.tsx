@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PHBanner } from "@/components/PHBanner";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
@@ -109,6 +110,7 @@ export default async function LocaleLayout({
     logout: messages.header?.logout || "Log Out",
     free_remaining: messages.header?.free_remaining || "{count} left today",
     credits_remaining: messages.header?.credits_remaining || "{count} credits",
+    guest_credits: (messages as any).generate?.guest_credits,
   };
   const loginModalMessages = messages.login_modal;
   const footerMessages = {
@@ -129,6 +131,7 @@ export default async function LocaleLayout({
             <main className="flex-1 relative z-[1]">
               {children}
             </main>
+            <PHBanner />
             <Footer locale={locale} messages={footerMessages} />
           </Providers>
         </NextIntlClientProvider>

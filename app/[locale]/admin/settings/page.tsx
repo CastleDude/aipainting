@@ -3,16 +3,14 @@
 import { useState, useEffect } from "react";
 
 interface SystemStatus {
-  supabase: {
+  database: {
     configured: boolean;
     connected: boolean;
-    url: string | null;
-    service_role: boolean;
     userCount: number;
     error?: string;
   };
   creem: { configured: boolean };
-  auth: { email: boolean; google: boolean };
+  auth: { method: string; email: boolean };
   dev: { mock_user: boolean };
   app: { node_env: string; next_version: string };
 }
@@ -68,33 +66,25 @@ export default function AdminSettingsPage() {
       <h1 className="text-2xl font-bold text-white mb-6">System Settings</h1>
 
       <div className="grid gap-6 max-w-3xl">
-        {/* Supabase */}
+        {/* Database */}
         <section className="rounded-xl border border-border/50 bg-bg-card p-6">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-white mb-4">
             <svg className="h-4 w-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125v-3.75" />
             </svg>
-            Supabase
+            Database (PostgreSQL)
           </h2>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between py-1 border-b border-border/20">
-              <span className="text-text-secondary">Connection URL</span>
-              <span className="text-text-primary font-mono">{status.supabase.url || "—"}</span>
-            </div>
-            <div className="flex justify-between py-1 border-b border-border/20">
-              <span className="text-text-secondary">Database</span>
-              <StatusBadge ok={status.supabase.connected} />
-            </div>
-            <div className="flex justify-between py-1 border-b border-border/20">
-              <span className="text-text-secondary">Service Role Key</span>
-              <StatusBadge ok={status.supabase.service_role} />
+              <span className="text-text-secondary">Connection</span>
+              <StatusBadge ok={status.database.connected} />
             </div>
             <div className="flex justify-between py-1 border-b border-border/20">
               <span className="text-text-secondary">Total Users</span>
-              <span className="text-text-primary font-mono">{status.supabase.userCount}</span>
+              <span className="text-text-primary font-mono">{status.database.userCount}</span>
             </div>
-            {status.supabase.error && (
-              <div className="text-xs text-danger mt-2">Error: {status.supabase.error}</div>
+            {status.database.error && (
+              <div className="text-xs text-danger mt-2">Error: {status.database.error}</div>
             )}
           </div>
         </section>
@@ -125,12 +115,12 @@ export default function AdminSettingsPage() {
           </h2>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between py-1 border-b border-border/20">
-              <span className="text-text-secondary">Email / Password</span>
-              <StatusBadge ok={status.auth.email} />
+              <span className="text-text-secondary">Method</span>
+              <span className="text-text-primary font-mono">{status.auth.method}</span>
             </div>
             <div className="flex justify-between py-1 border-b border-border/20">
-              <span className="text-text-secondary">Google OAuth</span>
-              <StatusBadge ok={status.auth.google} />
+              <span className="text-text-secondary">Email / Password</span>
+              <StatusBadge ok={status.auth.email} />
             </div>
           </div>
         </section>

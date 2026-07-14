@@ -1,35 +1,20 @@
-import { createServerClient } from "@supabase/ssr";
-import { createClient } from "@supabase/supabase-js";
-import type { NextRequest } from "next/server";
+import { auth } from "@/lib/auth";
+import pool from "@/lib/db";
 
-export async function verifyAdmin(req: NextRequest): Promise<string | null> {
+export async function verifyAdmin(): Promise<string | null> {
   try {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return req.cookies.getAll(); },
-          setAll() {},
-        },
-      }
+    const session = await auth();
+    if (!session?.user) return null;
+
+    const userId = (session.user as Record<string, unknown>).id as string | undefined;
+    if (!userId) return null;
+
+    const { rows: [profile] } = await pool.query(
+      "SELECT role FROM profiles WHERE id = $1",
+      [userId]
     );
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-
-    const serviceClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    const { data: profile } = await serviceClient
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    return profile?.role === "admin" ? user.id : null;
+    return profile?.role === "admin" ? userId : null;
   } catch {
     return null;
   }

@@ -142,7 +142,7 @@
     "switch_to_seedream": "切換到 Flux Schnell（免費，全球可用）",
     "presets": {
       "title": "快捷預設",
-      "credit_multiplier": "[[COUNT]]倍積分",
+      "credit_multiplier": "[[[COUNT]]]倍積分",
       "photo_restoration": {
         "name": "老照片修復",
         "desc": "修復並增強老舊或破損的照片"
@@ -177,7 +177,25 @@
           "general": "通用慶祝"
         }
       }
-    }
+    },
+    "credit_cost": "本次消費 [[COUNT]] 積分",
+    "credit_insufficient": "(積分不足)",
+    "guest_credits": "每日免費 [[COUNT]]/5 積分",
+    "guest_banner": "每日免費 [[COUNT]]/5 積分 · 註冊登入獲取 10 積分/天",
+    "admin_alerts": "{count} 個付費用戶積分耗盡",
+    "style_photorealistic": "寫實攝影",
+    "style_anime": "動漫",
+    "style_digital-art": "數位藝術",
+    "style_oil-painting": "油畫",
+    "style_cinematic": "電影感",
+    "style_ghibli": "吉卜力",
+    "style_3d-render": "3D渲染",
+    "style_line-art": "線稿",
+    "moderation_title": "內容違規",
+    "moderation_hint": "內容違規，請重新調整提示詞",
+    "moderation_ban": "違規次數過多，請稍後再試",
+    "enhance_btn": "✨ 潤色",
+    "enhancing_btn": "✨ 潤色中..."
   },
   "image_tools": {
     "browser_hint": "用 Chrome 或 Edge 獲得最佳體驗",
@@ -186,6 +204,7 @@
     "tabs": {
       "crop": "裁圖",
       "compress": "壓縮",
+      "format": "格式轉換",
       "remove_bg": "去背景",
       "replace_bg": "換背景",
       "smooth": "磨皮",
@@ -195,6 +214,7 @@
     "descriptions": {
       "crop": "按任意比例裁剪圖片，永久免費。",
       "compress": "無損壓縮圖片大小，永久免費。",
+      "format": "批量轉換圖片格式，支援 JPEG/PNG/WebP/AVIF/ICO，永久免費。",
       "remove_bg": "AI 智慧去背去除背景，每天 20 次免費。",
       "replace_bg": "AI 背景替換，支援純色或自訂圖片，每天 20 次免費。",
       "smooth": "AI 美顏磨皮，每天 20 次免費。",
@@ -213,7 +233,7 @@
     "remaining": "今日剩餘免費 [[COUNT]] 次",
     "upgrade": "升級無限使用",
     "credits_remaining": "剩餘積分",
-    "per_use": "每次消耗 1 積分",
+    "per_use": "每次消耗 [[COUNT]] 積分",
     "crop": {
       "aspect_ratio": "裁剪比例",
       "freeform": "自由裁剪",
@@ -266,7 +286,11 @@
       "max_hint": "一次最多上傳 15 張圖片，支援 JPG/PNG/WebP 等格式。",
       "too_many": "一次只能上傳 15 張圖片，請重新選擇。",
       "download_all": "全部下載",
-      "delete_all": "刪除全部"
+      "delete_all": "刪除全部",
+      "reset_results": "重置",
+      "auto": "智慧均衡",
+      "quality_mode": "品質優先",
+      "size_mode": "大小優先"
     },
     "remove_bg": {
       "action": "去除背景"
@@ -368,7 +392,22 @@
     "showcase_replace_bg_feature3": "縮放平移精確定位",
     "showcase_replace_bg_feature4": "最終確認前即時預覽",
     "before": "處理前",
-    "after": "處理後"
+    "after": "處理後",
+    "format": {
+      "target": "目標格式",
+      "convert": "全部轉換",
+      "download_all": "全部下載",
+      "reset": "重置",
+      "delete_all": "刪除全部",
+      "hint": "所有處理均在瀏覽器本機完成。ICO 最大 256×256。",
+      "max_hint": "一次最多上傳 15 張圖片。",
+      "too_many": "一次只能上傳 15 張圖片。",
+      "jpeg": "JPEG",
+      "png": "PNG",
+      "webp": "WebP",
+      "avif": "AVIF",
+      "ico": "ICO"
+    }
   },
   "header": {
     "home": "首頁",
@@ -421,7 +460,12 @@
     "save_reminder": "請及時儲存圖片，我們僅保留最近 20 張歷史記錄。",
     "manage_history": "管理歷史",
     "view": "檢視",
-    "download": "下載"
+    "download": "下載",
+    "feedback_title": "留言反饋",
+    "feedback_placeholder": "寫下你的建議或反饋...(最多200字)",
+    "feedback_submit": "提交留言",
+    "feedback_submitting": "提交中...",
+    "feedback_success": "留言已提交，感謝反饋！"
   },
   "history": {
     "title": "歷史記錄",
@@ -557,7 +601,7 @@
     "period_end": "週期結束",
     "cancel_action": "取消",
     "confirm_cancel_sub": "確定取消此訂閱？用戶將被降級為免費方案。",
-    "error_prefix": "錯誤： "
+    "error_prefix": "錯誤："
   },
   "testimonials": {
     "title": "全球創作者的信賴之選",
@@ -628,6 +672,7 @@
         "style_fresh": "全新質感",
         "style_vintage": "懷舊感",
         "ratio": "圖片比例",
+        "ratio_original": "保持原始比例",
         "custom": "自定義指令",
         "custom_placeholder": "例如：讓天空更藍，移除左側的人..."
       }
@@ -979,6 +1024,7 @@
         "custom": "自定義指令",
         "custom_placeholder": "例如：加燙金效果、加花邊裝飾..."
       }
-    }
+    },
+    "ratio_original": "保持原始比例"
   }
 }

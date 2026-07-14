@@ -236,12 +236,8 @@ export async function generateRunware(
     }
   }
 
-  // 3. OpenRouter (universal fallback, uses existing key)
-  if (process.env.OPENROUTER_API_KEY) {
-    return await generateWithOpenRouter(prompt, model, aspectRatio, numImages, negativePrompt);
-  }
-
+  // No OpenRouter fallback — Gemini is region-blocked for some users
   throw new Error(
-    "No AI provider configured. Set one of: RUNWARE_API_KEY, NOVITA_API_KEY, or OPENROUTER_API_KEY in .env.local.",
+    "Image generation failed. Please try again or switch to a different model.",
   );
 }

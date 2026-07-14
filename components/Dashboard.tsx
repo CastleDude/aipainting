@@ -42,6 +42,11 @@ interface DashboardMessages {
   manage_history: string;
   view: string;
   download: string;
+  feedback_title?: string;
+  feedback_success?: string;
+  feedback_placeholder?: string;
+  feedback_submit?: string;
+  feedback_submitting?: string;
 }
 
 export function Dashboard({ locale, messages }: { locale: string; messages: DashboardMessages }) {
@@ -380,6 +385,12 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
               )}
             </div>
 
+            {/* Feedback */}
+            <div className="rounded-xl border border-border/50 bg-bg-card p-6">
+              <h2 className="mb-4 text-lg font-semibold text-text-primary">{messages.feedback_title || "留言反馈"}</h2>
+              <FeedbackForm messages={messages} />
+            </div>
+
           </div>
         </div>
       </div>
@@ -392,6 +403,49 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
           onClose={() => setViewerSrc(null)}
         />
       )}
+    </div>
+  );
+}
+
+function FeedbackForm({ messages }: { messages?: DashboardMessages }) {
+  const { user } = useAuth();
+  const [msg, setMsg] = useState("");
+  const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const submit = async () => {
+    if (!msg.trim() || msg.length > 200) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: msg.trim() }) });
+      if (res.ok) { setSent(true); setMsg(""); }
+    } catch {}
+    setSubmitting(false);
+  };
+
+  if (!user) return null;
+  if (sent) return <p className="text-sm text-green-400">{messages?.feedback_success || "留言已提交，感谢反馈！"}</p>;
+
+  return (
+    <div className="space-y-3">
+      <textarea
+        value={msg}
+        onChange={(e) => setMsg(e.target.value)}
+        placeholder={messages?.feedback_placeholder || "写下你的建议或反馈...(最多200字)"}
+        maxLength={200}
+        rows={3}
+        className="w-full rounded-xl border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none resize-none"
+      />
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] text-text-muted">{msg.length}/200</span>
+        <button
+          onClick={submit}
+          disabled={!msg.trim() || submitting}
+          className="rounded-lg bg-accent px-4 py-1.5 text-xs font-medium text-white hover:bg-accent-hover disabled:opacity-40 transition-colors"
+        >
+          {submitting ? (messages?.feedback_submitting || "提交中...") : (messages?.feedback_submit || "提交留言")}
+        </button>
+      </div>
     </div>
   );
 }

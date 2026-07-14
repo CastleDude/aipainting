@@ -25,6 +25,7 @@ interface HeaderProps {
     logout: string;
     free_remaining: string;
     credits_remaining: string;
+    guest_credits?: string;
   };
   loginModalMessages?: {
     login: string;
@@ -88,14 +89,33 @@ function NavLink({ href, children, active }: { href: string; children: React.Rea
 
 export function Header({ locale, messages, loginModalMessages }: HeaderProps) {
   const pathname = usePathname();
-  const route = pathname.replace(/^\/(en|zh|zh-Hant|ja|ko)/, "") || "/";
+  const route = pathname.replace(/^\/(zh-Hant|zh|en|ja|ko|fr|de|es)/, "") || "/";
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"login" | "signup">("login");
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const { user, profile, loading, signOut } = useAuth();
+
+  // Guest credit tracking — only read cookie after mount to avoid SSR mismatch
+  const [headerGuestCredits, setHeaderGuestCredits] = useState(5);
+  useEffect(() => {
+    try {
+      const c = document.cookie.split("; ").find(r => r.startsWith("guest_credits="));
+      if (c) {
+        const d = JSON.parse(decodeURIComponent(c.split("=")[1]));
+        if (d.date === new Date().toISOString().slice(0, 10)) setHeaderGuestCredits(d.credits);
+      }
+    } catch {}
+  }, []);
   const router = useRouter();
+
+  // Listen for guest credit updates from ImageGenerator
+  useEffect(() => {
+    const handler = (e: Event) => setHeaderGuestCredits((e as CustomEvent).detail);
+    window.addEventListener("guest-credits-update", handler);
+    return () => window.removeEventListener("guest-credits-update", handler);
+  }, []);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -161,12 +181,10 @@ export function Header({ locale, messages, loginModalMessages }: HeaderProps) {
           <div className="flex items-center gap-2">
             {locale && <LocaleSwitcher locale={locale} />}
 
-            {user && profile && (
-                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-bg-card border border-border/50 px-2.5 py-1 text-xs text-text-secondary">
-                  <img src="/images/score.png" alt="" className="h-3.5 w-3.5" />
-                  {messages.credits_remaining.replace("[[COUNT]]", String(profile.credits))}
-                </span>
-              )}
+            <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-bg-card border border-border/50 px-2.5 py-1 text-xs text-text-secondary" suppressHydrationWarning>
+              <img src="/images/score.png" alt="" className="h-3.5 w-3.5" />
+              {!user ? (messages.guest_credits || `每日免费 {{COUNT}}/5 积分`).replace("[[COUNT]]", String(headerGuestCredits)) : profile ? messages.credits_remaining.replace("[[COUNT]]", String(profile.credits)) : "..."}
+            </span>
 
             {loading ? (
               <div className="flex h-9 w-16 items-center justify-center rounded-lg bg-accent/10">
@@ -206,6 +224,14 @@ export function Header({ locale, messages, loginModalMessages }: HeaderProps) {
                       {messages.dashboard}
                     </a>
 
+                    <a
+                      href={`${localePath}/history`}
+                      onClick={() => setMenuOpen(false)}
+                      className="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-card-hover transition-colors"
+                    >
+                      {messages.history}
+                    </a>
+
                     {profile?.tier === "free" && (
                       <a
                         href={`${localePath}/pricing`}
@@ -215,14 +241,6 @@ export function Header({ locale, messages, loginModalMessages }: HeaderProps) {
                         {messages.upgrade}
                       </a>
                     )}
-
-                    <a
-                      href={`${localePath}/history`}
-                      onClick={() => setMenuOpen(false)}
-                      className="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-card-hover transition-colors"
-                    >
-                      {messages.history}
-                    </a>
 
                     {profile?.role === "admin" && (
                       <a

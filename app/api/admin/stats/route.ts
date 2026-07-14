@@ -1,52 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { verifyAdmin } from "@/lib/admin-guard";
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
+import pool from "@/lib/db";
 
 export async function GET(req: NextRequest) {
   try {
-    if (!(await verifyAdmin(req))) {
+    if (!(await verifyAdmin())) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const supabase = getServiceClient();
-
-    const [usersResult, ordersResult, totalOrdersResult] = await Promise.all([
-      supabase.from("profiles").select("id, tier", { count: "exact", head: false }),
-      supabase
-        .from("orders")
-        .select("id, user_id, tier, amount, currency, created_at, status")
-        .eq("status", "completed")
-        .order("created_at", { ascending: false })
-        .limit(10),
-      supabase
-        .from("orders")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "completed"),
+    const [usersResult, ordersResult, totalResult] = await Promise.all([
+      pool.query("SELECT id, tier FROM profiles"),
+      pool.query(
+        "SELECT o.id, o.user_id, o.tier, o.amount, o.currency, o.created_at, p.email FROM orders o LEFT JOIN profiles p ON p.id = o.user_id WHERE o.status = 'completed' ORDER BY o.created_at DESC LIMIT 10"
+      ),
+      pool.query("SELECT COUNT(*) AS count FROM orders WHERE status = 'completed'"),
     ]);
 
-    const allUsers = usersResult.data || [];
-    const payingUsers = allUsers.filter((u) => u.tier !== "free").length;
+    const allUsers = usersResult.rows;
+    const payingUsers = allUsers.filter((u: { tier: string }) => u.tier !== "free").length;
 
-    // Get emails for recent orders
-    const orders = ordersResult.data || [];
-    const userIds = [...new Set(orders.map((o) => o.user_id))];
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, email")
-      .in("id", userIds);
-
-    const emailMap = new Map((profiles || []).map((p) => [p.id, p.email]));
-
-    const recentOrders = orders.map((o) => ({
+    const recentOrders = ordersResult.rows.map((o: Record<string, unknown>) => ({
       id: o.id,
-      user_email: emailMap.get(o.user_id) || o.user_id,
+      user_email: (o.email as string) || o.user_id,
       tier: o.tier,
       amount: o.amount,
       currency: o.currency,
@@ -56,10 +31,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       totalUsers: allUsers.length,
       payingUsers,
-      totalOrders: totalOrdersResult.count || 0,
+      totalOrders: parseInt(totalResult.rows[0]?.count || "0", 10),
       recentOrders,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

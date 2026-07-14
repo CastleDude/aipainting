@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 import pool from "@/lib/db";
+import { sendAdminAlert } from "@/lib/email";
 
 // Service role client for admin DB writes
 function getServiceClient() {
@@ -70,6 +71,11 @@ async function handleCheckoutCompleted(_supabase: ReturnType<typeof getServiceCl
       [subscription.id, userId, tier, subscription.status, subscription.id, subscription.current_period_start, subscription.current_period_end],
     );
   }
+
+  // Admin notification
+  const userEmail = data.customer?.email || userId;
+  const amount = data.amount ? `$${(data.amount / 100).toFixed(2)} ${data.currency || "USD"}` : "N/A";
+  sendAdminAlert("新订单", `<p><b>用户:</b> ${userEmail}</p><p><b>套餐:</b> ${tier}</p><p><b>金额:</b> ${amount}</p><p><b>订单ID:</b> ${data.id}</p>`);
 }
 
 async function handleSubscriptionPaid(supabase: ReturnType<typeof getServiceClient>, payload: WebhookPayload) {

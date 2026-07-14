@@ -1,59 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { verifyAdmin } from "@/lib/admin-guard";
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
+import pool from "@/lib/db";
 
 export async function GET(req: NextRequest) {
   try {
-    if (!(await verifyAdmin(req))) {
+    if (!(await verifyAdmin())) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const supabase = getServiceClient();
     const url = new URL(req.url);
     const page = parseInt(url.searchParams.get("page") || "1");
     const limit = Math.min(parseInt(url.searchParams.get("limit") || "20"), 50);
     const offset = (page - 1) * limit;
     const statusFilter = url.searchParams.get("status");
 
-    let query = supabase
-      .from("subscriptions")
-      .select("id, user_id, tier, status, creem_subscription_id, current_period_start, current_period_end, created_at, updated_at", { count: "exact" })
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
-
+    const params: unknown[] = [];
+    let where = "";
     if (statusFilter) {
-      query = query.eq("status", statusFilter);
+      params.push(statusFilter);
+      where = " WHERE s.status = $1";
     }
 
-    const { data, count, error } = await query;
+    const dataQuery = `SELECT s.id, s.user_id, s.tier, s.status, s.creem_subscription_id,
+      s.current_period_start, s.current_period_end, s.created_at, s.updated_at,
+      p.email AS user_email
+      FROM subscriptions s LEFT JOIN profiles p ON p.id = s.user_id
+      ${where}
+      ORDER BY s.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const countQuery = `SELECT COUNT(*) AS count FROM subscriptions s${where}`;
 
-    const userIds = [...new Set((data || []).map((s) => s.user_id))];
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, email")
-      .in("id", userIds);
-
-    const emailMap = new Map((profiles || []).map((p) => [p.id, p.email]));
-
-    const subscriptions = (data || []).map((s) => ({
-      ...s,
-      user_email: emailMap.get(s.user_id) || s.user_id,
-    }));
+    const [dataResult, countResult] = await Promise.all([
+      pool.query(dataQuery, [...params, limit, offset]),
+      pool.query(countQuery, params),
+    ]);
 
     return NextResponse.json({
-      subscriptions,
-      total: count || 0,
+      subscriptions: dataResult.rows,
+      total: parseInt(countResult.rows[0]?.count || "0", 10),
       page,
       limit,
     });
@@ -64,7 +48,7 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    if (!(await verifyAdmin(req))) {
+    if (!(await verifyAdmin())) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -79,32 +63,18 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
 
-    const supabase = getServiceClient();
-
-    // If canceling, also downgrade user to free
+    // If canceling, downgrade user to free tier
     if (status === "canceled") {
-      const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("user_id")
-        .eq("id", subscriptionId)
-        .single();
-
-      if (sub) {
-        await supabase
-          .from("profiles")
-          .update({ tier: "free", credits: 0 })
-          .eq("id", sub.user_id);
+      const sub = await pool.query("SELECT user_id FROM subscriptions WHERE id = $1", [subscriptionId]);
+      if (sub.rows.length > 0) {
+        await pool.query("UPDATE profiles SET tier = 'free', credits = 0 WHERE id = $1", [sub.rows[0].user_id]);
       }
     }
 
-    const { error } = await supabase
-      .from("subscriptions")
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq("id", subscriptionId);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    await pool.query(
+      "UPDATE subscriptions SET status = $1, updated_at = now() WHERE id = $2",
+      [status, subscriptionId]
+    );
 
     return NextResponse.json({ success: true });
   } catch {

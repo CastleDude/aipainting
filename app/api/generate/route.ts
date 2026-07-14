@@ -8,7 +8,11 @@ import { auth } from "@/lib/auth";
 import type { SubscriptionTier } from "@/lib/supabase";
 import { STYLE_PROMPTS, RUNWARE_MODELS } from "@/lib/openrouter";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
-import { checkContentModeration } from "@/lib/moderation";
+import { logError } from "@/lib/analytics";
+import { checkContentModeration, trackBlockedAttempt } from "@/lib/moderation";
+
+// Default negative prompt for quality boost (EasyNegative equivalent concepts)
+const DEFAULT_NEGATIVE = "blurry, low quality, distorted, watermark, text, signature, bad anatomy, deformed, disfigured, extra fingers, mutated";
 
 // ── Describe an image via Gemini Vision ──
 async function describeImage(base64: string): Promise<string | null> {
@@ -204,14 +208,50 @@ export async function POST(req: NextRequest) {
 
     const moderation = await checkContentModeration(prompt?.trim() || "", imageBase64);
     if (moderation.flagged) {
+      // Track blocked attempt — temp ban after 5 violations in 10 min
+      const ban = trackBlockedAttempt(clientIp);
+      if (ban.banned) {
+        return NextResponse.json(
+          { error: `Too many content policy violations. Please try again in ${ban.retryAfter} seconds.`, code: "moderation_ban" },
+          { status: 429, headers: { "Retry-After": String(ban.retryAfter) } },
+        );
+      }
       return NextResponse.json(
         { error: "Content policy violation. This prompt has been flagged by our safety system.", code: "content_moderation" },
         { status: 400 },
       );
     }
 
-    // ── Credit check (skip if Supabase not configured) ──
+    // ── Credit result (populated below) ──
     let creditResult: { credits?: number } | undefined;
+
+    // ── Guest credit limit (5 credits/day, tracked via cookie) ──
+    let guestData: { date: string; credits: number } | undefined;
+    if (!authUser) {
+      const GUEST_DAILY = 5;
+      const cookieName = "guest_credits";
+      const today = new Date().toISOString().slice(0, 10);
+      const cookieVal = req.cookies.get(cookieName)?.value;
+      try {
+        guestData = cookieVal ? JSON.parse(decodeURIComponent(cookieVal)) : { date: today, credits: GUEST_DAILY };
+      } catch {
+        guestData = { date: today, credits: GUEST_DAILY };
+      }
+      if (guestData!.date !== today) {
+        guestData = { date: today, credits: GUEST_DAILY };
+      }
+      const guestCost = computeDeduction(numImages || 1, model, creditMultiplier);
+      if (guestData!.credits < guestCost) {
+        return NextResponse.json(
+          { error: "今日免费次数已用完，请注册登录后继续使用", code: "guest_quota_exhausted" },
+          { status: 402 },
+        );
+      }
+      guestData!.credits -= guestCost;
+      creditResult = { credits: guestData!.credits };
+    }
+
+    // ── Credit check (skip if Supabase not configured) ──
 
     // Dev mock mode — request-scoped credit tracking via cookie
     if (process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_DEV_MOCK_USER === "true") {
@@ -384,6 +424,15 @@ export async function POST(req: NextRequest) {
     if (saved > 0) { result.saved = saved; result.generationIds = savedIds; }
     const response = NextResponse.json(result);
 
+    // Guest: persist remaining credits via cookie
+    if (!authUser && guestData) {
+      response.cookies.set("guest_credits", JSON.stringify(guestData), {
+        maxAge: 86400,
+        path: "/",
+        sameSite: "lax",
+      });
+    }
+
     // Dev mock: persist credits and generations via cookies for request continuity
     if (process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_DEV_MOCK_USER === "true") {
       if (creditResult?.credits !== undefined) {
@@ -435,6 +484,11 @@ export async function POST(req: NextRequest) {
     }
 
     const { code, userMessage } = classifyError(status, message);
+
+    // Log server errors for admin dashboard
+    if (status >= 500) {
+      logError("generate", `[${code}] ${message}`);
+    }
 
     return NextResponse.json(
       { error: userMessage, code, detail: message },

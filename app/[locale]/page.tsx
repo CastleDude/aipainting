@@ -73,6 +73,8 @@ export default async function HomePage() {
 
   return (
     <HomeParticleWrapper>
+      {/* Background light effect */}
+      <div className="bg-dots" aria-hidden="true"><span /><span /><span /><span /><span /></div>
       {/* Structured Data */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(appStructuredData) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }} />
@@ -111,6 +113,25 @@ export default async function HomePage() {
           reference_image_added: t("generate.reference_image_added"),
           reference_image_hint: t("generate.reference_image_hint"),
           switch_to_seedream: t("generate.switch_to_seedream"),
+          moderation_title: t("generate.moderation_title"),
+          moderation_hint: t("generate.moderation_hint"),
+          moderation_ban: t("generate.moderation_ban"),
+          enhance_btn: t("generate.enhance_btn"),
+          enhancing_btn: t("generate.enhancing_btn"),
+          guest_credits: t("generate.guest_credits"),
+          guest_banner: t("generate.guest_banner"),
+          credit_cost: t("generate.credit_cost"),
+          credit_insufficient: t("generate.credit_insufficient"),
+          style_labels: {
+            photorealistic: t("generate.style_photorealistic"),
+            anime: t("generate.style_anime"),
+            "digital-art": t("generate.style_digital-art"),
+            "oil-painting": t("generate.style_oil-painting"),
+            cinematic: t("generate.style_cinematic"),
+            ghibli: t("generate.style_ghibli"),
+            "3d-render": t("generate.style_3d-render"),
+            "line-art": t("generate.style_line-art"),
+          },
         }}
       >
         <PresetSection
@@ -167,6 +188,7 @@ export default async function HomePage() {
                   style_fresh: t("presets.photo_restoration.params.style_fresh"),
                   style_vintage: t("presets.photo_restoration.params.style_vintage"),
                   ratio: t("presets.photo_restoration.params.ratio"),
+                  ratio_original: t("presets.ratio_original"),
                   ratio_1x1: t("presets.ratio_1x1"),
                   ratio_4x3: t("presets.ratio_4x3"),
                   ratio_16x9: t("presets.ratio_16x9"),
