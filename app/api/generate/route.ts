@@ -46,8 +46,6 @@ const OPENROUTER_MODELS: Record<string, { id: string; modalities: string[] }> = 
   seedream: { id: "bytedance-seed/seedream-4.5", modalities: ["image"] },
   "nano-banana": { id: "google/gemini-2.5-flash-image", modalities: ["image", "text"] },
   "nano-banana2": { id: "google/gemini-3.1-flash-image-preview", modalities: ["image", "text"] },
-  "gpt-image": { id: "openai/gpt-5-image-mini", modalities: ["image", "text"] },
-  "gpt-image-pro": { id: "openai/gpt-5-image", modalities: ["image", "text"] },
 };
 
 // ── Clients ─────────────────────────────────────────────

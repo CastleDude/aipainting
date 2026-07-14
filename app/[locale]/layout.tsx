@@ -131,7 +131,7 @@ export default async function LocaleLayout({
             <main className="flex-1 relative z-[1]">
               {children}
             </main>
-            <PHBanner />
+            <PHBanner locale={locale} messages={{ ph_title: messages.ph_title || "We're live on Product Hunt!", ph_subtitle: messages.ph_subtitle || "Your support means the world to us 💜", ph_vote: messages.ph_vote || "Vote for us →" }} />
             <Footer locale={locale} messages={footerMessages} />
           </Providers>
         </NextIntlClientProvider>

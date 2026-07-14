@@ -13,18 +13,16 @@ describe("RUNWARE_MODEL_MAP", () => {
 });
 
 describe("AI_MODELS", () => {
-  it("has all 8 models", async () => {
+  it("has all 6 models", async () => {
     const { AI_MODELS } = await import("@/lib/openrouter");
     const keys = Object.keys(AI_MODELS);
-    expect(keys).toHaveLength(8);
+    expect(keys).toHaveLength(6);
     expect(keys).toContain("schnell");
     expect(keys).toContain("sdxl");
     expect(keys).toContain("flux-dev");
     expect(keys).toContain("seedream");
     expect(keys).toContain("nano-banana");
     expect(keys).toContain("nano-banana2");
-    expect(keys).toContain("gpt-image");
-    expect(keys).toContain("gpt-image-pro");
   });
 
   it("Runware models have provider Runware", async () => {

@@ -284,7 +284,7 @@ export function GenerationHistory({
   if (!mounted) {
     return (
       <div className="min-h-screen pt-0 pb-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="mx-auto max-w-7xl px-0">
           <div className="animate-pulse space-y-6">
             <div className="h-8 w-48 rounded-lg bg-bg-card" />
             <div className="h-60 rounded-xl bg-bg-card" />
@@ -309,7 +309,7 @@ export function GenerationHistory({
 
   return (
     <div className="min-h-screen pt-0 pb-12">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="mx-auto max-w-7xl px-0">
         {/* Header */}
         <div className="flex items-center gap-4 mb-0 flex-wrap pb-4 border-b border-border/30">
           <h1 className="text-2xl font-bold text-text-primary">{messages.title}</h1>

@@ -34,6 +34,10 @@ export async function GET(req: NextRequest) {
       { id: "sc-9", prompt: "An underwater palace of coral and pearl, mermaids swimming through sunbeams, ethereal atmosphere", image_url: "/images/9.png", user_name: "AI Painting" },
       { id: "sc-10", prompt: "A futuristic Chinese city with floating lanterns and holographic billboards, cyberpunk meets tradition", image_url: "/images/10.png", user_name: "AI Painting" },
       { id: "sc-11", prompt: "A mystical forest spirit made of autumn leaves, glowing embers dancing in twilight air, ethereal fantasy", image_url: "/images/11.png", user_name: "AI Painting" },
+      { id: "sc-13", prompt: "Beautiful European woman portrait, natural sunlight, soft bokeh, professional photography, elegant makeup", image_url: "/images/13.png", user_name: "AI Painting" },
+      { id: "sc-14", prompt: "Adorable European toddler girl, curly blonde hair, bright blue eyes, soft natural light", image_url: "/images/14.png", user_name: "AI Painting" },
+      { id: "sc-15", prompt: "Handsome European man portrait, dramatic studio lighting, professional headshot, black and white", image_url: "/images/15.png", user_name: "AI Painting" },
+      { id: "sc-16", prompt: "Cute European boy with freckles, messy brown hair, playful smile, golden hour garden", image_url: "/images/16.png", user_name: "AI Painting" },
       { id: "sc-12", prompt: "A crystal cave with bioluminescent flowers, mirror-like water pools, magical underground sanctuary", image_url: "/images/12.png", user_name: "AI Painting" },
     ];
 

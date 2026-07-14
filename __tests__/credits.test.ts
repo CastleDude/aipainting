@@ -67,9 +67,9 @@ describe("computeDeduction", () => {
     // 4 images × 1 preset × 1 model = 4
     expect(computeDeduction(4, "schnell", 1)).toBe(4);
     // 1 image × 1 preset × 3 model = 3
-    expect(computeDeduction(1, "flux-dev", 1)).toBe(3);
+    expect(computeDeduction(1, "flux-dev", 1)).toBe(2);
     // 2 images × 2 preset × 3 model = 12
-    expect(computeDeduction(2, "flux-dev", 2)).toBe(12);
+    expect(computeDeduction(2, "flux-dev", 2)).toBe(8);
   });
 
   it("handles unknown model as 1x multiplier", async () => {

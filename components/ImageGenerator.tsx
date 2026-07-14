@@ -1099,6 +1099,10 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
             { src: "/images/9.png", prompt: "An underwater palace of coral and pearl, mermaids swimming through sunbeams, ethereal atmosphere" },
             { src: "/images/10.png", prompt: "A futuristic Chinese city with floating lanterns and holographic billboards, cyberpunk meets tradition" },
             { src: "/images/11.png", prompt: "A mystical forest spirit made of autumn leaves, glowing embers dancing in twilight air, ethereal fantasy" },
+            { src: "/images/13.png", prompt: "Beautiful European woman portrait, natural sunlight, soft bokeh, professional photography, elegant makeup" },
+            { src: "/images/14.png", prompt: "Adorable European toddler girl, curly blonde hair, bright blue eyes, soft natural light" },
+            { src: "/images/15.png", prompt: "Handsome European man portrait, dramatic studio lighting, professional headshot, black and white" },
+            { src: "/images/16.png", prompt: "Cute European boy with freckles, messy brown hair, playful smile, golden hour garden" },
             { src: "/images/12.png", prompt: "A crystal cave with bioluminescent flowers, mirror-like water pools, magical underground sanctuary" },
           ].map((item) => (
             <GalleryCard key={item.prompt} item={item} onRemix={handleUsePrompt} remixText={messages.gallery_remix} galleryMouseRef={galleryMouseRef} galleryActive={galleryActive} />

@@ -15,8 +15,6 @@ export const AI_MODELS = {
   "seedream":     { id: "bytedance-seed/seedream-4.5", name: "Seedream 4.5", provider: "ByteDance" },
   "nano-banana":  { id: "google/gemini-2.5-flash-image", name: "Nano Banana", provider: "Google" },
   "nano-banana2": { id: "google/gemini-3.1-flash-image-preview", name: "Nano Banana 2", provider: "Google" },
-  "gpt-image":    { id: "openai/gpt-5-image-mini", name: "GPT-5 Image Mini", provider: "OpenAI" },
-  "gpt-image-pro":{ id: "openai/gpt-5-image", name: "GPT-5 Image", provider: "OpenAI" },
 } as const;
 
 export const RUNWARE_MODELS = new Set(["schnell", "sdxl", "flux-dev"]);
@@ -29,8 +27,6 @@ export const MODEL_COST_MULTIPLIER: Record<string, number> = {
   seedream: 8,         // ~$0.04/img (OpenRouter)
   "nano-banana": 10,   // 10 credits
   "nano-banana2": 10,  // 10 credits
-  "gpt-image": 8,      // ~$0.01/img (OpenRouter)
-  "gpt-image-pro": 12, // ~$0.04/img (OpenRouter)
 };
 
 export const ASPECT_RATIOS = [
