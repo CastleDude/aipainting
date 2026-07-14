@@ -8,7 +8,7 @@ interface PHBannerProps {
 }
 
 export function PHBanner({ locale, messages }: PHBannerProps) {
-  const [dismissed, setDismissed] = useState(true);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     const val = localStorage.getItem("ph_banner_dismissed");
