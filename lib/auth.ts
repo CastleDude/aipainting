@@ -38,6 +38,7 @@ const providers: Provider[] = [
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers,
   trustHost: true,
+  secret: process.env.AUTH_SECRET,
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
