@@ -1,7 +1,6 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
-import { skipCSRFCheck } from "@auth/core";
 import pool from "@/lib/db";
 import type { Provider } from "next-auth/providers";
 
@@ -40,7 +39,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers,
   trustHost: true,
   secret: process.env.AUTH_SECRET,
-  skipCSRFCheck,
+  // 用 __Secure- 代替 __Host- 前缀，避免 nginx 代理下浏览器拒绝 cookie
+  cookies: {
+    csrfToken: {
+      name: "__Secure-authjs.csrf-token",
+      options: { httpOnly: true, sameSite: "lax", path: "/", secure: true },
+    },
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
