@@ -12,25 +12,32 @@ const providers: Provider[] = [
     },
     async authorize(credentials) {
       const { email, password } = credentials as { email: string; password: string };
-      if (!email || !password) return null;
+      if (!email || !password) { console.error("[auth] missing email or password"); return null; }
 
-      const { rows } = await pool.query(
-        "SELECT id, name, email, password_hash, tier, credits FROM profiles WHERE email = $1",
-        [email.toLowerCase()],
-      );
-      const user = rows[0];
-      if (!user || !user.password_hash) return null;
+      try {
+        const { rows } = await pool.query(
+          "SELECT id, name, email, password_hash, tier, credits FROM profiles WHERE email = $1",
+          [email.toLowerCase()],
+        );
+        const user = rows[0];
+        if (!user) { console.error("[auth] user not found:", email.toLowerCase()); return null; }
+        if (!user.password_hash) { console.error("[auth] user has no password_hash:", user.id); return null; }
 
-      const valid = await compare(password, user.password_hash);
-      if (!valid) return null;
+        const valid = await compare(password, user.password_hash);
+        if (!valid) { console.error("[auth] password mismatch for:", email.toLowerCase()); return null; }
 
-      return {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        tier: user.tier || "free",
-        credits: user.credits || 10,
-      };
+        console.log("[auth] login success for:", email.toLowerCase());
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          tier: user.tier || "free",
+          credits: user.credits || 10,
+        };
+      } catch (err) {
+        console.error("[auth] authorize error:", err instanceof Error ? err.message : err);
+        return null;
+      }
     },
   }),
 ];
