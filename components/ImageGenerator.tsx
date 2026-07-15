@@ -364,9 +364,10 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
 
   // Local credit count so it updates immediately after generation
   const [localCredits, setLocalCredits] = useState<number | null>(null);
+  const [showPromoBanner, setShowPromoBanner] = useState(true);
 
   const currentCredits = localCredits ?? profile?.credits ?? 0;
-  const creditLabel = messages.credits_remaining.replace("[[COUNT]]", String(currentCredits));
+  const isPayTier = profile && profile.tier !== "free";
 
   // ── Preset event listener (from PresetSection modal) ──
   useEffect(() => {
@@ -934,15 +935,32 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
       </div>
       </div>
 
-      {/* Credit banner — free tier only */}
-      {isFreeTier && (
-        <div className="mt-5 h-[60px] rounded-xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-border/30 flex items-center justify-center px-4">
-          <p className="text-xs text-text-secondary flex items-center gap-1">
-            <img src="/images/score.png" alt="" className="h-3.5 w-3.5 inline" />
-            {creditLabel}
-            {" · "}
-            <span className="text-accent font-medium">{messages.upgrade_hint}</span>
-          </p>
+      {/* Promo banner — shown to guests & free users, hidden for subscribers */}
+      {showPromoBanner && !isPayTier && (
+        <div
+          className="mt-5 relative h-[80px] rounded-xl overflow-hidden cursor-pointer group"
+          style={{ backgroundImage: "url('/images/sban.jpg')", backgroundSize: "cover", backgroundPosition: "center" }}
+          onClick={() => window.location.href = `/${locale}/pricing`}
+        >
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-black/40" />
+          {/* Close button */}
+          <button
+            className="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-black/40 text-white/70 hover:text-white hover:bg-black/60 flex items-center justify-center text-sm transition-colors"
+            onClick={(e) => { e.stopPropagation(); setShowPromoBanner(false); }}
+          >
+            ×
+          </button>
+          {/* Content */}
+          <div className="relative z-10 h-full flex items-center justify-between px-6">
+            <span className="text-white font-bold text-base sm:text-lg">升级会员-首次订阅多赠送10%积分</span>
+            <button
+              className="rounded-lg bg-white/90 hover:bg-white text-black font-semibold px-4 py-2 text-sm transition-colors"
+              onClick={(e) => { e.stopPropagation(); window.location.href = `/${locale}/pricing`; }}
+            >
+              去充值
+            </button>
+          </div>
         </div>
       )}
 
