@@ -436,6 +436,8 @@
     "order_time": "Time",
     "back_to_history": "Back to History",
     "no_orders": "No orders yet",
+    "status_completed": "Completed",
+    "status_refunded": "Refunded",
     "history": "Generation History",
     "no_history": "No generations yet",
     "history_count": "Last 20 records",

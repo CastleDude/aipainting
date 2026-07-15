@@ -57,6 +57,12 @@ interface DashboardMessages {
   back_to_history: string;
   no_orders: string;
   loading: string;
+  tier_free: string;
+  tier_basic: string;
+  tier_premium: string;
+  tier_ultimate: string;
+  status_completed: string;
+  status_refunded: string;
   features_free: string[];
   features_basic: string[];
   features_premium: string[];
@@ -221,6 +227,16 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
                   back: messages.back_to_history || "Back",
                   loading: messages.loading || "Loading...",
                   no_orders: messages.no_orders || "No orders yet",
+                  tier_free: messages.tier_free || "Free",
+                  tier_basic: messages.tier_basic || "Basic",
+                  tier_premium: messages.tier_premium || "Premium",
+                  tier_ultimate: messages.tier_ultimate || "Ultimate",
+                  status_completed: messages.status_completed || "Completed",
+                  status_refunded: messages.status_refunded || "Refunded",
+                  status_pending: "Pending",
+                  status_active: "Active",
+                  status_canceled: "Canceled",
+                  status_expired: "Expired",
                 }}
               />
             ) : (

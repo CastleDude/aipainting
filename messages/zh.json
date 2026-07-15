@@ -851,6 +851,8 @@
     "order_time": "时间",
     "back_to_history": "返回生成历史",
     "no_orders": "暂无订单",
+    "status_completed": "已完成",
+    "status_refunded": "已退款",
     "history": "生成历史",
     "no_history": "暂无生成记录",
     "history_count": "最近 20 条记录",

@@ -30,7 +30,16 @@ interface OrderHistoryProps {
     back: string;
     loading: string;
     no_orders: string;
-    col_actions?: string;
+    tier_free: string;
+    tier_basic: string;
+    tier_premium: string;
+    tier_ultimate: string;
+    status_completed: string;
+    status_refunded: string;
+    status_pending: string;
+    status_active: string;
+    status_canceled: string;
+    status_expired: string;
   };
 }
 
@@ -82,23 +91,23 @@ function countryName(code: string | null | undefined): string {
   return name || code.toUpperCase();
 }
 
-const TIER_NAMES: Record<string, string> = {
-  free: "免费版",
-  basic: "基础版",
-  premium: "专业版",
-  ultimate: "旗舰版",
-};
-
-const STATUS_NAMES: Record<string, string> = {
-  completed: "已完成",
-  refunded: "已退款",
-  pending: "处理中",
-  active: "进行中",
-  canceled: "已取消",
-  expired: "已过期",
-};
-
 export function OrderHistory({ onBack, messages }: OrderHistoryProps) {
+
+  const tierNames: Record<string, string> = {
+    free: messages.tier_free || "Free",
+    basic: messages.tier_basic || "Basic",
+    premium: messages.tier_premium || "Premium",
+    ultimate: messages.tier_ultimate || "Ultimate",
+  };
+
+  const statusNames: Record<string, string> = {
+    completed: messages.status_completed || "Completed",
+    refunded: messages.status_refunded || "Refunded",
+    pending: messages.status_pending || "Pending",
+    active: messages.status_active || "Active",
+    canceled: messages.status_canceled || "Canceled",
+    expired: messages.status_expired || "Expired",
+  };
   const [orders, setOrders] = useState<Order[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -201,7 +210,7 @@ export function OrderHistory({ onBack, messages }: OrderHistoryProps) {
                       o.tier === "basic" ? "bg-blue-500/15 text-blue-400" :
                       "bg-text-muted/15 text-text-muted"
                     }`}>
-                      {TIER_NAMES[o.tier] || o.tier}
+                      {tierNames[o.tier] || o.tier}
                     </span>
                   </td>
                   <td className="px-3 py-2.5 text-text-primary text-xs font-medium">
@@ -216,7 +225,7 @@ export function OrderHistory({ onBack, messages }: OrderHistoryProps) {
                       o.status === "refunded" ? "bg-red-500/15 text-red-400" :
                       "bg-text-muted/15 text-text-muted"
                     }`}>
-                      {STATUS_NAMES[o.status] || o.status}
+                      {statusNames[o.status] || o.status}
                     </span>
                   </td>
                   <td className="px-3 py-2.5 text-text-muted text-xs whitespace-nowrap">
