@@ -196,7 +196,9 @@
     "moderation_ban": "違反が多すぎます。後でもう一度お試しください。",
     "enhance_btn": "✨ 強化",
     "enhancing_btn": "✨ 強化中...",
-    "enhance_tooltip": "AIが短いプロンプトを自動的に拡張し、照明、構図、スタイルの詳細を追加します"
+    "enhance_tooltip": "AIが短いプロンプトを自動的に拡張し、照明、構図、スタイルの詳細を追加します",
+    "promo_text": "アップグレード-初回購読で[[BONUS]]ボーナスクレジット",
+    "promo_button": "アップグレード"
   },
   "image_tools": {
     "browser_hint": "ChromeまたはEdgeでのご利用を推奨します",

@@ -158,7 +158,9 @@
     "moderation_ban": "Demasiadas infracciones. Inténtalo de nuevo más tarde.",
     "enhance_btn": "✨ Mejorar",
     "enhancing_btn": "✨ Mejorando...",
-    "enhance_tooltip": "La IA expandirá tu prompt corto con detalles de iluminación, composición y estilo"
+    "enhance_tooltip": "La IA expandirá tu prompt corto con detalles de iluminación, composición y estilo",
+    "promo_text": "Actualízate - Primera suscripción obtiene [[BONUS]] créditos extra",
+    "promo_button": "Actualizar"
   },
   "image_tools": {
     "browser_hint": "Usa Chrome o Edge para la mejor experiencia",

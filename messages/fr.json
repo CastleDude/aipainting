@@ -158,7 +158,9 @@
     "moderation_ban": "Trop de violations. Veuillez réessayer plus tard.",
     "enhance_btn": "✨ Améliorer",
     "enhancing_btn": "✨ Amélioration...",
-    "enhance_tooltip": "L'IA enrichira votre prompt avec des détails d'éclairage, de composition et de style"
+    "enhance_tooltip": "L'IA enrichira votre prompt avec des détails d'éclairage, de composition et de style",
+    "promo_text": "Abonnez-vous - Premier abonnement reçoit [[BONUS]] crédits bonus",
+    "promo_button": "S'abonner"
   },
   "image_tools": {
     "browser_hint": "Utilisez Chrome ou Edge pour une meilleure expérience.",

@@ -158,7 +158,9 @@
     "moderation_ban": "Zu viele Verstöße. Bitte versuchen Sie es später erneut.",
     "enhance_btn": "✨ Verbessern",
     "enhancing_btn": "✨ Verbessern...",
-    "enhance_tooltip": "KI erweitert Ihren kurzen Prompt mit Details zu Beleuchtung, Komposition und Stil"
+    "enhance_tooltip": "KI erweitert Ihren kurzen Prompt mit Details zu Beleuchtung, Komposition und Stil",
+    "promo_text": "Upgrade - Erstes Abo erhält [[BONUS]] Bonus-Credits",
+    "promo_button": "Upgrade"
   },
   "image_tools": {
     "browser_hint": "Verwende Chrome oder Edge für die beste Erfahrung",
