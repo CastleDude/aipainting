@@ -946,16 +946,16 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
           <div className="absolute inset-0 bg-black/40" />
           {/* Close button */}
           <button
-            className="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-black/40 text-white/70 hover:text-white hover:bg-black/60 flex items-center justify-center text-sm transition-colors"
+            className="absolute top-1.5 right-1.5 z-20 w-5 h-5 rounded-full bg-black/40 text-white/70 hover:text-white hover:bg-black/60 flex items-center justify-center text-xs transition-colors"
             onClick={(e) => { e.stopPropagation(); setShowPromoBanner(false); }}
           >
             ×
           </button>
           {/* Content */}
-          <div className="relative z-10 h-full flex items-center justify-between px-6">
-            <span className="text-white font-bold text-base sm:text-lg">升级会员-首次订阅多赠送10%积分</span>
+          <div className="relative z-10 h-full flex items-center justify-center px-6">
+            <span className="text-yellow-400 text-base sm:text-lg text-center">升级会员-首次订阅多赠送10%积分</span>
             <button
-              className="rounded-lg bg-white/90 hover:bg-white text-black font-semibold px-4 py-2 text-sm transition-colors"
+              className="ml-4 rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black font-semibold px-3 py-1.5 text-xs transition-colors"
               onClick={(e) => { e.stopPropagation(); window.location.href = `/${locale}/pricing`; }}
             >
               去充值
