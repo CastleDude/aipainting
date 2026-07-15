@@ -20,7 +20,7 @@ export async function logVisit(entry: VisitorEntry): Promise<void> {
     await pool.query(
       `INSERT INTO visitor_logs (ip, country, region, page, referrer, user_agent)
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [entry.ip, null, null, entry.page, entry.referrer || null, entry.userAgent || null],
+      [entry.ip, entry.country || null, null, entry.page, entry.referrer || null, entry.userAgent || null],
     );
   } catch {
     // Analytics should never block the request
