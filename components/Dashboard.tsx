@@ -338,7 +338,7 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
               {/* Order history entry */}
               <button
                 onClick={() => setShowOrders(true)}
-                className="mt-4 w-full flex items-center justify-between rounded-lg border border-border/50 p-3 text-sm text-text-secondary hover:border-accent/30 hover:text-text-primary transition-colors"
+                className="mt-4 w-full flex items-center justify-between rounded-lg bg-white/5 border border-white/5 p-3 text-sm text-text-secondary hover:text-white hover:bg-white/15 hover:border-white/15 transition-colors"
               >
                 <span className="flex items-center gap-2">
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
