@@ -364,10 +364,17 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
 
   // Local credit count so it updates immediately after generation
   const [localCredits, setLocalCredits] = useState<number | null>(null);
-  const [showPromoBanner, setShowPromoBanner] = useState(true);
+  const [showPromoBanner, setShowPromoBanner] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const currentCredits = localCredits ?? profile?.credits ?? 0;
   const isPayTier = profile && profile.tier !== "free";
+
+  // Show banner on client-side only after mount, for free users & guests
+  useEffect(() => {
+    if (mounted) setShowPromoBanner(!isPayTier);
+  }, [mounted, isPayTier]);
 
   // ── Preset event listener (from PresetSection modal) ──
   useEffect(() => {
