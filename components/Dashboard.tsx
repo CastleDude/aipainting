@@ -279,14 +279,14 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
                   <span className="text-text-muted">{tier === "free" ? (messages.daily_usage || "Today") : (messages.images_this_month || "This month")}</span>
                   <span className="text-text-secondary font-medium">
                     {tier === "free"
-                      ? `${10 - credits} / ${monthlyCredits} ${messages.used || "used"}`
+                      ? `${Math.min(10, Math.max(0, 10 - credits))} / ${monthlyCredits} ${messages.used || "used"}`
                       : `${monthlyUsed} / ${monthlyCredits} ${messages.used || "used"}`}
                   </span>
                 </div>
                 <div className="h-3 rounded-full bg-bg-primary/70 border border-border/50 overflow-hidden">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500 min-w-[2px]"
-                    style={{ width: `${Math.max(tier === "free" ? ((10 - credits) / 10) * 100 : monthlyPct, 1)}%` }}
+                    style={{ width: `${Math.max(tier === "free" ? Math.min(100, ((10 - credits) / 10) * 100) : monthlyPct, 1)}%` }}
                   />
                 </div>
                 <p className="mt-2 text-xs text-text-muted">
