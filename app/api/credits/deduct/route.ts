@@ -20,8 +20,9 @@ export async function POST(req: NextRequest) {
     const localProfile = await ensureProfile(userId, session.user.email);
     let currentCredits = localProfile.credits;
 
+    let resetApplied = false;
     const resetCredits = shouldResetCredits(localProfile.daily_reset_at, localProfile.tier as SubscriptionTier);
-    if (resetCredits !== null) currentCredits = resetCredits;
+    if (resetCredits !== null) { currentCredits = resetCredits; resetApplied = true; }
 
     if (currentCredits <= 0) {
       return NextResponse.json({ error: "Insufficient credits" }, { status: 402 });
@@ -29,7 +30,9 @@ export async function POST(req: NextRequest) {
 
     const newCredits = Math.max(0, currentCredits - cost);
     await pool.query(
-      "UPDATE profiles SET credits = $1, daily_reset_at = COALESCE(daily_reset_at, now()) WHERE id = $2",
+      resetApplied
+        ? "UPDATE profiles SET credits = $1, daily_reset_at = now() WHERE id = $2"
+        : "UPDATE profiles SET credits = $1 WHERE id = $2",
       [newCredits, userId],
     );
 
