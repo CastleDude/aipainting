@@ -50,8 +50,9 @@ export default async function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-text-primary mb-3">6. Payment and Subscriptions</h2>
-            <p>Paid plans are billed in advance on a monthly basis. All payments are processed securely through Creem. You may cancel your subscription at any time through the customer portal. Cancellations take effect at the end of the current billing period. No refunds are provided for partial months.</p>
+            <h2 className="text-xl font-semibold text-text-primary mb-3">6. Payment, Subscriptions, and Refund Policy</h2>
+            <p>Paid plans are billed in advance on a monthly basis. All payments are processed securely through Creem. You may cancel your subscription at any time through the customer portal. Cancellations take effect at the end of the current billing period.</p>
+            <p className="mt-2"><strong>All payments are final and non-refundable.</strong> As a provider of digital services and virtual goods that are delivered instantly upon purchase, we do not offer refunds, partial or full, for any reason including but not limited to: change of mind, unused credits, or dissatisfaction with the service. By making a purchase, you acknowledge and agree to this no-refund policy.</p>
           </section>
 
           <section>

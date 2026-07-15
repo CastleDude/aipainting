@@ -202,6 +202,10 @@ export function PricingSection({ messages }: PricingSectionProps) {
           ))}
         </div>
 
+        <p className="mt-8 text-center text-xs text-text-muted">
+          所有付款均为最终交易，虚拟数字商品一经购买即视为交付完成，不支持退款。
+        </p>
+
         <div className="mt-24">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold sm:text-4xl text-white">
