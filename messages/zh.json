@@ -801,7 +801,8 @@
     "signup": "免费注册",
     "logout": "退出",
     "free_remaining": "今日剩余 [[COUNT]]",
-    "credits_remaining": "[[COUNT]] 积分"
+    "credits_remaining": "[[COUNT]] 积分",
+    "daily_credits": "每日 [[COUNT]]/10 积分"
   },
   "dashboard": {
     "title": "控制台",

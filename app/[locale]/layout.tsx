@@ -110,6 +110,7 @@ export default async function LocaleLayout({
     logout: messages.header?.logout || "Log Out",
     free_remaining: messages.header?.free_remaining || "{count} left today",
     credits_remaining: messages.header?.credits_remaining || "{count} credits",
+    daily_credits: messages.header?.daily_credits || "{count}/10 daily",
     guest_credits: (messages as any).generate?.guest_credits,
   };
   const loginModalMessages = messages.login_modal;

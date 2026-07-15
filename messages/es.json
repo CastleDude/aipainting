@@ -386,7 +386,8 @@
     "signup": "Regístrate Gratis",
     "logout": "Cerrar sesión",
     "free_remaining": "[[COUNT]] restantes hoy",
-    "credits_remaining": "[[COUNT]] créditos"
+    "credits_remaining": "[[COUNT]] créditos",
+    "daily_credits": "[[COUNT]]/10 diarios"
   },
   "dashboard": {
     "title": "Tablero",

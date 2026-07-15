@@ -424,7 +424,8 @@
     "signup": "無料登録",
     "logout": "ログアウト",
     "free_remaining": "本日残り [[COUNT]]",
-    "credits_remaining": "[[COUNT]] クレジット"
+    "credits_remaining": "[[COUNT]] クレジット",
+    "daily_credits": "毎日 [[COUNT]]/10 クレジット"
   },
   "dashboard": {
     "title": "ダッシュボード",

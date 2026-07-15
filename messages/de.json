@@ -386,7 +386,8 @@
     "signup": "Anmelden Kostenlos",
     "logout": "Abmelden",
     "free_remaining": "[[COUNT]] heute noch übrig",
-    "credits_remaining": "[[COUNT]] Credits"
+    "credits_remaining": "[[COUNT]] Credits",
+    "daily_credits": "[[COUNT]]/10 täglich"
   },
   "dashboard": {
     "title": "Dashboard",

@@ -386,7 +386,8 @@
     "signup": "Inscrivez-vous gratuitement",
     "logout": "Déconnexion",
     "free_remaining": "[[COUNT]] restant aujourd'hui",
-    "credits_remaining": "[[COUNT]] crédits"
+    "credits_remaining": "[[COUNT]] crédits",
+    "daily_credits": "[[COUNT]]/10 par jour"
   },
   "dashboard": {
     "title": "Tableau de bord",

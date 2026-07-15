@@ -424,7 +424,8 @@
     "signup": "무료 회원가입",
     "logout": "로그아웃",
     "free_remaining": "오늘 [[COUNT]] 남음",
-    "credits_remaining": "[[COUNT]] 크레딧"
+    "credits_remaining": "[[COUNT]] 크레딧",
+    "daily_credits": "매일 [[COUNT]]/10 크레딧"
   },
   "dashboard": {
     "title": "대시보드",
