@@ -47,15 +47,6 @@ function checkBlockedAttemptLimit(identifier: string): { allowed: boolean; retry
   return { allowed: true };
 }
 
-// ── Creem API ──────────────────────────────────────────────────
-
-function getModerationUrl(apiKey: string): string {
-  if (apiKey.startsWith("creem_test_")) {
-    return "https://test-api.creem.io/v1/moderation/prompt";
-  }
-  return "https://api.creem.io/v1/moderation/prompt";
-}
-
 /**
  * Screen a prompt against Creem's Moderation API with local fallback.
  */
@@ -71,57 +62,6 @@ export async function checkContentModeration(
   // Creem moderation disabled — too many false positives on legitimate prompts
   // (e.g., "fine dining gourmet" flagged as violation). Relying on local blacklist only.
   return { flagged: false };
-  }
-
-  const trimmed = prompt?.trim() || "";
-  const url = getModerationUrl(apiKey);
-
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-api-key": apiKey },
-      body: JSON.stringify({ prompt: trimmed }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeout);
-
-    if (res.status >= 400 && res.status < 500) {
-      console.error(`[moderation] Creem client error ${res.status} — blocking`);
-      return { flagged: true, reason: "Content moderation service error. Please try again later." };
-    }
-
-    if (res.status >= 500) {
-      console.error(`[moderation] Creem server error ${res.status} — fail-open`);
-      return { flagged: false }; // Fail-open on server errors
-    }
-
-    const data = await res.json();
-    const decision: string = data.decision || "";
-
-    if (decision === "allow") {
-      return { flagged: false };
-    }
-
-    console.warn(`[moderation] Creem blocked — decision: ${decision}`);
-    return { flagged: true, reason: "Content policy violation. This prompt has been flagged by our safety system." };
-  } catch (e) {
-    const errMsg = e instanceof Error ? e.message : String(e);
-    console.error(`[moderation] Creem request failed: ${errMsg}`);
-
-    if (e instanceof DOMException && e.name === "AbortError") {
-      // Timeout — fail-open (don't block users for Creem being slow)
-      console.warn("[moderation] Creem timed out — fail-open");
-      return { flagged: false };
-    }
-
-    // Network error — fail-open in all environments
-    console.warn("[moderation] Creem unreachable — fail-open, relying on local blacklist");
-    return { flagged: false };
-  }
 }
 
 /**
