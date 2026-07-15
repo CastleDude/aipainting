@@ -158,7 +158,7 @@
     "moderation_ban": "Too many violations. Please try again later.",
     "enhance_btn": "✨ Enhance",
     "enhancing_btn": "✨ Enhancing...",
-    "enhance_tooltip": "AI will expand your short prompt with lighting, composition, and style details\"
+    "enhance_tooltip": "AI will expand your short prompt with lighting, composition, and style details"
   },
   "image_tools": {
     "browser_hint": "Use Chrome or Edge for best experience",
