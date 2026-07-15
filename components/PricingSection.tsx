@@ -115,7 +115,7 @@ export function PricingSection({ messages }: PricingSectionProps) {
         </div>
       )}
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
-        <div className="mb-10 text-center">
+        <div className="mb-5 text-center">
           <h2 className="mb-4 text-3xl font-bold sm:text-4xl">{messages.title}</h2>
           <p className="text-lg text-text-secondary">{messages.subtitle}</p>
         </div>
