@@ -57,6 +57,10 @@ interface DashboardMessages {
   back_to_history: string;
   no_orders: string;
   loading: string;
+  features_free: string[];
+  features_basic: string[];
+  features_premium: string[];
+  features_ultimate: string[];
   view: string;
   download: string;
   feedback_title?: string;
@@ -137,6 +141,14 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
   const monthlyCredits = tierConfig.monthlyCredits;
   const monthlyUsed = Math.max(0, monthlyCredits - credits);
   const monthlyPct = monthlyCredits ? Math.min(100, (monthlyUsed / monthlyCredits) * 100) : 0;
+
+  const featureMap: Record<string, string[]> = {
+    free: messages.features_free,
+    basic: messages.features_basic,
+    premium: messages.features_premium,
+    ultimate: messages.features_ultimate,
+  };
+  const planFeatures = featureMap[tier]?.length ? featureMap[tier] : tierConfig.features;
 
   const handleTogglePublic = async (id: string) => {
     if (isDevMock) {
@@ -329,7 +341,7 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
             <div className="rounded-xl border border-border/50 bg-bg-card p-4">
               <h2 className="mb-4 text-lg font-semibold text-text-primary">{messages.plan_features}</h2>
               <ul className="space-y-2">
-                {tierConfig.features.map((f: string, i: number) => (
+                {planFeatures.map((f: string, i: number) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-text-secondary">
                     <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
