@@ -83,7 +83,8 @@
   },
   "pricing": {
     "title": "Tarification Simple et Transparente",
-    "subtitle": "Commencez gratuitement, passez à la version supérieure lorsque vous avez besoin de plus de puissance.",
+    "subtitle": "Commencez gratuitement, passez à la version supérieure. [[PROMO]]",
+    "subtitle_promo": "Premier abonnement reçoit 10% de bonus",
     "free": "Gratuit",
     "basic": "Basique",
     "premium": "Premium",

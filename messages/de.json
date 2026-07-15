@@ -83,7 +83,8 @@
   },
   "pricing": {
     "title": "Einfache, transparente Preisgestaltung",
-    "subtitle": "Kostenlos starten, bei Bedarf upgraden.",
+    "subtitle": "Kostenlos starten, bei Bedarf upgraden. [[PROMO]]",
+    "subtitle_promo": "Erstes Upgrade erhält 10% Bonus",
     "free": "Frei",
     "basic": "Grundlegend",
     "premium": "Premium",

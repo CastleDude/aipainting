@@ -83,7 +83,8 @@
   },
   "pricing": {
     "title": "Simple, Transparent Pricing",
-    "subtitle": "Start free, upgrade when you need more power.",
+    "subtitle": "Start free, upgrade when you need more power. [[PROMO]]",
+    "subtitle_promo": "First upgrade gets 10% bonus credits",
     "free": "Free",
     "basic": "Basic",
     "premium": "Premium",

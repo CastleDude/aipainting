@@ -83,7 +83,8 @@
   },
   "pricing": {
     "title": "簡潔透明的定價",
-    "subtitle": "免費開始，需要更多時升級。",
+    "subtitle": "免費開始，需要更多時升級。[[PROMO]]",
+    "subtitle_promo": "首次升級贈送10%積分",
     "free": "免費版",
     "basic": "基礎版",
     "premium": "高級版",

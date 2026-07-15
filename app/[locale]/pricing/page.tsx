@@ -42,6 +42,7 @@ export default async function PricingPage() {
         messages={{
           title: t("pricing.title"),
           subtitle: t("pricing.subtitle"),
+          subtitle_promo: t("pricing.subtitle_promo"),
           free: t("pricing.free"),
           basic: t("pricing.basic"),
           premium: t("pricing.premium"),

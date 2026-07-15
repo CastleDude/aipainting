@@ -83,7 +83,8 @@
   },
   "pricing": {
     "title": "Sencillo, Precios Transparentes",
-    "subtitle": "Comienza gratis, actualiza cuando necesites más .",
+    "subtitle": "Comienza gratis, actualiza cuando necesites más. [[PROMO]]",
+    "subtitle_promo": "Primera actualización obtiene 10% extra",
     "free": "Gratis",
     "basic": "Básico",
     "premium": "Premium",
