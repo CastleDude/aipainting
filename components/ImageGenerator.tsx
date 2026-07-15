@@ -955,7 +955,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
           <div className="relative z-10 h-full flex items-center px-6">
             <span className="flex-1 text-yellow-400 text-base sm:text-lg text-center">升级会员-首次订阅多赠送10%积分</span>
             <button
-              className="rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black font-semibold px-3 py-1.5 text-xs transition-colors flex items-center gap-1 shrink-0"
+              className="rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black font-semibold px-3 py-1.5 text-xs transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
               onClick={(e) => { e.stopPropagation(); window.location.href = `/${locale}/pricing`; }}
             >
               去充值 →
