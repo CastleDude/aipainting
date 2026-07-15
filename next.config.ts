@@ -52,9 +52,12 @@ const nextConfig: NextConfig = {
       {
         source: "/api/auth/(.*)",
         headers: [
-          { key: "Cache-Control", value: "no-store, no-cache, must-revalidate, proxy-revalidate" },
+          { key: "Cache-Control", value: "private, no-cache, no-store, max-age=0, must-revalidate" },
+          { key: "CDN-Cache-Control", value: "no-store, max-age=0" },
+          { key: "Cloudflare-CDN-Cache-Control", value: "no-store, max-age=0" },
           { key: "Pragma", value: "no-cache" },
           { key: "Expires", value: "0" },
+          { key: "Surrogate-Control", value: "no-store, max-age=0" },
         ],
       },
       {
