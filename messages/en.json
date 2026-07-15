@@ -162,7 +162,9 @@
     "moderation_ban": "Too many violations. Please try again later.",
     "enhance_btn": "✨ Enhance",
     "enhancing_btn": "✨ Enhancing...",
-    "enhance_tooltip": "AI will expand your short prompt with lighting, composition, and style details"
+    "enhance_tooltip": "AI will expand your short prompt with lighting, composition, and style details",
+    "promo_text": "Upgrade Now - First Subscription Gets 10% Bonus Credits",
+    "promo_button": "Upgrade"
   },
   "image_tools": {
     "browser_hint": "Use Chrome or Edge for best experience",
