@@ -11,11 +11,21 @@ export async function GET(req: NextRequest) {
     const session = await auth();
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    // Base profile query (columns guaranteed to exist)
     const { rows: [profile] } = await pool.query(
-      "SELECT id, email, name, tier, credits, daily_reset_at, role, country, last_login_at, last_login_ip, last_login_country, created_at, updated_at FROM profiles WHERE id = $1",
+      "SELECT id, email, name, tier, credits, daily_reset_at, role, country, created_at, updated_at FROM profiles WHERE id = $1",
       [(session.user as any).id],
     );
     if (!profile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+
+    // Try to fetch optional login tracking fields (may not exist yet)
+    try {
+      const { rows: [loginInfo] } = await pool.query(
+        "SELECT last_login_at, last_login_ip, last_login_country FROM profiles WHERE id = $1",
+        [(session.user as any).id],
+      );
+      if (loginInfo) Object.assign(profile, loginInfo);
+    } catch { /* column doesn't exist yet — skip */ }
 
     // Check and apply credit reset on profile load (so users see refreshed credits immediately)
     const resetCredits = shouldResetCredits(profile.daily_reset_at, profile.tier as SubscriptionTier);
@@ -32,11 +42,13 @@ export async function GET(req: NextRequest) {
     if (Date.now() - lastLogin > 60 * 60 * 1000) {
       const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || null;
       const country = req.headers.get("cf-ipcountry") || null;
-      await pool.query(
-        "UPDATE profiles SET last_login_at = now(), last_login_ip = $1, last_login_country = $2 WHERE id = $3",
-        [ip, country, profile.id],
-      );
-      profile.last_login_at = new Date().toISOString();
+      try {
+        await pool.query(
+          "UPDATE profiles SET last_login_at = now(), last_login_ip = $1, last_login_country = $2 WHERE id = $3",
+          [ip, country, profile.id],
+        );
+        profile.last_login_at = new Date().toISOString();
+      } catch { /* columns may not exist yet — skip */ }
       profile.last_login_ip = ip;
       profile.last_login_country = country;
     }
