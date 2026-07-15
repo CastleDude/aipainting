@@ -940,7 +940,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
         <div
           className="mt-5 relative h-[80px] rounded-xl overflow-hidden cursor-pointer group"
           style={{ backgroundImage: "url('/images/sban.jpg')", backgroundSize: "cover", backgroundPosition: "center" }}
-          onClick={() => window.location.href = `/${locale}/pricing`}
+          onClick={() => window.location.href = "/pricing"}
         >
           {/* Dark overlay for text readability */}
           <div className="absolute inset-0 bg-black/40" />
@@ -956,7 +956,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
             <span className="flex-1 text-yellow-400 text-base sm:text-lg text-center">升级会员-首次订阅多赠送10%积分</span>
             <button
               className="rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black font-semibold px-3 py-1.5 text-xs transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); window.location.href = `/${locale}/pricing`; }}
+              onClick={(e) => { e.stopPropagation(); window.location.href = "/pricing"; }}
             >
               去充值 →
             </button>
