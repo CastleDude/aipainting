@@ -760,7 +760,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
               </button>
               <span className="relative group">
                 <span className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full border border-text-muted/40 text-text-muted text-[11px] cursor-help hover:border-amber-400/50 hover:text-amber-400 transition-colors">?</span>
-                <span className="absolute bottom-full right-0 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto mb-2 px-2.5 py-1.5 rounded-lg bg-bg-card border border-border/50 shadow-lg text-xs text-text-primary max-w-[260px] text-center opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
+                <span className="absolute bottom-full right-0 mb-2 px-2.5 py-1.5 rounded-lg bg-bg-card border border-border/50 shadow-lg text-xs text-text-primary max-w-[220px] text-center opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto sm:max-w-none sm:whitespace-nowrap sm:text-left">
                   {messages.enhance_tooltip || 'AI will expand your short prompt with lighting, composition, and style details'}
                 </span>
               </span>
