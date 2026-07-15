@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
         "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-flash-1.5",
+        model: "deepseek/deepseek-chat",
         max_tokens: 500,
         messages: [{
           role: "user",
