@@ -5,6 +5,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { getTierConfig } from "@/lib/credits";
 import { getMockGenerations, toggleMockGenerationPublic } from "@/lib/generations";
 import { GenerationHistory } from "@/components/GenerationHistory";
+import { OrderHistory } from "@/components/OrderHistory";
 import { ImageViewer } from "@/components/ImageViewer";
 import type { Generation } from "@/lib/generations";
 
@@ -42,6 +43,19 @@ interface DashboardMessages {
   tools_daily_usage: string;
   history_count: string;
   manage_history: string;
+  order_history: string;
+  order_history_title: string;
+  order_id: string;
+  user_label: string;
+  country_label: string;
+  tier_label: string;
+  order_amount: string;
+  payment_method: string;
+  online_pay: string;
+  order_status: string;
+  order_time: string;
+  back_to_history: string;
+  no_orders: string;
   view: string;
   download: string;
   feedback_title?: string;
@@ -72,6 +86,7 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [viewerSrc, setViewerSrc] = useState<string | null>(null);
   const [viewerAlt, setViewerAlt] = useState("");
+  const [showOrders, setShowOrders] = useState(false);
   const isDevMock = typeof window !== "undefined" && process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_DEV_MOCK_USER === "true";
 
   useEffect(() => {
@@ -175,23 +190,44 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
           {/* Main content */}
           <div className="space-y-6 lg:order-2">
 
-            {/* Generation history */}
-            <div className="rounded-xl border border-border/50 bg-bg-card p-4">
-            <GenerationHistory locale={locale} messages={{
-              title: messages.history || "History",
-              history_count: messages.history_count || "",
-              no_history: messages.no_history || "No history yet",
-              view: messages.view || "View",
-              download: messages.download || "Download",
-              remix: messages.remix || "Remix", edit: messages.edit || "Edit", delete: messages.delete || "Delete",
-              batch_delete: messages.batch_delete || "Delete Selected", select_all: messages.select_all || "Select All",
-              cancel: messages.cancel || "Cancel", confirm_delete: messages.confirm_delete || "Confirm Delete",
-              deleted: messages.deleted || "Deleted", save_reminder: "",
-              share_limit: messages.share_limit || "",
-              share_similar: messages.share_similar || "",
-              today: messages.today || "Today", yesterday: messages.yesterday || "Yesterday",
-            }} />
-            </div>
+            {/* Generation history or Order history */}
+            {showOrders ? (
+              <OrderHistory
+                onBack={() => setShowOrders(false)}
+                messages={{
+                  order_history_title: messages.order_history_title || "Order History",
+                  order_id: messages.order_id || "Order ID",
+                  user: messages.user_label || "User",
+                  country: messages.country_label || "Country",
+                  tier: messages.tier_label || "Plan",
+                  amount: messages.order_amount || "Amount",
+                  payment_method: messages.payment_method || "Payment",
+                  online_pay: messages.online_pay || "Online Payment",
+                  status: messages.order_status || "Status",
+                  time: messages.order_time || "Time",
+                  back: messages.back_to_history || "Back",
+                  loading: messages.loading || "Loading...",
+                  no_orders: messages.no_orders || "No orders yet",
+                }}
+              />
+            ) : (
+              <div className="rounded-xl border border-border/50 bg-bg-card p-4">
+              <GenerationHistory locale={locale} messages={{
+                title: messages.history || "History",
+                history_count: messages.history_count || "",
+                no_history: messages.no_history || "No history yet",
+                view: messages.view || "View",
+                download: messages.download || "Download",
+                remix: messages.remix || "Remix", edit: messages.edit || "Edit", delete: messages.delete || "Delete",
+                batch_delete: messages.batch_delete || "Delete Selected", select_all: messages.select_all || "Select All",
+                cancel: messages.cancel || "Cancel", confirm_delete: messages.confirm_delete || "Confirm Delete",
+                deleted: messages.deleted || "Deleted", save_reminder: "",
+                share_limit: messages.share_limit || "",
+                share_similar: messages.share_similar || "",
+                today: messages.today || "Today", yesterday: messages.yesterday || "Yesterday",
+              }} />
+              </div>
+            )}
 
           </div>
 
@@ -269,6 +305,22 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
                   </a>
                 </div>
               )}
+
+              {/* Order history entry */}
+              <button
+                onClick={() => setShowOrders(true)}
+                className="mt-4 w-full flex items-center justify-between rounded-lg border border-border/50 p-3 text-sm text-text-secondary hover:border-accent/30 hover:text-text-primary transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  {messages.order_history || "历史订单"}
+                </span>
+                <svg className="h-4 w-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
             </div>
 
 
