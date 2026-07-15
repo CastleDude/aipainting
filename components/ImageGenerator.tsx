@@ -962,7 +962,13 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
           </button>
           {/* Content */}
           <div className="relative z-10 h-full flex items-center px-6">
-            <span className="flex-1 text-yellow-400 text-base sm:text-lg text-center">{messages.promo_text || "升级会员-首次订阅多赠送10%积分"}</span>
+            <span className="flex-1 text-yellow-400 text-base sm:text-lg text-center">
+              {(messages.promo_text || "升级会员-首次订阅多赠送[[BONUS]]积分").split("[[BONUS]]").map((part, i, arr) =>
+                i < arr.length - 1 ? (
+                  <span key={i}>{part}<span className="font-extrabold text-xl sm:text-2xl bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">10%</span></span>
+                ) : part
+              )}
+            </span>
             <button
               className="rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black font-semibold px-3 py-1.5 text-xs transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
               onClick={(e) => { e.stopPropagation(); window.location.href = "/pricing"; }}
