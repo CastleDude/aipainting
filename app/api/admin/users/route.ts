@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     const offset = (page - 1) * limit;
 
     let countQuery = "SELECT COUNT(*) AS count FROM profiles";
-    let dataQuery = "SELECT id, email, name, tier, credits, role, created_at FROM profiles";
+    let dataQuery = "SELECT id, email, name, tier, credits, role, country, created_at FROM profiles";
     const params: string[] = [];
 
     if (search) {
@@ -62,7 +62,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
-    const allowed = ["tier", "credits", "role", "name"] as const;
+    const allowed = ["tier", "credits", "role", "name", "country"] as const;
     const sets: string[] = [];
     const vals: unknown[] = [];
     let i = 1;

@@ -13,7 +13,15 @@ interface User {
   daily_used: number;
   tools_daily_used: number;
   role: string;
+  country?: string;
   created_at: string;
+}
+
+function countryFlag(code: string | null | undefined): string {
+  if (!code || code.length !== 2) return "";
+  const a = 0x1F1E6 - 65 + code.toUpperCase().charCodeAt(0);
+  const b = 0x1F1E6 - 65 + code.toUpperCase().charCodeAt(1);
+  return String.fromCodePoint(a, b);
 }
 
 export default function AdminUsersPage() {
@@ -25,7 +33,7 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ tier: "", credits: "", daily_used: "", tools_daily_used: "", role: "" });
+  const [editForm, setEditForm] = useState({ tier: "", credits: "", daily_used: "", tools_daily_used: "", role: "", country: "" });
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -51,7 +59,7 @@ export default function AdminUsersPage() {
 
   const startEdit = (u: User) => {
     setEditingId(u.id);
-    setEditForm({ tier: u.tier, credits: String(u.credits), daily_used: String(u.daily_used || 0), tools_daily_used: String(u.tools_daily_used || 0), role: u.role });
+    setEditForm({ tier: u.tier, credits: String(u.credits), daily_used: String(u.daily_used || 0), tools_daily_used: String(u.tools_daily_used || 0), role: u.role, country: u.country || "" });
   };
 
   const saveEdit = async (userId: string) => {
@@ -66,6 +74,7 @@ export default function AdminUsersPage() {
           daily_used: parseInt(editForm.daily_used) || 0,
           tools_daily_used: parseInt(editForm.tools_daily_used) || 0,
           role: editForm.role,
+          country: editForm.country,
         },
       }),
     });
@@ -187,15 +196,16 @@ export default function AdminUsersPage() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">{t("col_credits")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">{t("col_daily_used")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">{t("col_role")}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">{t("col_country")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">{t("col_created")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">{t("col_actions")}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={9} className="px-4 py-8 text-center text-text-muted">{t("loading")}</td></tr>
+                <tr><td colSpan={10} className="px-4 py-8 text-center text-text-muted">{t("loading")}</td></tr>
               ) : users.length === 0 ? (
-                <tr><td colSpan={9} className="px-4 py-8 text-center text-text-muted">{t("no_data")}</td></tr>
+                <tr><td colSpan={10} className="px-4 py-8 text-center text-text-muted">{t("no_data")}</td></tr>
               ) : (
                 users.map((u) => (
                   <tr key={u.id} className="border-b border-border/30 hover:bg-bg-card-hover/50 transition-colors">
@@ -253,6 +263,13 @@ export default function AdminUsersPage() {
                         </select>
                       ) : (
                         <span className={u.role === "admin" ? "text-purple-400" : "text-text-muted"}>{u.role === "admin" ? t("role_admin") : t("role_user")}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {editingId === u.id ? (
+                        <input type="text" value={editForm.country} onChange={(e) => setEditForm({ ...editForm, country: e.target.value.toUpperCase().slice(0, 2) })} placeholder="CN" className="w-12 rounded border border-border bg-bg-primary px-1.5 py-0.5 text-xs outline-none" maxLength={2} />
+                      ) : (
+                        <span className="text-text-secondary text-xs">{countryFlag(u.country)} {u.country || "-"}</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-text-muted text-xs">
