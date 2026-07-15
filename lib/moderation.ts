@@ -68,14 +68,9 @@ export async function checkContentModeration(
   if (local.flagged) return local;
 
   // ── Step 2: Creem API (if configured) ──
-  const apiKey = process.env.CREEM_API_KEY;
-
-  if (!apiKey) {
-    // No Creem key — rely on local blacklist only
-    if (process.env.NODE_ENV === "production") {
-      console.warn("[moderation] CREEM_API_KEY not set — relying on local blacklist only");
-    }
-    return { flagged: false };
+  // Creem moderation disabled — too many false positives on legitimate prompts
+  // (e.g., "fine dining gourmet" flagged as violation). Relying on local blacklist only.
+  return { flagged: false };
   }
 
   const trimmed = prompt?.trim() || "";
