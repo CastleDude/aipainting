@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { ASPECT_RATIOS, STYLES, AI_MODELS } from "@/lib/openrouter";
+import { ASPECT_RATIOS, STYLES, AI_MODELS, MODEL_COST_MULTIPLIER } from "@/lib/openrouter";
 import { useParticleContext } from "@/components/ParticleContext";
 import { useAuth } from "@/components/AuthProvider";
 import { saveMockGeneration } from "@/lib/generations";
@@ -911,6 +911,12 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Credit cost */}
+          {profile && (
+            <span className="text-xs text-text-muted whitespace-nowrap">
+              {(messages.credit_cost || "消耗 [[COUNT]] 积分").replace("[[COUNT]]", String(numImages * (MODEL_COST_MULTIPLIER[model] || 1)))}
+            </span>
+          )}
           {/* Generate button */}
         <button
           data-generate-btn
@@ -1019,7 +1025,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
               </svg>
-              重新调整
+              {messages.regenerate || "重新调整"}
             </button>
           </div>
         )}
