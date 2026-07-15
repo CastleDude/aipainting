@@ -965,7 +965,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
             <span className="flex-1 text-yellow-400 text-base sm:text-lg text-center">
               {(messages.promo_text || "升级会员-首次订阅多赠送[[BONUS]]积分").split("[[BONUS]]").map((part, i, arr) =>
                 i < arr.length - 1 ? (
-                  <span key={i}>{part}<span className="text-2xl sm:text-3xl text-accent mx-1" style={{ fontFamily: "Impact, 'Arial Black', sans-serif" }}>10%</span></span>
+                  <span key={i}>{part}<span className="text-2xl sm:text-3xl bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400 bg-clip-text text-transparent mx-1" style={{ fontFamily: "Impact, 'Arial Black', sans-serif" }}>10%</span></span>
                 ) : part
               )}
             </span>
