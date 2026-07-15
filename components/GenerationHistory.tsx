@@ -432,7 +432,7 @@ export function GenerationHistory({
                         <div className="grid grid-cols-2 gap-1 mt-1.5">
                           <button
                             onClick={() => handleView(gen.image_url, gen.prompt)}
-                            className="flex items-center justify-center gap-1 rounded-lg bg-white/10 border border-white/10 px-2 py-1.5 text-[11px] text-text-secondary hover:text-white hover:bg-white/20 hover:border-white/20 transition-colors cursor-pointer"
+                            className="flex items-center justify-center gap-1 rounded-lg bg-white/5 border border-white/5 px-2 py-1.5 text-[11px] text-text-secondary hover:text-white hover:bg-white/15 hover:border-white/15 transition-colors cursor-pointer"
                           >
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -442,7 +442,7 @@ export function GenerationHistory({
                           </button>
                           <button
                             onClick={() => handleDownload(gen.image_url, gi)}
-                            className="flex items-center justify-center gap-1 rounded-lg bg-white/10 border border-white/10 px-2 py-1.5 text-[11px] text-text-secondary hover:text-white hover:bg-white/20 hover:border-white/20 transition-colors cursor-pointer"
+                            className="flex items-center justify-center gap-1 rounded-lg bg-white/5 border border-white/5 px-2 py-1.5 text-[11px] text-text-secondary hover:text-white hover:bg-white/15 hover:border-white/15 transition-colors cursor-pointer"
                           >
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -451,7 +451,7 @@ export function GenerationHistory({
                           </button>
                           <button
                             onClick={() => handleRemix(gen.image_url, gen.prompt)}
-                            className="flex items-center justify-center gap-1 rounded-lg bg-white/10 border border-white/10 px-2 py-1.5 text-[11px] text-text-secondary hover:text-white hover:bg-white/20 hover:border-white/20 transition-colors cursor-pointer"
+                            className="flex items-center justify-center gap-1 rounded-lg bg-white/5 border border-white/5 px-2 py-1.5 text-[11px] text-text-secondary hover:text-white hover:bg-white/15 hover:border-white/15 transition-colors cursor-pointer"
                           >
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -460,7 +460,7 @@ export function GenerationHistory({
                           </button>
                           <button
                             onClick={() => handleEdit(gen.image_url)}
-                            className="flex items-center justify-center gap-1 rounded-lg bg-white/10 border border-white/10 px-2 py-1.5 text-[11px] text-text-secondary hover:text-white hover:bg-white/20 hover:border-white/20 transition-colors cursor-pointer"
+                            className="flex items-center justify-center gap-1 rounded-lg bg-white/5 border border-white/5 px-2 py-1.5 text-[11px] text-text-secondary hover:text-white hover:bg-white/15 hover:border-white/15 transition-colors cursor-pointer"
                           >
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
