@@ -118,7 +118,7 @@ export function PricingSection({ messages }: PricingSectionProps) {
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
         <div className="mb-5 text-center">
           <h2 className="mb-4 text-3xl font-bold sm:text-4xl">{messages.title}</h2>
-          <p className="text-lg text-text-secondary mb-[60px]">
+          <p className="text-lg text-text-secondary mb-[60px]" suppressHydrationWarning>
             {messages.subtitle.split("[[PROMO]]").map((part, i, arr) =>
               i < arr.length - 1 ? (
                 <span key={i}>{part}<span className="text-amber-400 font-semibold">{messages.subtitle_promo || ""}</span></span>
