@@ -934,19 +934,17 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
       </div>
       </div>
 
-      {/* Credit banner */}
-      <div className="mt-5 h-[60px] rounded-xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-border/30 flex items-center justify-center px-4">
-        <p className="text-xs text-text-secondary flex items-center gap-1">
-          <img src="/images/score.png" alt="" className="h-3.5 w-3.5 inline" />
-          {creditLabel}
-          {isFreeTier && (
-            <>
-              {" · "}
-              <span className="text-accent font-medium">{messages.upgrade_hint}</span>
-            </>
-          )}
-        </p>
-      </div>
+      {/* Credit banner — free tier only */}
+      {isFreeTier && (
+        <div className="mt-5 h-[60px] rounded-xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-border/30 flex items-center justify-center px-4">
+          <p className="text-xs text-text-secondary flex items-center gap-1">
+            <img src="/images/score.png" alt="" className="h-3.5 w-3.5 inline" />
+            {creditLabel}
+            {" · "}
+            <span className="text-accent font-medium">{messages.upgrade_hint}</span>
+          </p>
+        </div>
+      )}
 
       {/* Error */}
       {error && (
