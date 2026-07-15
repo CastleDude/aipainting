@@ -748,22 +748,22 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
             >
               {messages.negative_toggle}
             </button>
-            <div className="flex items-center gap-[10px]">
+            <div className="flex items-center gap-[10px] relative">
               <span className={cn(
                 "text-[11px] transition-colors",
                 prompt.length > 1800 ? "text-red-400 font-medium" : prompt.length > 1400 ? "text-amber-400" : "text-text-muted"
               )}>
                 {prompt.length}/{2000}
               </span>
-              <button onClick={enhancePrompt} disabled={enhancing || !prompt.trim()} className="rounded-lg bg-amber-500/15 border border-amber-500/30 px-3 py-1 text-xs font-medium text-amber-400 hover:bg-amber-500/25 disabled:opacity-30 transition-all" type="button">
-                {enhancing ? (messages.enhancing_btn || '✦ 润色中...') : (messages.enhance_btn || '✨ AI 润色')}
-              </button>
-              <span className="relative group">
+              <span className="group">
                 <span className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full border border-text-muted/40 text-text-muted text-[11px] cursor-help hover:border-amber-400/50 hover:text-amber-400 transition-colors">?</span>
-                <span className="absolute bottom-full right-0 mb-2 px-2.5 py-1.5 rounded-lg bg-bg-card border border-border/50 shadow-lg text-xs text-text-primary max-w-[220px] text-center opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto sm:max-w-none sm:whitespace-nowrap sm:text-left">
+                <span className="absolute bottom-full right-0 mb-2 px-2.5 py-1.5 rounded-lg bg-bg-card border border-border/50 shadow-lg text-xs text-text-primary max-w-[250px] text-center leading-relaxed opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
                   {messages.enhance_tooltip || 'AI will expand your short prompt with lighting, composition, and style details'}
                 </span>
               </span>
+              <button onClick={enhancePrompt} disabled={enhancing || !prompt.trim()} className="rounded-lg bg-amber-500/15 border border-amber-500/30 px-3 py-1 text-xs font-medium text-amber-400 hover:bg-amber-500/25 disabled:opacity-30 transition-all" type="button">
+                {enhancing ? (messages.enhancing_btn || '✦ 润色中...') : (messages.enhance_btn || '✨ AI 润色')}
+              </button>
             </div>
           </div>
 
