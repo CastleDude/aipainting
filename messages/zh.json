@@ -816,6 +816,7 @@
     "manage_plan": "管理套餐",
     "daily_usage": "每日用量",
     "monthly_credits": "每月积分",
+    "daily_credits_title": "每日积分",
     "used": "已用",
     "remaining": "剩余",
     "images_today": "今日生成",

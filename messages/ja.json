@@ -439,6 +439,7 @@
     "manage_plan": "プランを管理",
     "daily_usage": "本日の利用状況",
     "monthly_credits": "月間クレジット",
+    "daily_credits_title": "毎日クレジット",
     "used": "使用済み",
     "remaining": "残り",
     "images_today": "本日の生成枚数",

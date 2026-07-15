@@ -36,6 +36,7 @@ export default async function DashboardPage({
     manage_plan: messages.dashboard?.manage_plan || "Manage Plan",
     daily_usage: messages.dashboard?.daily_usage || "Daily Usage",
     monthly_credits: messages.dashboard?.monthly_credits || "Monthly Credits",
+    daily_credits_title: messages.dashboard?.daily_credits_title || "Daily Credits",
     used: messages.dashboard?.used || "used",
     remaining: messages.dashboard?.remaining || "remaining",
     images_today: messages.dashboard?.images_today || "Images Today",

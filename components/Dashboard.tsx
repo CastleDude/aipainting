@@ -20,6 +20,7 @@ interface DashboardMessages {
   manage_plan: string;
   daily_usage: string;
   monthly_credits: string;
+  daily_credits_title: string;
   used: string;
   remaining: string;
   images_today: string;
@@ -231,21 +232,25 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
             {/* Credit usage card */}
             <div className="rounded-xl border border-border/50 bg-bg-card p-4">
               <h2 className="mb-4 text-lg font-semibold text-text-primary">
-                {messages.monthly_credits || "Monthly Credits"}
+                {tier === "free"
+                  ? (messages.daily_credits_title || "Daily Credits")
+                  : (messages.monthly_credits || "Monthly Credits")}
               </h2>
 
               {/* Unified credits usage bar */}
               <div className="mb-4">
                 <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-text-muted">{messages.images_this_month || "This month"}</span>
+                  <span className="text-text-muted">{tier === "free" ? (messages.daily_usage || "Today") : (messages.images_this_month || "This month")}</span>
                   <span className="text-text-secondary font-medium">
-                    {monthlyUsed} / {monthlyCredits} {messages.used || "used"}
+                    {tier === "free"
+                      ? `${10 - credits} / ${monthlyCredits} ${messages.used || "used"}`
+                      : `${monthlyUsed} / ${monthlyCredits} ${messages.used || "used"}`}
                   </span>
                 </div>
                 <div className="h-3 rounded-full bg-bg-primary/70 border border-border/50 overflow-hidden">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500 min-w-[2px]"
-                    style={{ width: `${Math.max(monthlyPct, 1)}%` }}
+                    style={{ width: `${Math.max(tier === "free" ? ((10 - credits) / 10) * 100 : monthlyPct, 1)}%` }}
                   />
                 </div>
                 <p className="mt-2 text-xs text-text-muted">
