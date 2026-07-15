@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getMessages } from "next-intl/server";
 import { PricingSection } from "@/components/PricingSection";
 import type { Metadata } from "next";
 
@@ -18,6 +18,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function PricingPage() {
   const t = await getTranslations();
+  const messages = await getMessages();
+  const pricing = (messages as any).pricing || {};
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -59,10 +61,10 @@ export default async function PricingPage() {
           faq_q6: t("pricing.faq_q6"), faq_a6: t("pricing.faq_a6"),
           most_popular: t("pricing.most_popular"),
           redirecting: t("pricing.redirecting"),
-          features_free: t("pricing.features_free") as unknown as string[],
-          features_basic: t("pricing.features_basic") as unknown as string[],
-          features_premium: t("pricing.features_premium") as unknown as string[],
-          features_ultimate: t("pricing.features_ultimate") as unknown as string[],
+          features_free: (pricing.features_free as string[]) || [],
+          features_basic: (pricing.features_basic as string[]) || [],
+          features_premium: (pricing.features_premium as string[]) || [],
+          features_ultimate: (pricing.features_ultimate as string[]) || [],
         }}
       />
     </div>
