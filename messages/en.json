@@ -108,7 +108,11 @@
     "faq_q6": "Do unused credits roll over to the next month?",
     "faq_a6": "No, credits reset at the beginning of each billing cycle and do not roll over. We recommend choosing a plan that matches your typical monthly usage.",
     "most_popular": "Most Popular",
-    "redirecting": "Redirecting..."
+    "redirecting": "Redirecting...",
+    "features_free": ["10 credits per day", "Credit pooling for all features", "Basic models (Flux Schnell, Gemini Flash)", "Basic image quality (up to 1024px)", "Community support"],
+    "features_basic": ["500 credits per month", "All AI models included", "HD resolution (up to 1664px)", "AI image tools included", "No ads", "Email support"],
+    "features_premium": ["2,000 credits per month", "All premium models included", "High resolution (up to 2048px)", "AI photo editor included", "No watermarks", "Priority queue", "Email support"],
+    "features_ultimate": ["5,000 credits per month", "All models + early access", "Ultra HD resolution (up to 4096px)", "All AI tools + refine tools", "Complete privacy mode", "No watermarks", "Top priority queue", "Priority support"]
   },
   "generate": {
     "title": "AI Image Generator",

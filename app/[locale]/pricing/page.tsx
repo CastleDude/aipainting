@@ -59,6 +59,10 @@ export default async function PricingPage() {
           faq_q6: t("pricing.faq_q6"), faq_a6: t("pricing.faq_a6"),
           most_popular: t("pricing.most_popular"),
           redirecting: t("pricing.redirecting"),
+          features_free: t("pricing.features_free") as unknown as string[],
+          features_basic: t("pricing.features_basic") as unknown as string[],
+          features_premium: t("pricing.features_premium") as unknown as string[],
+          features_ultimate: t("pricing.features_ultimate") as unknown as string[],
         }}
       />
     </div>

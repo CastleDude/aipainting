@@ -28,45 +28,48 @@ interface PricingSectionProps {
     faq_q6: string; faq_a6: string;
     most_popular: string;
     redirecting: string;
+    features_free: string[];
+    features_basic: string[];
+    features_premium: string[];
+    features_ultimate: string[];
   };
 }
 
-const plans = [
-  {
-    key: "free" as const,
-    highlight: false,
-    monthly: TIER_CONFIG.free.price,
-    images: String(TIER_CONFIG.free.monthlyCredits),
-    period: "monthly" as const,
-    features: TIER_CONFIG.free.features,
-  },
-  {
-    key: "basic" as const,
-    highlight: false,
-    monthly: TIER_CONFIG.basic.price,
-    images: TIER_CONFIG.basic.monthlyCredits!.toLocaleString(),
-    period: "per_month" as const,
-    features: TIER_CONFIG.basic.features,
-  },
-  {
-    key: "premium" as const,
-    highlight: true,
-    monthly: TIER_CONFIG.premium.price,
-    images: TIER_CONFIG.premium.monthlyCredits!.toLocaleString(),
-    period: "per_month" as const,
-    features: TIER_CONFIG.premium.features,
-  },
-  {
-    key: "ultimate" as const,
-    highlight: false,
-    monthly: TIER_CONFIG.ultimate.price,
-    images: TIER_CONFIG.ultimate.monthlyCredits!.toLocaleString(),
-    period: "per_month" as const,
-    features: TIER_CONFIG.ultimate.features,
-  },
-];
-
 export function PricingSection({ messages }: PricingSectionProps) {
+  const plans = [
+    {
+      key: "free" as const,
+      highlight: false,
+      monthly: TIER_CONFIG.free.price,
+      images: String(TIER_CONFIG.free.monthlyCredits),
+      period: "monthly" as const,
+      features: messages.features_free?.length ? messages.features_free : TIER_CONFIG.free.features,
+    },
+    {
+      key: "basic" as const,
+      highlight: false,
+      monthly: TIER_CONFIG.basic.price,
+      images: TIER_CONFIG.basic.monthlyCredits!.toLocaleString(),
+      period: "per_month" as const,
+      features: messages.features_basic?.length ? messages.features_basic : TIER_CONFIG.basic.features,
+    },
+    {
+      key: "premium" as const,
+      highlight: true,
+      monthly: TIER_CONFIG.premium.price,
+      images: TIER_CONFIG.premium.monthlyCredits!.toLocaleString(),
+      period: "per_month" as const,
+      features: messages.features_premium?.length ? messages.features_premium : TIER_CONFIG.premium.features,
+    },
+    {
+      key: "ultimate" as const,
+      highlight: false,
+      monthly: TIER_CONFIG.ultimate.price,
+      images: TIER_CONFIG.ultimate.monthlyCredits!.toLocaleString(),
+      period: "per_month" as const,
+      features: messages.features_ultimate?.length ? messages.features_ultimate : TIER_CONFIG.ultimate.features,
+    },
+  ];
   const { user } = useAuth();
   const [checkingOut, setCheckingOut] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
