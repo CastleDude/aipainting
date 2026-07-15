@@ -36,7 +36,7 @@ export default async function PricingPage() {
   };
 
   return (
-    <div className="pt-24">
+    <div className="pt-16">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <PricingSection
         messages={{
