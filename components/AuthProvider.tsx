@@ -13,6 +13,10 @@ export interface Profile {
   credits: number;
   daily_reset_at: string;
   role: "user" | "admin";
+  country?: string;
+  last_login_at?: string;
+  last_login_ip?: string;
+  last_login_country?: string;
   created_at: string;
 }
 

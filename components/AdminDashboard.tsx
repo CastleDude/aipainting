@@ -81,7 +81,22 @@ export function AdminDashboard({ messages }: { messages: DashboardMessages }) {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-text-primary mb-6">{messages.title}</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-text-primary">{messages.title}</h1>
+        {profile?.last_login_at && (
+          <div className="flex items-center gap-4 text-xs text-text-muted">
+            <span title={profile.last_login_at}>
+              上次登录：{new Date(profile.last_login_at).toLocaleString("zh-CN")}
+            </span>
+            {profile.last_login_country && (
+              <span>📍 {profile.last_login_country}</span>
+            )}
+            {profile.last_login_ip && (
+              <span>🔗 {profile.last_login_ip}</span>
+            )}
+          </div>
+        )}
+      </div>
 
       {loading ? (
         <p className="text-text-muted text-sm">{messages.loading}</p>

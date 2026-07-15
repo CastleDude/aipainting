@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { rows: [profile] } = await pool.query(
-      "SELECT id, email, name, tier, credits, daily_reset_at, role, created_at, updated_at FROM profiles WHERE id = $1",
+      "SELECT id, email, name, tier, credits, daily_reset_at, role, country, last_login_at, last_login_ip, last_login_country, created_at, updated_at FROM profiles WHERE id = $1",
       [(session.user as any).id],
     );
     if (!profile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
@@ -25,6 +25,20 @@ export async function GET(req: NextRequest) {
         "UPDATE profiles SET credits = $1, daily_reset_at = now() WHERE id = $2",
         [resetCredits, profile.id],
       );
+    }
+
+    // Record last login info (throttled: update at most once per hour)
+    const lastLogin = profile.last_login_at ? new Date(profile.last_login_at).getTime() : 0;
+    if (Date.now() - lastLogin > 60 * 60 * 1000) {
+      const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || null;
+      const country = req.headers.get("cf-ipcountry") || null;
+      await pool.query(
+        "UPDATE profiles SET last_login_at = now(), last_login_ip = $1, last_login_country = $2 WHERE id = $3",
+        [ip, country, profile.id],
+      );
+      profile.last_login_at = new Date().toISOString();
+      profile.last_login_ip = ip;
+      profile.last_login_country = country;
     }
 
     return NextResponse.json({ profile });
