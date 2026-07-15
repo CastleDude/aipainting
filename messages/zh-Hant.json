@@ -195,7 +195,8 @@
     "moderation_hint": "內容違規，請重新調整提示詞",
     "moderation_ban": "違規次數過多，請稍後再試",
     "enhance_btn": "✨ 潤色",
-    "enhancing_btn": "✨ 潤色中..."
+    "enhancing_btn": "✨ 潤色中...",
+    "enhance_tooltip": "AI 將自動擴展您的簡短提示詞，添加光影、構圖和風格細節，讓生成的圖片更符合您的意圖"
   },
   "image_tools": {
     "browser_hint": "用 Chrome 或 Edge 獲得最佳體驗",

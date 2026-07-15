@@ -157,7 +157,8 @@
     "moderation_hint": "Contenido prohibido. Por favor ajusta tu solicitud.",
     "moderation_ban": "Demasiadas infracciones. Inténtalo de nuevo más tarde.",
     "enhance_btn": "✨ Mejorar",
-    "enhancing_btn": "✨ Mejorando..."
+    "enhancing_btn": "✨ Mejorando...",
+    "enhance_tooltip": "La IA expandirá tu prompt corto con detalles de iluminación, composición y estilo"
   },
   "image_tools": {
     "browser_hint": "Usa Chrome o Edge para la mejor experiencia",

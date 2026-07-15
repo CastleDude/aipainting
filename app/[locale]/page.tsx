@@ -118,6 +118,7 @@ export default async function HomePage() {
           moderation_ban: t("generate.moderation_ban"),
           enhance_btn: t("generate.enhance_btn"),
           enhancing_btn: t("generate.enhancing_btn"),
+          enhance_tooltip: t("generate.enhance_tooltip"),
           guest_credits: t("generate.guest_credits"),
           guest_banner: t("generate.guest_banner"),
           credit_cost: t("generate.credit_cost"),

@@ -195,7 +195,8 @@
     "moderation_hint": "콘텐츠 위반입니다. 프롬프트를 조정해 주세요.",
     "moderation_ban": "위반 횟수가 너무 많습니다. 나중에 다시 시도해 주세요.",
     "enhance_btn": "✨ 향상",
-    "enhancing_btn": "✨ 향상 중..."
+    "enhancing_btn": "✨ 향상 중...",
+    "enhance_tooltip": "AI가 짧은 프롬프트를 자동으로 확장하여 조명, 구도, 스타일 세부 정보를 추가합니다"
   },
   "image_tools": {
     "browser_hint": "최적의 사용을 위해 Chrome 또는 Edge 브라우저를 권장합니다",

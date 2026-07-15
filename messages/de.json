@@ -157,7 +157,8 @@
     "moderation_hint": "Inhalt verstoßen. Bitte passen Sie Ihre Eingabe an.",
     "moderation_ban": "Zu viele Verstöße. Bitte versuchen Sie es später erneut.",
     "enhance_btn": "✨ Verbessern",
-    "enhancing_btn": "✨ Verbessern..."
+    "enhancing_btn": "✨ Verbessern...",
+    "enhance_tooltip": "KI erweitert Ihren kurzen Prompt mit Details zu Beleuchtung, Komposition und Stil"
   },
   "image_tools": {
     "browser_hint": "Verwende Chrome oder Edge für die beste Erfahrung",

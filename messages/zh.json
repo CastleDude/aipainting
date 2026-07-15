@@ -157,7 +157,8 @@
     "moderation_hint": "内容违规，请重新调整提示词",
     "moderation_ban": "违规次数过多，请稍后再试",
     "enhance_btn": "✨ 润色",
-    "enhancing_btn": "✨ 润色中..."
+    "enhancing_btn": "✨ 润色中...",
+    "enhance_tooltip": "AI 将自动扩展您的简短提示词，添加光影、构图和风格细节，让生成的图片更符合您的意图"
   },
   "presets": {
     "title": "个性定制",

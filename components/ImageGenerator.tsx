@@ -280,6 +280,7 @@ interface ImageGeneratorProps {
     moderation_ban?: string;
     enhance_btn?: string;
     enhancing_btn?: string;
+    enhance_tooltip?: string;
     guest_credits?: string;
     guest_banner?: string;
     credit_cost?: string;
@@ -757,6 +758,12 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
               <button onClick={enhancePrompt} disabled={enhancing || !prompt.trim()} className="rounded-lg bg-amber-500/15 border border-amber-500/30 px-3 py-1 text-xs font-medium text-amber-400 hover:bg-amber-500/25 disabled:opacity-30 transition-all" type="button">
                 {enhancing ? (messages.enhancing_btn || '✦ 润色中...') : (messages.enhance_btn || '✨ AI 润色')}
               </button>
+              <span className="relative group">
+                <span className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full border border-text-muted/40 text-text-muted text-[11px] cursor-help hover:border-amber-400/50 hover:text-amber-400 transition-colors">?</span>
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 rounded-lg bg-bg-card border border-border/50 shadow-lg text-xs text-text-primary whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
+                  {messages.enhance_tooltip || 'AI will expand your short prompt with lighting, composition, and style details'}
+                </span>
+              </span>
             </div>
           </div>
 
