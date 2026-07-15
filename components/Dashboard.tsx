@@ -56,6 +56,7 @@ interface DashboardMessages {
   order_time: string;
   back_to_history: string;
   no_orders: string;
+  loading: string;
   view: string;
   download: string;
   feedback_title?: string;

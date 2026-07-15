@@ -69,6 +69,7 @@ export default async function DashboardPage({
     order_time: messages.dashboard?.order_time || "Time",
     back_to_history: messages.dashboard?.back_to_history || "Back",
     no_orders: messages.dashboard?.no_orders || "No orders yet",
+    loading: messages.dashboard?.loading || "Loading...",
     history_count: messages.dashboard?.history_count || "Last 20 records",
     manage_history: messages.dashboard?.manage_history || "Manage History",
     view: messages.dashboard?.view || "View",
