@@ -449,8 +449,9 @@ function PresetModal({
   const totalCost = calcCost(presetId, paramValues);
   const shownCost = costWithModel(presetId, paramValues);
   const ageJourneyModelMult = MODEL_COST_MULTIPLIER["seedream"] || 1;
+  const ageCount = Math.max(1, selectedAges.length);
   const displayCost = presetId === "age_journey"
-    ? ageJourneyModelMult * 1 + (selectedAges.length - 1) * 2
+    ? ageJourneyModelMult * 1 + (ageCount - 1) * 2
     : shownCost;
 
   const applyTemplate = (attrs: Record<string, string>) => {
@@ -491,8 +492,9 @@ function PresetModal({
 
     // Age journey — force 16:9 and use multi-age settings
     const effectiveRatio = presetId === "age_journey" && selectedAges.length > 1 ? "16:9" : ratio;
+    const ageCount2 = Math.max(1, selectedAges.length);
     const effectiveCost = presetId === "age_journey"
-      ? 1 + (selectedAges.length - 1) * 2 / ageJourneyModelMult
+      ? 1 + (ageCount2 - 1) * 2 / ageJourneyModelMult
       : totalCost;
 
     dispatchPresetApply({
@@ -730,7 +732,8 @@ function PresetModal({
                     return next;
                   });
                 };
-                const ageCost = 1 + (selectedAges.length - 1) * 2; // base 1 img + 2 credits per extra age
+                const ageCost3 = Math.max(1, selectedAges.length);
+const ageCost = 1 + (ageCost3 - 1) * 2; // base 1 img + 2 credits per extra age
                 return (
                   <div key={param.id}>
                     <label className="text-[11px] font-medium text-text-secondary block mb-1">{pm.params?.[param.id] ?? param.labelKey}</label>
