@@ -759,12 +759,6 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
               {messages.negative_toggle}
             </button>
             <div className="flex items-center gap-[10px] relative">
-              <span className={cn(
-                "text-[11px] transition-colors",
-                prompt.length > 1800 ? "text-red-400 font-medium" : prompt.length > 1400 ? "text-amber-400" : "text-text-muted"
-              )}>
-                {prompt.length}/{2000}
-              </span>
               <span className="group">
                 <span className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full border border-text-muted/40 text-text-muted text-[11px] cursor-help hover:border-amber-400/50 hover:text-amber-400 transition-colors">?</span>
                 <span className="absolute bottom-full right-0 mb-2 px-2.5 py-1.5 rounded-lg bg-bg-card border border-border/50 shadow-lg text-xs text-text-primary max-w-[250px] text-center leading-relaxed opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
