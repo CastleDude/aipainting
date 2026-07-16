@@ -83,21 +83,28 @@ function RoundIcon({ src, alt }: { src: string; alt: string }) {
 function calcCost(presetId: string, paramValues: Record<string, string>): number {
   const preset = getPreset(presetId);
   if (!preset) return 1;
-  let cost = preset.baseCost;
+  return preset.baseCost;
+}
+
+// Extra flat costs (not multiplied by model)
+function calcExtras(presetId: string, paramValues: Record<string, string>): number {
+  const preset = getPreset(presetId);
+  if (!preset) return 0;
+  let extras = 0;
   for (const p of preset.params) {
     const val = paramValues[p.id];
     if (val && p.options) {
       const opt = p.options.find((o) => o.value === val);
-      if (opt?.extraCost) cost += opt.extraCost;
+      if (opt?.extraCost) extras += opt.extraCost;
     }
   }
-  return cost;
+  return extras;
 }
 
-// Total cost includes model multiplier (what user sees in UI)
+// Total cost: base × model multiplier + flat extras
 function costWithModel(presetId: string, paramValues: Record<string, string>): number {
   const preset = getPreset(presetId);
-  return calcCost(presetId, paramValues) * (MODEL_COST_MULTIPLIER[preset?.defaultModel || ""] || 1);
+  return (preset?.baseCost || 1) * (MODEL_COST_MULTIPLIER[preset?.defaultModel || ""] || 1) + calcExtras(presetId, paramValues);
 }
 
 // ── Build final prompt ──
@@ -446,13 +453,17 @@ function PresetModal({
     return () => { document.body.style.overflow = prev; };
   }, []);
 
-  const totalCost = calcCost(presetId, paramValues);
+  const baseCost = calcCost(presetId, paramValues);
+  const extras = calcExtras(presetId, paramValues);
   const shownCost = costWithModel(presetId, paramValues);
   const ageJourneyModelMult = MODEL_COST_MULTIPLIER["seedream"] || 1;
   const ageCount = Math.max(1, selectedAges.length);
   const displayCost = presetId === "age_journey"
     ? ageJourneyModelMult * 1 + (ageCount - 1) * 2
     : shownCost;
+  // Effective cost for API: base + extras/modelMult (flat extras converted to multiplier equivalent)
+  const modelMult = MODEL_COST_MULTIPLIER[getPreset(presetId)?.defaultModel || ""] || 1;
+  const totalCost = baseCost + extras / modelMult;
 
   const applyTemplate = (attrs: Record<string, string>) => {
     const next = { ...paramValues };
