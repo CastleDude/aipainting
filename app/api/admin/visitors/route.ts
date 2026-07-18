@@ -54,8 +54,12 @@ export async function GET(req: NextRequest) {
       }
     }
     if (source) {
-      where += ` AND (SELECT vl2.referrer FROM visitor_logs vl2 WHERE vl2.ip = v.ip ORDER BY vl2.created_at LIMIT 1) ILIKE $${paramIdx++}`;
-      params.push(`%${source}%`);
+      if (source === "直接访问") {
+        where += ` AND (SELECT vl2.referrer FROM visitor_logs vl2 WHERE vl2.ip = v.ip AND vl2.referrer IS NOT NULL ORDER BY vl2.created_at LIMIT 1) IS NULL`;
+      } else {
+        where += ` AND (SELECT vl2.referrer FROM visitor_logs vl2 WHERE vl2.ip = v.ip ORDER BY vl2.created_at LIMIT 1) ILIKE $${paramIdx++}`;
+        params.push(`%${source}%`);
+      }
     }
     if (dateFrom) {
       where += ` AND DATE(v.created_at AT TIME ZONE 'Asia/Shanghai') >= $${paramIdx++}`;
