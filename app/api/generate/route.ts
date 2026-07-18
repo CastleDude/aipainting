@@ -248,6 +248,13 @@ export async function POST(req: NextRequest) {
       }
       guestData!.credits -= guestCost;
       creditResult = { credits: guestData!.credits };
+      // Record credits used in visitor_logs for this IP
+      try {
+        await pool.query(
+          "UPDATE visitor_logs SET credits_used = credits_used + $1 WHERE ip = $2 AND created_at = (SELECT MAX(created_at) FROM visitor_logs WHERE ip = $2 AND DATE(created_at) = CURRENT_DATE)",
+          [guestCost, clientIp],
+        );
+      } catch { /* non-critical */ }
     }
 
     // ── Credit check (skip if Supabase not configured) ──
