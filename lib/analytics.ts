@@ -86,13 +86,14 @@ export async function getRealtimeStats(): Promise<{
   // Exclude admin IPs
   const adminIPs = await pool.query("SELECT last_login_ip FROM profiles WHERE role = 'admin' AND last_login_ip IS NOT NULL");
   const excludeIPs = adminIPs.rows.map((r: any) => r.last_login_ip).filter(Boolean);
+  const botExclude = " AND (user_agent IS NULL OR (user_agent !~* 'bot|crawler|spider|scraper|curl|wget|python|go-http' AND user_agent !~ 'X11.*Linux.*Chrome.*Chrome/1[0-4][0-9]'))";
   const ipExclude = excludeIPs.length > 0 ? `AND ip NOT IN (${excludeIPs.map((_: string, i: number) => `$${i + 1}`).join(",")})` : "";
   const ipParams = excludeIPs.length > 0 ? excludeIPs : [];
 
   const [todayR, onlineR, todayIpR] = await Promise.all([
-    pool.query(`SELECT COUNT(*)::int AS visits, COUNT(DISTINCT country)::int AS countries FROM visitor_logs WHERE DATE(created_at AT TIME ZONE 'Asia/Shanghai') = (NOW() AT TIME ZONE 'Asia/Shanghai')::date ${ipExclude}`, ipParams),
-    pool.query(`SELECT COUNT(*)::int AS online FROM visitor_logs WHERE created_at >= NOW() - INTERVAL '5 minutes' ${ipExclude}`, ipParams),
-    pool.query(`SELECT COUNT(DISTINCT ip)::int AS ip_count FROM visitor_logs WHERE DATE(created_at AT TIME ZONE 'Asia/Shanghai') = (NOW() AT TIME ZONE 'Asia/Shanghai')::date ${ipExclude}`, ipParams),
+    pool.query(`SELECT COUNT(*)::int AS visits, COUNT(DISTINCT country)::int AS countries FROM visitor_logs WHERE DATE(created_at AT TIME ZONE 'Asia/Shanghai') = (NOW() AT TIME ZONE 'Asia/Shanghai')::date ${ipExclude}${botExclude}`, ipParams),
+    pool.query(`SELECT COUNT(*)::int AS online FROM visitor_logs WHERE created_at >= NOW() - INTERVAL '5 minutes' ${ipExclude}${botExclude}`, ipParams),
+    pool.query(`SELECT COUNT(DISTINCT ip)::int AS ip_count FROM visitor_logs WHERE DATE(created_at AT TIME ZONE 'Asia/Shanghai') = (NOW() AT TIME ZONE 'Asia/Shanghai')::date ${ipExclude}${botExclude}`, ipParams),
   ]);
   const today = todayR.rows[0] as Record<string, number> | undefined;
   const online = onlineR.rows[0] as Record<string, number> | undefined;
