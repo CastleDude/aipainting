@@ -85,7 +85,7 @@ export default function AdminVisitorsPage() {
       setTotal(data.total || 0);
     } catch {}
     setLoading(false);
-  }, [page, search, country, dateFrom, dateTo]);
+  }, [page, search, country, dateFrom, dateTo, device, sortBy, sortOrder]);
 
   useEffect(() => { fetchVisitors(); }, [fetchVisitors]);
 

@@ -18,6 +18,8 @@ export async function GET(req: NextRequest) {
     const dateFrom = url.searchParams.get("dateFrom")?.trim() || "";
     const dateTo = url.searchParams.get("dateTo")?.trim() || "";
     const sortBy = url.searchParams.get("sortBy") || "last_visit";
+    const allowedSorts = ["ip", "country", "page_count", "credits_used", "total_visits", "first_visit", "last_visit"];
+    const safeSortBy = allowedSorts.includes(sortBy) ? sortBy : "last_visit";
     const sortOrder = url.searchParams.get("sortOrder") === "asc" ? "ASC" : "DESC";
 
     let where = "WHERE v.ip IS NOT NULL";
@@ -63,7 +65,7 @@ export async function GET(req: NextRequest) {
       FROM visitor_logs v
       ${where}
       GROUP BY v.ip, DATE(v.created_at)
-      ORDER BY ${sortBy === "ip" ? "v.ip" : sortBy === "country" ? "MAX(v.country)" : sortBy === "page_count" ? "COUNT(*)" : sortBy === "credits_used" ? "COALESCE(SUM(v.credits_used),0)" : sortBy === "total_visits" ? "(SELECT COUNT(*)::int FROM visitor_logs WHERE ip = v.ip)" : sortBy === "first_visit" ? "MIN(v.created_at)" : "MAX(v.created_at)"} ${sortOrder}
+      ORDER BY ${safeSortBy === "ip" ? "v.ip" : safeSortBy === "country" ? "MAX(v.country)" : safeSortBy === "page_count" ? "COUNT(*)" : safeSortBy === "credits_used" ? "COALESCE(SUM(v.credits_used),0)" : safeSortBy === "total_visits" ? "(SELECT COUNT(*)::int FROM visitor_logs WHERE ip = v.ip)" : safeSortBy === "first_visit" ? "MIN(v.created_at)" : "MAX(v.created_at)"} ${sortOrder}
       LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
 
     const [dataResult, countResult] = await Promise.all([
