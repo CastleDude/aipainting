@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 interface PHBannerProps {
   locale: string;
@@ -9,6 +10,7 @@ interface PHBannerProps {
 
 export function PHBanner({ locale, messages }: PHBannerProps) {
   const [dismissed, setDismissed] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const val = localStorage.getItem("ph_banner_dismissed");
@@ -20,6 +22,8 @@ export function PHBanner({ locale, messages }: PHBannerProps) {
     setDismissed(true);
   };
 
+  // Hide on admin pages
+  if (pathname?.includes("/admin")) return null;
   if (dismissed) return null;
 
   return (
