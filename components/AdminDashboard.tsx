@@ -75,6 +75,7 @@ export function AdminDashboard({ messages }: { messages: DashboardMessages }) {
 
   const analyticsCards = analytics ? [
     { label: "今日访问", value: analytics.todayVisits, color: "text-green-400" },
+    { label: "今日国家", value: analytics.todayCountries, color: "text-cyan-400" },
     { label: "在线(5分钟)", value: analytics.onlineNow, color: "text-amber-400" },
     { label: "累计访问", value: analytics.totalVisits, color: "text-purple-400" },
   ] : [];
