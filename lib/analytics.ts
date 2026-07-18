@@ -83,18 +83,18 @@ export async function getRealtimeStats(): Promise<{
   onlineNow: number;
   totalVisits: number;
 }> {
-  const [todayR, onlineR, totalR] = await Promise.all([
+  const [todayR, onlineR, todayIpR] = await Promise.all([
     pool.query("SELECT COUNT(*)::int AS visits, COUNT(DISTINCT country)::int AS countries FROM visitor_logs WHERE DATE(created_at) = CURRENT_DATE"),
     pool.query("SELECT COUNT(*)::int AS online FROM visitor_logs WHERE created_at >= NOW() - INTERVAL '5 minutes'"),
-    pool.query("SELECT COUNT(*)::int AS total FROM visitor_logs"),
+    pool.query("SELECT COUNT(DISTINCT ip)::int AS ip_count FROM visitor_logs WHERE DATE(created_at) = CURRENT_DATE"),
   ]);
   const today = todayR.rows[0] as Record<string, number> | undefined;
   const online = onlineR.rows[0] as Record<string, number> | undefined;
-  const total = totalR.rows[0] as Record<string, number> | undefined;
+  const todayIp = todayIpR.rows[0] as Record<string, number> | undefined;
   return {
     todayVisits: today?.visits || 0,
+    todayIpCount: todayIp?.ip_count || 0,
     todayCountries: today?.countries || 0,
     onlineNow: online?.online || 0,
-    totalVisits: total?.total || 0,
   };
 }

@@ -5,9 +5,9 @@ import { useAuth } from "@/components/AuthProvider";
 
 interface AnalyticsData {
   todayVisits: number;
+  todayIpCount: number;
   todayCountries: number;
   onlineNow: number;
-  totalVisits: number;
 }
 
 interface AdminStats {
@@ -74,10 +74,10 @@ export function AdminDashboard({ messages }: { messages: DashboardMessages }) {
   ];
 
   const analyticsCards = analytics ? [
-    { label: "今日访问", value: analytics.todayVisits, color: "text-green-400" },
+    { label: "今日IP数", value: analytics.todayIpCount, color: "text-green-400" },
     { label: "今日国家", value: analytics.todayCountries, color: "text-cyan-400" },
+    { label: "今日访问(页面)", value: analytics.todayVisits, color: "text-blue-400" },
     { label: "在线(5分钟)", value: analytics.onlineNow, color: "text-amber-400" },
-    { label: "累计访问", value: analytics.totalVisits, color: "text-purple-400" },
   ] : [];
 
   return (
