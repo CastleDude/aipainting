@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
         max_tokens: 500,
         messages: [{
           role: "user",
-          content: `You are an AI image prompt enhancer. Take the user's short prompt and expand it into a detailed, vivid description for image generation. Add details about: lighting, composition, quality, style, colors. Keep it under 200 characters. Output ONLY the enhanced prompt, nothing else.\n\nUser prompt: "${prompt.trim()}"`,
+          content: `You are an AI image prompt enhancer. Take the user's short prompt and expand it into a detailed, vivid description for image generation. Add details about: lighting, composition, quality, style, colors, skin texture, realistic materials, subsurface scattering. For portraits/people: always include "natural skin texture, visible pores, photorealistic skin, subsurface scattering, natural imperfections". Keep output under 200 characters. Output ONLY the enhanced prompt, nothing else.\n\nUser prompt: "${prompt.trim()}"`,
         }],
       }),
     });

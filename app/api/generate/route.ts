@@ -13,7 +13,7 @@ import { checkContentModeration, trackBlockedAttempt } from "@/lib/moderation";
 import { logCreditChange, logCreditChangeExact } from "@/lib/credit-logs";
 
 // Default negative prompt for quality boost (EasyNegative equivalent concepts)
-const DEFAULT_NEGATIVE = "blurry, low quality, distorted, watermark, text, signature, bad anatomy, deformed, disfigured, extra fingers, mutated";
+const DEFAULT_NEGATIVE = "blurry, low quality, distorted, watermark, text, signature, bad anatomy, deformed, disfigured, extra fingers, mutated, plastic skin, smooth skin, 3d render, CGI, cartoon, doll-like, porcelain skin, wax figure, airbrushed";
 
 
 // ── Describe an image via Gemini Vision ──
