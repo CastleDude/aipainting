@@ -152,15 +152,24 @@ const localTime = (utcTime: string, country: string | null): string => {
 
       {/* Filters */}
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <input type="text" placeholder="搜索 IP..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent/50 w-40" />
-        <input type="text" placeholder="国家..." value={country} onChange={(e) => { setCountry(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent/50 w-24" />
+        <div className="relative w-40">
+          <input type="text" placeholder="搜索 IP..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card pl-3 pr-7 py-1.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent/50 w-full" />
+          {search && <button onClick={() => { setSearch(""); setPage(1); }} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-sm">&times;</button>}
+        </div>
+        <div className="relative w-24">
+          <input type="text" placeholder="国家..." value={country} onChange={(e) => { setCountry(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card pl-3 pr-7 py-1.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent/50 w-full" />
+          {country && <button onClick={() => { setCountry(""); setPage(1); }} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-sm">&times;</button>}
+        </div>
         <select value={device} onChange={(e) => { setDevice(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent/50">
           <option value="">全部设备</option>
           <option value="desktop">💻 电脑</option>
           <option value="mobile">📱 手机</option>
           <option value="tablet">📋 平板</option>
         </select>
-        <input type="text" placeholder="来源..." value={source} onChange={(e) => { setSource(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent/50 w-32" />
+        <div className="relative w-32">
+          <input type="text" placeholder="来源..." value={source} onChange={(e) => { setSource(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card pl-3 pr-7 py-1.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent/50 w-full" />
+          {source && <button onClick={() => { setSource(""); setPage(1); }} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-sm">&times;</button>}
+        </div>
         <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent/50" />
         <span className="text-xs text-text-muted">至</span>
         <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent/50" />
