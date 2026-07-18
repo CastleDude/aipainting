@@ -31,6 +31,11 @@ function parseReferrer(ref: string | null): string {
     if (host.includes("bing.com")) return "🔍 Bing";
     if (host.includes("baidu.com")) return "🔍 百度";
     if (host.includes("github.com")) return "🐙 GitHub";
+    if (host.includes("duckduckgo.com")) return "🦆 DuckDuckGo";
+    if (host.includes("aisearchindex.space")) return "🤖 AI搜索爬虫";
+    if (host.includes("aqua-web.fi")) return "🇫🇮 芬兰爬虫";
+    if (host.includes("stackscope.dev")) return "🔍 爬虫工具";
+    if (/bot|crawler|spider|index/i.test(host)) return `🤖 ${host}`;
     return host;
   } catch { return ref; }
 }
