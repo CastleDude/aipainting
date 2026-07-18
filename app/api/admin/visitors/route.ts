@@ -53,7 +53,6 @@ export async function GET(req: NextRequest) {
         where += ` AND (v.user_agent !~* 'iphone|android|ipad|tablet|mobile' OR v.user_agent IS NULL)`;
       }
     }
-    }
     if (source) {
       where += ` AND (SELECT vl2.referrer FROM visitor_logs vl2 WHERE vl2.ip = v.ip ORDER BY vl2.created_at LIMIT 1) ILIKE $${paramIdx++}`;
       params.push(`%${source}%`);
