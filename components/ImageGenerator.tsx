@@ -529,11 +529,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
               if (statusData.generationIds) setGenerationIds(statusData.generationIds);
               if (typeof statusData.credits === "number") {
                 setLocalCredits(statusData.credits);
-                if (!profile) window.dispatchEvent(new CustomEvent("guest-credits-update", { detail: statusData.credits }));
-                refreshProfile();
-              } else if (typeof statusData.credits === "number") {
-                setLocalCredits(statusData.credits);
-                if (!profile) window.dispatchEvent(new CustomEvent("guest-credits-update", { detail: statusData.credits }));
+                if (!profile) window.dispatchEvent(new Event("guest-credits-refresh"));
                 refreshProfile();
               }
               refreshProfile();
