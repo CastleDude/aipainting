@@ -178,7 +178,7 @@ function classifyError(status: number, message: string) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { prompt, negativePrompt, model = "schnell", aspectRatio = "1:1", numImages = 4, imageBase64, imageBase64_2, isPublic, async: asyncMode, multiplier } = body;
+    const { prompt, negativePrompt, model = "sdxl", aspectRatio = "1:1", numImages = 4, imageBase64, imageBase64_2, isPublic, async: asyncMode, multiplier } = body;
     const creditMultiplier: number = typeof multiplier === "number" && multiplier > 0 ? multiplier : 1;
 
     // Auth once — reuse throughout the handler
