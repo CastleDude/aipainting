@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 
     const url = new URL(req.url);
     const page = parseInt(url.searchParams.get("page") || "1");
-    const limit = Math.min(parseInt(url.searchParams.get("limit") || "20"), 50);
+    const limit = Math.min(parseInt(url.searchParams.get("limit") || "20"), 500);
     const offset = (page - 1) * limit;
     const search = url.searchParams.get("search")?.trim() || "";
     const country = url.searchParams.get("country")?.trim() || "";
