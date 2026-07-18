@@ -1006,6 +1006,12 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
                 <span className="text-text-muted">免费获得每日 10 积分</span>
               </div>
             )}
+            {error.code === "credit_exhausted" && (
+              <div className="mt-2 flex items-center justify-center gap-2">
+                <a href="/pricing" className="rounded-lg bg-amber-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-amber-400 transition-colors">升级套餐</a>
+                <span className="text-text-muted">最低 $6/月，首次还送 10% 积分</span>
+              </div>
+            )}
             {error.code === "region_blocked" && (
               <button
                 onClick={() => { setModel("schnell"); setError(null); }}
