@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import pool from "@/lib/db";
 import { shouldResetCredits } from "@/lib/credits";
-import { logCreditChange } from "@/lib/credit-logs";
+import { logCreditChange, logCreditChangeExact } from "@/lib/credit-logs";
 import type { SubscriptionTier } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -33,12 +33,12 @@ export async function GET(req: NextRequest) {
     if (resetCredits !== null) {
       const oldCredits = profile.credits;
       profile.credits = resetCredits;
+      const tier = profile.tier || "free";
+      if (oldCredits > 0) logCreditChangeExact(profile.id, -oldCredits, oldCredits, "expire", tier === "free" ? "每日积分到期清零" : "月度积分到期清零");
       await pool.query(
         "UPDATE profiles SET credits = $1, daily_reset_at = now() WHERE id = $2",
         [resetCredits, profile.id],
       );
-      const tier = profile.tier || "free";
-      if (oldCredits > 0) logCreditChange(profile.id, -oldCredits, "expire", tier === "free" ? "每日积分到期清零" : "月度积分到期清零");
       logCreditChange(profile.id, resetCredits, "daily", tier === "free" ? "每日免费积分" : "月度积分发放");
     }
 

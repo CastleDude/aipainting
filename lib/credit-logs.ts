@@ -15,3 +15,18 @@ export async function logCreditChange(
     );
   } catch { /* non-critical */ }
 }
+
+export async function logCreditChangeExact(
+  userId: string,
+  amount: number,
+  balanceAfter: number,
+  category: string,
+  reason: string,
+) {
+  try {
+    await pool.query(
+      "INSERT INTO credit_logs (user_id, amount, category, reason, balance_after) VALUES ($1, $2, $3, $4, $5)",
+      [userId, amount, category, reason, balanceAfter],
+    );
+  } catch { /* non-critical */ }
+}

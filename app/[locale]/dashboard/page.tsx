@@ -57,6 +57,7 @@ export default async function DashboardPage({
     image_tools: messages.dashboard?.image_tools || "Image Tools",
     tools_daily_usage: messages.dashboard?.tools_daily_usage || "Image Tools Daily",
     order_history: messages.dashboard?.order_history || "Order History",
+    credits_log_label: messages.dashboard?.credits_log_label || "Credit Log",
     order_history_title: messages.dashboard?.order_history_title || "Order History",
     order_id: messages.dashboard?.order_id || "Order ID",
     user_label: messages.dashboard?.user_label || "User",

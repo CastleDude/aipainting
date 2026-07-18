@@ -10,7 +10,7 @@ import { STYLE_PROMPTS, RUNWARE_MODELS } from "@/lib/openrouter";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { logError } from "@/lib/analytics";
 import { checkContentModeration, trackBlockedAttempt } from "@/lib/moderation";
-import { logCreditChange } from "@/lib/credit-logs";
+import { logCreditChange, logCreditChangeExact } from "@/lib/credit-logs";
 
 // Default negative prompt for quality boost (EasyNegative equivalent concepts)
 const DEFAULT_NEGATIVE = "blurry, low quality, distorted, watermark, text, signature, bad anatomy, deformed, disfigured, extra fingers, mutated";
@@ -291,8 +291,8 @@ export async function POST(req: NextRequest) {
       if (resetCredits !== null) {
         const oldCredits = currentCredits;
         currentCredits = resetCredits;
+        if (oldCredits > 0) logCreditChangeExact(authUser.id, -oldCredits, oldCredits, "expire", tier === "free" ? "每日积分到期清零" : "月度积分到期清零");
         await pool.query("UPDATE profiles SET credits = $1, daily_reset_at = now() WHERE id = $2", [currentCredits, authUser.id]);
-        if (oldCredits > 0) logCreditChange(authUser.id, -oldCredits, "expire", tier === "free" ? "每日积分到期清零" : "月度积分到期清零");
         logCreditChange(authUser.id, currentCredits, "daily", tier === "free" ? "每日免费积分" : "月度积分发放");
       }
 
