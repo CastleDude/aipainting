@@ -984,7 +984,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
       {!profile && (
         <div className="mt-3 flex items-center justify-between rounded-xl border border-accent/20 bg-accent/5 px-4 py-2.5">
           <p className="text-xs text-text-secondary">{messages.guest_banner || "注册免费获得每日 10 积分 · 解锁全部模型"}</p>
-          <a href="/login" className="rounded-lg bg-accent px-3 py-1 text-xs font-medium text-white hover:bg-accent-hover transition-colors shrink-0 ml-3">注册/登录</a>
+          <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("open-login-modal"))} className="rounded-lg bg-accent px-3 py-1 text-xs font-medium text-white hover:bg-accent-hover transition-colors shrink-0 ml-3">注册/登录</button>
         </div>
       )}
 
