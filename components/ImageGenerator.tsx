@@ -326,7 +326,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
   const pendingAspectRef = useRef<string | null>(null); // override during autoGenerate
   const [style, setStyle] = useState("photorealistic");
   const pendingStyleRef = useRef<string | null>(null);
-  const [numImages, setNumImages] = useState(4);
+  const [numImages, setNumImages] = useState(1);
   const [showNegative, setShowNegative] = useState(false);
   const [showRatio, setShowRatio] = useState(false);
   const [showModel, setShowModel] = useState(false);
