@@ -125,15 +125,17 @@ export function CreditLog({ onBack, messages }: CreditLogProps) {
               items.map((item) => (
                 <tr key={item.id} className="border-b border-border/30 hover:bg-bg-card-hover/50 transition-colors">
                   <td className="px-4 py-2.5">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                      item.category === "recharge" || item.category === "bonus" || item.category === "daily" || item.category === "adjust"
-                        ? "bg-green-500/15 text-green-400"
-                        : item.category === "consume"
-                        ? "bg-blue-500/15 text-blue-400"
-                        : "bg-text-muted/15 text-text-muted"
-                    }`}>
-                      {CATEGORY_NAMES[inferCategory(item)] || CATEGORY_NAMES[item.category || ""] || item.category || "-"}
-                    </span>
+                    {(() => {
+                      const cat = inferCategory(item);
+                      const isPositive = cat === "recharge" || cat === "bonus" || cat === "daily" || cat === "adjust";
+                      return (
+                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                          isPositive ? "bg-green-500/15 text-green-400" : cat === "consume" ? "bg-blue-500/15 text-blue-400" : "bg-text-muted/15 text-text-muted"
+                        }`}>
+                          {CATEGORY_NAMES[cat] || "-"}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-2.5 text-text-muted text-xs whitespace-nowrap">
                     {new Date(item.created_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}
