@@ -6,6 +6,7 @@ import { getTierConfig } from "@/lib/credits";
 import { getMockGenerations, toggleMockGenerationPublic } from "@/lib/generations";
 import { GenerationHistory } from "@/components/GenerationHistory";
 import { OrderHistory } from "@/components/OrderHistory";
+import { CreditLog } from "@/components/CreditLog";
 import { ImageViewer } from "@/components/ImageViewer";
 import type { Generation } from "@/lib/generations";
 
@@ -98,6 +99,7 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
   const [viewerSrc, setViewerSrc] = useState<string | null>(null);
   const [viewerAlt, setViewerAlt] = useState("");
   const [showOrders, setShowOrders] = useState(false);
+  const [showCredits, setShowCredits] = useState(false);
   const isDevMock = typeof window !== "undefined" && process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_DEV_MOCK_USER === "true";
 
   useEffect(() => {
@@ -209,8 +211,10 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
           {/* Main content */}
           <div className="space-y-6 lg:order-2">
 
-            {/* Generation history or Order history */}
-            {showOrders ? (
+            {/* Generation history, Credits log, or Order history */}
+            {showCredits ? (
+              <CreditLog onBack={() => setShowCredits(false)} />
+            ) : showOrders ? (
               <OrderHistory
                 onBack={() => setShowOrders(false)}
                 messages={{
@@ -336,8 +340,8 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
               )}
 
               {/* Credits log entry */}
-              <a
-                href={`${localePath}/dashboard/credits`}
+              <button
+                onClick={() => setShowCredits(true)}
                 className="mt-4 w-full flex items-center justify-between rounded-lg bg-white/5 border border-white/5 p-3 text-sm text-text-secondary hover:text-white hover:bg-white/15 hover:border-white/15 transition-colors"
               >
                 <span className="flex items-center gap-2">
@@ -349,7 +353,7 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
                 <svg className="h-4 w-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
-              </a>
+              </button>
 
               {/* Order history entry */}
               <button
