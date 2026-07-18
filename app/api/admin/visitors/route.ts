@@ -66,6 +66,7 @@ export async function GET(req: NextRequest) {
         v.ip,
         MAX(v.country) AS country,
         MAX(v.user_agent) AS user_agent,
+        MAX(v.referrer) AS referrer,
         MAX(v.created_at) AS last_visit,
         MIN(v.created_at) AS first_visit,
         COUNT(*)::int AS page_count,

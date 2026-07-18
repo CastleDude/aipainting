@@ -7,11 +7,31 @@ interface Visitor {
   ip: string;
   country: string | null;
   user_agent: string | null;
+  referrer: string | null;
   last_visit: string;
   first_visit: string;
   page_count: number;
   credits_used: number;
   total_visits: number;
+}
+
+function parseReferrer(ref: string | null): string {
+  if (!ref) return "直接访问";
+  try {
+    const url = new URL(ref);
+    const host = url.hostname.replace(/^www\./, "");
+    if (host.includes("google.com")) return "🔍 Google";
+    if (host.includes("x.com") || host.includes("twitter.com")) return "🐦 X";
+    if (host.includes("facebook.com")) return "📘 Facebook";
+    if (host.includes("instagram.com")) return "📷 Instagram";
+    if (host.includes("youtube.com")) return "▶️ YouTube";
+    if (host.includes("reddit.com")) return "🤖 Reddit";
+    if (host.includes("producthunt.com")) return "🐱 ProductHunt";
+    if (host.includes("bing.com")) return "🔍 Bing";
+    if (host.includes("baidu.com")) return "🔍 百度";
+    if (host.includes("github.com")) return "🐙 GitHub";
+    return host;
+  } catch { return ref; }
 }
 
 function parseDevice(ua: string | null): string {
@@ -132,6 +152,7 @@ export default function AdminVisitorsPage() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("ip")}>IP 地址{sortArrow("ip")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("country")}>国家{sortArrow("country")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">设备/浏览器</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">来源</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("credits_used")}>积分消耗{sortArrow("credits_used")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("page_count")}>页面数{sortArrow("page_count")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("total_visits")}>累计访问{sortArrow("total_visits")}</th>
@@ -141,9 +162,9 @@ export default function AdminVisitorsPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-text-muted">加载中...</td></tr>
+                <tr><td colSpan={9} className="px-4 py-8 text-center text-text-muted">加载中...</td></tr>
               ) : visitors.length === 0 ? (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-text-muted">暂无访客数据</td></tr>
+                <tr><td colSpan={9} className="px-4 py-8 text-center text-text-muted">暂无访客数据</td></tr>
               ) : (
                 visitors.map((v, i) => (
                   <tr key={`${v.ip}-${i}`} className="border-b border-border/30 hover:bg-bg-card-hover/50 transition-colors">
@@ -153,6 +174,9 @@ export default function AdminVisitorsPage() {
                     </td>
                     <td className="px-4 py-3 text-text-secondary text-xs">
                       {parseDevice(v.user_agent)} · {parseBrowser(v.user_agent)}
+                    </td>
+                    <td className="px-4 py-3 text-text-secondary text-xs max-w-[120px] truncate" title={v.referrer || ""}>
+                      {parseReferrer(v.referrer)}
                     </td>
                     <td className="px-4 py-3 text-text-secondary text-xs">
                       {v.credits_used > 0 ? <span className="text-amber-400">{v.credits_used}</span> : "0"}
