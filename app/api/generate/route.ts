@@ -10,6 +10,7 @@ import { STYLE_PROMPTS, RUNWARE_MODELS } from "@/lib/openrouter";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { logError } from "@/lib/analytics";
 import { checkContentModeration, trackBlockedAttempt } from "@/lib/moderation";
+import { logCreditChange } from "@/lib/credit-logs";
 
 // Default negative prompt for quality boost (EasyNegative equivalent concepts)
 const DEFAULT_NEGATIVE = "blurry, low quality, distorted, watermark, text, signature, bad anatomy, deformed, disfigured, extra fingers, mutated";
@@ -288,8 +289,11 @@ export async function POST(req: NextRequest) {
       // Monthly credit reset
       const resetCredits = shouldResetCredits(localProfile.daily_reset_at, tier);
       if (resetCredits !== null) {
+        const oldCredits = currentCredits;
         currentCredits = resetCredits;
         await pool.query("UPDATE profiles SET credits = $1, daily_reset_at = now() WHERE id = $2", [currentCredits, authUser.id]);
+        if (oldCredits > 0) logCreditChange(authUser.id, -oldCredits, "expire", tier === "free" ? "每日积分到期清零" : "月度积分到期清零");
+        logCreditChange(authUser.id, currentCredits, "daily", tier === "free" ? "每日免费积分" : "月度积分发放");
       }
 
       const result = canGenerate(tier, currentCredits);
@@ -300,7 +304,7 @@ export async function POST(req: NextRequest) {
       // Deduct before generating
       currentCredits = Math.max(0, currentCredits - deductCount);
       await pool.query("UPDATE profiles SET credits = $1, daily_reset_at = COALESCE(daily_reset_at, now()) WHERE id = $2", [currentCredits, authUser.id]);
-      await pool.query("INSERT INTO credit_logs (id, user_id, amount, reason) VALUES ($1, $2, $3, $4)", [`gen_${Date.now()}_${authUser.id.slice(0, 8)}`, authUser.id, -deductCount, `Generate ${numToGenerate} image(s) [${model}] — ${tier}`]);
+      logCreditChange(authUser.id, -deductCount, "consume", `生成 ${numToGenerate} 张 [${model}]`);
       creditResult = { credits: currentCredits };
     }
     }

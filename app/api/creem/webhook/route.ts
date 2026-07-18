@@ -4,6 +4,7 @@ import crypto from "crypto";
 import pool from "@/lib/db";
 import { sendAdminAlert } from "@/lib/email";
 import { TIER_CREDIT_AMOUNT } from "@/lib/credits";
+import { logCreditChange } from "@/lib/credit-logs";
 
 // Service role client for admin DB writes
 function getServiceClient() {
@@ -65,7 +66,9 @@ async function handleCheckoutCompleted(_supabase: ReturnType<typeof getServiceCl
     "INSERT INTO orders (id, user_id, amount, currency, tier, status, creem_checkout_id) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT (id) DO UPDATE SET status = 'completed'",
     [data.id, userId, data.amount || 0, data.currency || "USD", tier, "completed", data.id],
   );
-  await pool.query("UPDATE profiles SET tier = $1 WHERE id = $2", [tier, userId]);
+  const baseCreditsAmount = TIER_CREDIT_AMOUNT[tier as keyof typeof TIER_CREDIT_AMOUNT] || 0;
+  await pool.query("UPDATE profiles SET tier = $1, credits = $2 WHERE id = $3", [tier, baseCreditsAmount, userId]);
+  logCreditChange(userId, baseCreditsAmount, "recharge", `${tier} 套餐购买`);
 
   // First subscription bonus: +10% credits
   try {
@@ -75,18 +78,18 @@ async function handleCheckoutCompleted(_supabase: ReturnType<typeof getServiceCl
     );
     const alreadyGotBonus = bonusCheck.rows[0]?.has_received_bonus === true;
     if (!alreadyGotBonus) {
-      const baseCredits = TIER_CREDIT_AMOUNT[tier as keyof typeof TIER_CREDIT_AMOUNT] || 0;
-      const bonus = Math.round(baseCredits * 0.1);
+      const bonus = Math.round(baseCreditsAmount * 0.1);
       if (bonus > 0) {
         await pool.query(
           "UPDATE profiles SET credits = credits + $1, has_received_bonus = true WHERE id = $2",
           [bonus, userId],
         );
+        logCreditChange(userId, bonus, "bonus", "首充赠送10%积分");
         console.log(`[creem] First subscription bonus: +${bonus} credits for user ${userId} (${tier})`);
       }
     }
   } catch (e) {
-    console.warn("[creem] Bonus check failed (may need has_received_bonus column):", e instanceof Error ? e.message : e);
+    console.warn("[creem] Bonus check failed:", e instanceof Error ? e.message : e);
   }
 
   if (subscription) {

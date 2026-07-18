@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-guard";
 import pool from "@/lib/db";
+import { logCreditChange } from "@/lib/credit-logs";
 
 async function guard(req: NextRequest) {
   const adminId = await verifyAdmin();
@@ -79,6 +80,11 @@ export async function PATCH(req: NextRequest) {
 
     vals.push(userId);
     await pool.query(`UPDATE profiles SET ${sets.join(", ")} WHERE id = $${i}`, vals);
+
+    // Log manual credit adjustment
+    if ("credits" in updates) {
+      logCreditChange(userId, 0, "adjust", `管理员手动调整积分至 ${updates.credits}`);
+    }
 
     return NextResponse.json({ success: true });
   } catch {

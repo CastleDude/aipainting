@@ -335,6 +335,22 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
                 </div>
               )}
 
+              {/* Credits log entry */}
+              <a
+                href={`${localePath}/dashboard/credits`}
+                className="mt-4 w-full flex items-center justify-between rounded-lg bg-white/5 border border-white/5 p-3 text-sm text-text-secondary hover:text-white hover:bg-white/15 hover:border-white/15 transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  积分明细
+                </span>
+                <svg className="h-4 w-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
+
               {/* Order history entry */}
               <button
                 onClick={() => setShowOrders(true)}
