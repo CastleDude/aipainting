@@ -567,7 +567,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
       if (data.generationIds) setGenerationIds(data.generationIds);
       if (typeof data.credits === "number") {
         setLocalCredits(data.credits);
-        if (!profile) window.dispatchEvent(new CustomEvent("guest-credits-update", { detail: data.credits }));
+        if (!profile) window.dispatchEvent(new Event("guest-credits-refresh"));
         await refreshProfile();
       }
       refreshProfile();

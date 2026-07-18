@@ -111,11 +111,19 @@ export function Header({ locale, messages, loginModalMessages }: HeaderProps) {
   }, []);
   const router = useRouter();
 
-  // Listen for guest credit updates from ImageGenerator
+  // Listen for guest credit refresh from ImageGenerator
   useEffect(() => {
-    const handler = (e: Event) => setHeaderGuestCredits((e as CustomEvent).detail);
-    window.addEventListener("guest-credits-update", handler);
-    return () => window.removeEventListener("guest-credits-update", handler);
+    const handler = () => {
+      try {
+        const c = document.cookie.split("; ").find(r => r.startsWith("guest_credits="));
+        if (c) {
+          const d = JSON.parse(decodeURIComponent(c.split("=")[1]));
+          if (d.date === new Date().toISOString().slice(0, 10)) setHeaderGuestCredits(d.credits);
+        }
+      } catch {}
+    };
+    window.addEventListener("guest-credits-refresh", handler);
+    return () => window.removeEventListener("guest-credits-refresh", handler);
   }, []);
 
   // Close dropdown on outside click
