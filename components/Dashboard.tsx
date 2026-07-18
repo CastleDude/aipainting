@@ -58,6 +58,20 @@ interface DashboardMessages {
   back_to_history: string;
   no_orders: string;
   loading: string;
+  credits_title: string;
+  credit_count: string;
+  type_label: string;
+  time_label: string;
+  purpose_label: string;
+  change_label: string;
+  balance_label: string;
+  no_credit_records: string;
+  credit_recharge: string;
+  credit_bonus: string;
+  credit_daily: string;
+  credit_consume: string;
+  credit_expire: string;
+  credit_adjust: string;
   tier_free: string;
   tier_basic: string;
   tier_premium: string;
@@ -213,7 +227,25 @@ export function Dashboard({ locale, messages }: { locale: string; messages: Dash
 
             {/* Generation history, Credits log, or Order history */}
             {showCredits ? (
-              <CreditLog onBack={() => setShowCredits(false)} />
+              <CreditLog onBack={() => setShowCredits(false)} messages={{
+                title: messages.credits_title || "积分明细",
+                current_plan: messages.current_plan || "当前套餐",
+                credit_count: messages.credit_count || "积分数",
+                type: messages.type_label || "类型",
+                time: messages.time_label || "日期时间",
+                purpose: messages.purpose_label || "用途",
+                change: messages.change_label || "变动",
+                balance: messages.balance_label || "余额",
+                loading: messages.loading || "加载中...",
+                no_records: messages.no_credit_records || "暂无积分记录",
+                back: messages.back_to_history || "返回生成历史",
+                recharge: messages.credit_recharge || "充值",
+                bonus: messages.credit_bonus || "赠送",
+                daily: messages.credit_daily || "发放",
+                consume: messages.credit_consume || "消耗",
+                expire: messages.credit_expire || "过期",
+                adjust: messages.credit_adjust || "调整",
+              }} />
             ) : showOrders ? (
               <OrderHistory
                 onBack={() => setShowOrders(false)}
