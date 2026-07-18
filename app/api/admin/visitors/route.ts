@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
       FROM visitor_logs v
       ${where}
       GROUP BY v.ip, DATE(v.created_at)
-      ORDER BY ${safeSortBy === "ip" ? "v.ip" : safeSortBy === "country" ? "MAX(v.country)" : safeSortBy === "page_count" ? "COUNT(*)" : safeSortBy === "credits_used" ? "COALESCE(SUM(v.credits_used),0)" : safeSortBy === "total_visits" ? "(SELECT COUNT(*)::int FROM visitor_logs WHERE ip = v.ip)" : safeSortBy === "first_visit" ? "MIN(v.created_at)" : safeSortBy === "referrer" ? "(SELECT vl2.referrer FROM visitor_logs vl2 WHERE vl2.ip = v.ip ORDER BY vl2.created_at LIMIT 1)" : "MAX(v.created_at)"} ${sortOrder}
+      ORDER BY ${safeSortBy === "ip" ? "v.ip" : safeSortBy === "country" ? "MAX(v.country)" : safeSortBy === "page_count" ? "COUNT(*)" : safeSortBy === "credits_used" ? "COALESCE(SUM(v.credits_used),0)" : safeSortBy === "total_visits" ? "(SELECT COUNT(*)::int FROM visitor_logs WHERE ip = v.ip)" : safeSortBy === "first_visit" ? "EXTRACT(epoch FROM MAX(v.created_at) - MIN(v.created_at))" : safeSortBy === "referrer" ? "(SELECT vl2.referrer FROM visitor_logs vl2 WHERE vl2.ip = v.ip ORDER BY vl2.created_at LIMIT 1)" : "MAX(v.created_at)"} ${sortOrder}
       LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
 
     const [dataResult, countResult] = await Promise.all([
