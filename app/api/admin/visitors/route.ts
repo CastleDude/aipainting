@@ -22,7 +22,15 @@ export async function GET(req: NextRequest) {
     const safeSortBy = allowedSorts.includes(sortBy) ? sortBy : "last_visit";
     const sortOrder = url.searchParams.get("sortOrder") === "asc" ? "ASC" : "DESC";
 
+    // Exclude admin IPs from visitor stats
+    const adminIPs = await pool.query("SELECT last_login_ip FROM profiles WHERE role = 'admin' AND last_login_ip IS NOT NULL");
+    const excludeIPs = adminIPs.rows.map((r: any) => r.last_login_ip).filter(Boolean);
     let where = "WHERE v.ip IS NOT NULL";
+    if (excludeIPs.length > 0) {
+      where += ` AND v.ip NOT IN (${excludeIPs.map((_: string, i: number) => `$${i + 1}`).join(",")})`;
+      params.push(...excludeIPs);
+      paramIdx += excludeIPs.length;
+    }
     const params: (string | number)[] = [];
     let paramIdx = 1;
 
