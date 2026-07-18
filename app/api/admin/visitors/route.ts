@@ -77,8 +77,9 @@ export async function GET(req: NextRequest) {
 
     const allowedSorts: Record<string, string> = {
       ip: "ip", country: "country", page_count: "page_count", credits_used: "credits_used",
-      total_visits: "total_visits", first_visit: "first_visit", last_visit: "last_visit",
-      referrer: "referrer", visit_type: "CASE visit_type WHEN '会员' THEN 0 WHEN '回头客' THEN 1 ELSE 2 END",
+      total_visits: "total_visits", first_visit: "EXTRACT(epoch FROM last_visit - first_visit)",
+      last_visit: "last_visit", referrer: "referrer",
+      visit_type: "CASE visit_type WHEN '会员' THEN 0 WHEN '回头客' THEN 1 ELSE 2 END",
     };
     const orderCol = allowedSorts[sortBy] || "last_visit";
 
