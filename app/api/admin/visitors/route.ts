@@ -14,43 +14,54 @@ export async function GET(req: NextRequest) {
     const offset = (page - 1) * limit;
     const search = url.searchParams.get("search")?.trim() || "";
     const country = url.searchParams.get("country")?.trim() || "";
+    const device = url.searchParams.get("device")?.trim() || "";
     const dateFrom = url.searchParams.get("dateFrom")?.trim() || "";
     const dateTo = url.searchParams.get("dateTo")?.trim() || "";
 
-    let where = "WHERE ip IS NOT NULL";
+    let where = "WHERE v.ip IS NOT NULL";
     const params: (string | number)[] = [];
     let paramIdx = 1;
 
     if (search) {
-      where += ` AND ip ILIKE $${paramIdx++}`;
+      where += ` AND v.ip ILIKE $${paramIdx++}`;
       params.push(`%${search}%`);
     }
     if (country) {
-      where += ` AND country ILIKE $${paramIdx++}`;
+      where += ` AND v.country ILIKE $${paramIdx++}`;
       params.push(`%${country}%`);
     }
+    if (device) {
+      if (device === "mobile") {
+        where += ` AND v.user_agent ~* 'iphone|android.*mobile|blackberry|webos'`;
+      } else if (device === "tablet") {
+        where += ` AND v.user_agent ~* 'ipad|android(?!.*mobile)|tablet'`;
+      } else if (device === "desktop") {
+        where += ` AND (v.user_agent !~* 'iphone|android|ipad|tablet|mobile' OR v.user_agent IS NULL)`;
+      }
+    }
     if (dateFrom) {
-      where += ` AND created_at >= $${paramIdx++}`;
+      where += ` AND v.created_at >= $${paramIdx++}`;
       params.push(dateFrom);
     }
     if (dateTo) {
-      where += ` AND created_at <= $${paramIdx++}::timestamp + interval '1 day'`;
+      where += ` AND v.created_at <= $${paramIdx++}::timestamp + interval '1 day'`;
       params.push(dateTo);
     }
 
-    const countQuery = `SELECT COUNT(DISTINCT ip || '_' || DATE(created_at))::int AS count FROM visitor_logs ${where}`;
+    const countQuery = `SELECT COUNT(DISTINCT v.ip || '_' || DATE(v.created_at))::int AS count FROM visitor_logs v ${where}`;
     const dataQuery = `SELECT
-        ip,
-        MAX(country) AS country,
-        MAX(user_agent) AS user_agent,
-        MAX(created_at) AS last_visit,
-        MIN(created_at) AS first_visit,
+        v.ip,
+        MAX(v.country) AS country,
+        MAX(v.user_agent) AS user_agent,
+        MAX(v.created_at) AS last_visit,
+        MIN(v.created_at) AS first_visit,
         COUNT(*)::int AS page_count,
-        COALESCE(SUM(credits_used), 0)::int AS credits_used
-      FROM visitor_logs
+        COALESCE(SUM(v.credits_used), 0)::int AS credits_used,
+        (SELECT COUNT(*)::int FROM visitor_logs WHERE ip = v.ip) AS total_visits
+      FROM visitor_logs v
       ${where}
-      GROUP BY ip, DATE(created_at)
-      ORDER BY MAX(created_at) DESC
+      GROUP BY v.ip, DATE(v.created_at)
+      ORDER BY MAX(v.created_at) DESC
       LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
 
     const [dataResult, countResult] = await Promise.all([
@@ -64,7 +75,8 @@ export async function GET(req: NextRequest) {
       page,
       limit,
     });
-  } catch {
+  } catch (e) {
+    console.error("[visitors]", e instanceof Error ? e.message : e);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

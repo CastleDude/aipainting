@@ -11,6 +11,7 @@ interface Visitor {
   first_visit: string;
   page_count: number;
   credits_used: number;
+  total_visits: number;
 }
 
 function parseDevice(ua: string | null): string {
@@ -48,6 +49,7 @@ export default function AdminVisitorsPage() {
   const [country, setCountry] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [device, setDevice] = useState("");
 
   const limit = 20;
   const totalPages = Math.ceil(total / limit);
@@ -60,6 +62,7 @@ export default function AdminVisitorsPage() {
       if (country) params.set("country", country);
       if (dateFrom) params.set("dateFrom", dateFrom);
       if (dateTo) params.set("dateTo", dateTo);
+      if (device) params.set("device", device);
       const res = await fetch(`/api/admin/visitors?${params}`);
       const data = await res.json();
       setVisitors(data.visitors || []);
@@ -80,6 +83,12 @@ export default function AdminVisitorsPage() {
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         <input type="text" placeholder="搜索 IP..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent/50 w-40" />
         <input type="text" placeholder="国家..." value={country} onChange={(e) => { setCountry(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent/50 w-24" />
+        <select value={device} onChange={(e) => { setDevice(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent/50">
+          <option value="">全部设备</option>
+          <option value="desktop">💻 电脑</option>
+          <option value="mobile">📱 手机</option>
+          <option value="tablet">📋 平板</option>
+        </select>
         <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent/50" />
         <span className="text-xs text-text-muted">至</span>
         <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent/50" />
@@ -98,15 +107,16 @@ export default function AdminVisitorsPage() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">设备/浏览器</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">积分消耗</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">页面数</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">累计访问</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">停留时长</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">最近访问</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-text-muted">加载中...</td></tr>
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-text-muted">加载中...</td></tr>
               ) : visitors.length === 0 ? (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-text-muted">暂无访客数据</td></tr>
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-text-muted">暂无访客数据</td></tr>
               ) : (
                 visitors.map((v, i) => (
                   <tr key={`${v.ip}-${i}`} className="border-b border-border/30 hover:bg-bg-card-hover/50 transition-colors">
@@ -121,6 +131,7 @@ export default function AdminVisitorsPage() {
                       {v.credits_used > 0 ? <span className="text-amber-400">{v.credits_used}</span> : "0"}
                     </td>
                     <td className="px-4 py-3 text-text-secondary text-xs">{v.page_count}</td>
+                    <td className="px-4 py-3 text-text-secondary text-xs font-medium">{v.total_visits || v.page_count}</td>
                     <td className="px-4 py-3 text-text-secondary text-xs">{duration(v.first_visit, v.last_visit)}</td>
                     <td className="px-4 py-3 text-text-muted text-xs whitespace-nowrap">
                       {new Date(v.last_visit).toLocaleString("zh-CN")}
