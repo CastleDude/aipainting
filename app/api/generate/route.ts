@@ -14,6 +14,7 @@ import { logCreditChange, logCreditChangeExact } from "@/lib/credit-logs";
 
 // Default negative prompt for quality boost (EasyNegative equivalent concepts)
 const DEFAULT_NEGATIVE = "blurry, low quality, distorted, watermark, text, signature, bad anatomy, deformed, disfigured, extra fingers, mutated, plastic skin, smooth skin, 3d render, CGI, cartoon, doll-like, porcelain skin, wax figure, airbrushed";
+const QUALITY_SUFFIX = "hyperrealistic skin texture, visible pores, subsurface scattering, natural skin imperfections, photorealistic, 8K detail, raw photo, Fujifilm X-T5";
 
 
 // ── Describe an image via Gemini Vision ──
@@ -321,10 +322,10 @@ export async function POST(req: NextRequest) {
       const genFn = async () => {
         let genImages: string[];
         if (RUNWARE_MODELS.has(model)) {
-          genImages = await generateRunware(`${prompt.trim()}${styleHint}. High quality, detailed.`, model, aspectRatio, numImages, negativePrompt, imageBase64);
+          genImages = await generateRunware(`${prompt.trim()}${styleHint}. ${QUALITY_SUFFIX}`, model, aspectRatio, numImages, negativePrompt, imageBase64);
         } else {
           const arHint = ``;
-          const fullPrompt = `${prompt.trim()}${styleHint}. High quality, detailed.`;
+          const fullPrompt = `${prompt.trim()}${styleHint}. ${QUALITY_SUFFIX}`;
           genImages = await generateOpenRouter(model, fullPrompt, negativePrompt, aspectRatio, numImages, imageBase64);
         }
         if (genImages.length === 0) throw Object.assign(new Error("No images returned"), { code: "no_output" });
@@ -381,11 +382,11 @@ export async function POST(req: NextRequest) {
     if (RUNWARE_MODELS.has(model)) {
       // For img2img with two photos: first = inputImage, second = described via Gemini, embedded in prompt
       const img2Hint = image2Desc ? ` Second reference image description: ${image2Desc}.` : "";
-      images = await generateRunware(`${prompt.trim()}${styleHint}${img2Hint}. High quality, detailed.`, model, aspectRatio, genN, negativePrompt, imageBase64);
+      images = await generateRunware(`${prompt.trim()}${styleHint}${img2Hint}. ${QUALITY_SUFFIX}`, model, aspectRatio, genN, negativePrompt, imageBase64);
     } else {
       // For OpenRouter models, embed aspect ratio in the prompt
       const arHint = ``;
-      const fullPrompt = `${prompt.trim()}${styleHint}. High quality, detailed.`;
+      const fullPrompt = `${prompt.trim()}${styleHint}. ${QUALITY_SUFFIX}`;
       images = await generateOpenRouter(model, fullPrompt, negativePrompt, aspectRatio, genN, imageBase64 || imageBase64_2);
     }
 
