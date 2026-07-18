@@ -10,10 +10,10 @@ export async function logCreditChange(
     const balance = await pool.query("SELECT credits FROM profiles WHERE id = $1", [userId]);
     const balanceAfter = balance.rows[0]?.credits ?? null;
     await pool.query(
-      "INSERT INTO credit_logs (user_id, amount, category, reason, balance_after) VALUES ($1, $2, $3, $4, $5)",
+      "INSERT INTO credit_logs (id, user_id, amount, category, reason, balance_after) VALUES (gen_random_uuid()::text, $1, $2, $3, $4, $5)",
       [userId, amount, category, reason, balanceAfter],
     );
-  } catch { /* non-critical */ }
+  } catch (e) { console.error("[credit-log]", e instanceof Error ? e.message : e); }
 }
 
 export async function logCreditChangeExact(
@@ -25,8 +25,8 @@ export async function logCreditChangeExact(
 ) {
   try {
     await pool.query(
-      "INSERT INTO credit_logs (user_id, amount, category, reason, balance_after) VALUES ($1, $2, $3, $4, $5)",
+      "INSERT INTO credit_logs (id, user_id, amount, category, reason, balance_after) VALUES (gen_random_uuid()::text, $1, $2, $3, $4, $5)",
       [userId, amount, category, reason, balanceAfter],
     );
-  } catch { /* non-critical */ }
+  } catch (e) { console.error("[credit-log]", e instanceof Error ? e.message : e); }
 }
