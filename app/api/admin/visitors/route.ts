@@ -15,10 +15,11 @@ export async function GET(req: NextRequest) {
     const search = url.searchParams.get("search")?.trim() || "";
     const country = url.searchParams.get("country")?.trim() || "";
     const device = url.searchParams.get("device")?.trim() || "";
+    const source = url.searchParams.get("source")?.trim() || "";
     const dateFrom = url.searchParams.get("dateFrom")?.trim() || "";
     const dateTo = url.searchParams.get("dateTo")?.trim() || "";
     const sortBy = url.searchParams.get("sortBy") || "last_visit";
-    const allowedSorts = ["ip", "country", "page_count", "credits_used", "total_visits", "first_visit", "last_visit"];
+    const allowedSorts = ["ip", "country", "page_count", "credits_used", "total_visits", "first_visit", "last_visit", "referrer"];
     const safeSortBy = allowedSorts.includes(sortBy) ? sortBy : "last_visit";
     const sortOrder = url.searchParams.get("sortOrder") === "asc" ? "ASC" : "DESC";
 
@@ -52,6 +53,11 @@ export async function GET(req: NextRequest) {
         where += ` AND (v.user_agent !~* 'iphone|android|ipad|tablet|mobile' OR v.user_agent IS NULL)`;
       }
     }
+    }
+    if (source) {
+      where += ` AND (SELECT vl2.referrer FROM visitor_logs vl2 WHERE vl2.ip = v.ip ORDER BY vl2.created_at LIMIT 1) ILIKE $${paramIdx++}`;
+      params.push(`%${source}%`);
+    }
     if (dateFrom) {
       where += ` AND DATE(v.created_at AT TIME ZONE 'Asia/Shanghai') >= $${paramIdx++}`;
       params.push(dateFrom);
@@ -66,7 +72,7 @@ export async function GET(req: NextRequest) {
         v.ip,
         MAX(v.country) AS country,
         MAX(v.user_agent) AS user_agent,
-        MAX(v.referrer) AS referrer,
+        (SELECT vl2.referrer FROM visitor_logs vl2 WHERE vl2.ip = v.ip ORDER BY vl2.created_at LIMIT 1) AS referrer,
         MAX(v.created_at) AS last_visit,
         MIN(v.created_at) AS first_visit,
         COUNT(*)::int AS page_count,
@@ -75,7 +81,7 @@ export async function GET(req: NextRequest) {
       FROM visitor_logs v
       ${where}
       GROUP BY v.ip, DATE(v.created_at)
-      ORDER BY ${safeSortBy === "ip" ? "v.ip" : safeSortBy === "country" ? "MAX(v.country)" : safeSortBy === "page_count" ? "COUNT(*)" : safeSortBy === "credits_used" ? "COALESCE(SUM(v.credits_used),0)" : safeSortBy === "total_visits" ? "(SELECT COUNT(*)::int FROM visitor_logs WHERE ip = v.ip)" : safeSortBy === "first_visit" ? "MIN(v.created_at)" : "MAX(v.created_at)"} ${sortOrder}
+      ORDER BY ${safeSortBy === "ip" ? "v.ip" : safeSortBy === "country" ? "MAX(v.country)" : safeSortBy === "page_count" ? "COUNT(*)" : safeSortBy === "credits_used" ? "COALESCE(SUM(v.credits_used),0)" : safeSortBy === "total_visits" ? "(SELECT COUNT(*)::int FROM visitor_logs WHERE ip = v.ip)" : safeSortBy === "first_visit" ? "MIN(v.created_at)" : safeSortBy === "referrer" ? "(SELECT vl2.referrer FROM visitor_logs vl2 WHERE vl2.ip = v.ip ORDER BY vl2.created_at LIMIT 1)" : "MAX(v.created_at)"} ${sortOrder}
       LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
 
     const [dataResult, countResult] = await Promise.all([

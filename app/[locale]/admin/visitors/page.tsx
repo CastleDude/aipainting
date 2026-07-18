@@ -71,6 +71,7 @@ export default function AdminVisitorsPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [device, setDevice] = useState("");
+  const [source, setSource] = useState("");
   const [sortBy, setSortBy] = useState("last_visit");
   const [sortOrder, setSortOrder] = useState("desc");
 
@@ -98,6 +99,7 @@ export default function AdminVisitorsPage() {
       if (dateFrom) params.set("dateFrom", dateFrom);
       if (dateTo) params.set("dateTo", dateTo);
       if (device) params.set("device", device);
+      if (source) params.set("source", source);
       params.set("sortBy", sortBy);
       params.set("sortOrder", sortOrder);
       const res = await fetch(`/api/admin/visitors?${params}`);
@@ -106,7 +108,7 @@ export default function AdminVisitorsPage() {
       setTotal(data.total || 0);
     } catch {}
     setLoading(false);
-  }, [page, limit, search, country, dateFrom, dateTo, device, sortBy, sortOrder]);
+  }, [page, limit, search, country, dateFrom, dateTo, device, source, sortBy, sortOrder]);
 
   useEffect(() => { fetchVisitors(); }, [fetchVisitors]);
 
@@ -129,8 +131,9 @@ export default function AdminVisitorsPage() {
         <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent/50" />
         <span className="text-xs text-text-muted">至</span>
         <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent/50" />
-        {(search || country || dateFrom || dateTo || device) && (
-          <button onClick={() => { setSearch(""); setCountry(""); setDateFrom(""); setDateTo(""); setDevice(""); setPage(1); }} className="text-xs text-text-muted hover:text-text-primary">清除筛选</button>
+        <input type="text" placeholder="来源..." value={source} onChange={(e) => { setSource(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent/50 w-32" />
+        {(search || country || dateFrom || dateTo || device || source) && (
+          <button onClick={() => { setSearch(""); setCountry(""); setDateFrom(""); setDateTo(""); setDevice(""); setSource(""); setPage(1); }} className="text-xs text-text-muted hover:text-text-primary">清除筛选</button>
         )}
         <div className="ml-auto flex items-center gap-2 text-xs text-text-muted">
           每页
@@ -153,7 +156,7 @@ export default function AdminVisitorsPage() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("ip")}>IP 地址{sortArrow("ip")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("country")}>国家{sortArrow("country")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">设备/浏览器</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">来源</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("referrer")}>来源{sortArrow("referrer")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("credits_used")}>积分消耗{sortArrow("credits_used")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("page_count")}>页面数{sortArrow("page_count")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("total_visits")}>累计访问{sortArrow("total_visits")}</th>
