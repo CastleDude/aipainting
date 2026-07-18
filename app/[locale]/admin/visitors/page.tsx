@@ -87,6 +87,33 @@ export default function AdminVisitorsPage() {
   };
   const countryZh = (code: string | null) => code ? (COUNTRY_ZH[code.toUpperCase()] ? `${code} ${COUNTRY_ZH[code.toUpperCase()]}` : code) : "-";
 
+const COUNTRY_TZ: Record<string, string> = {
+  CN: "Asia/Shanghai", HK: "Asia/Shanghai", TW: "Asia/Taipei", MO: "Asia/Macau",
+  JP: "Asia/Tokyo", KR: "Asia/Seoul", SG: "Asia/Singapore", MY: "Asia/Kuala_Lumpur",
+  TH: "Asia/Bangkok", VN: "Asia/Ho_Chi_Minh", ID: "Asia/Jakarta", PH: "Asia/Manila",
+  IN: "Asia/Kolkata", PK: "Asia/Karachi", BD: "Asia/Dhaka", NP: "Asia/Kathmandu",
+  US: "America/New_York", CA: "America/Toronto", MX: "America/Mexico_City",
+  GB: "Europe/London", FR: "Europe/Paris", DE: "Europe/Berlin", IT: "Europe/Rome",
+  ES: "Europe/Madrid", PT: "Europe/Lisbon", NL: "Europe/Amsterdam", BE: "Europe/Brussels",
+  CH: "Europe/Zurich", AT: "Europe/Vienna", DK: "Europe/Copenhagen", SE: "Europe/Stockholm",
+  NO: "Europe/Oslo", FI: "Europe/Helsinki", PL: "Europe/Warsaw", CZ: "Europe/Prague",
+  RO: "Europe/Bucharest", GR: "Europe/Athens", TR: "Europe/Istanbul", UA: "Europe/Kyiv",
+  RU: "Europe/Moscow", AE: "Asia/Dubai", SA: "Asia/Riyadh", QA: "Asia/Qatar",
+  AU: "Australia/Sydney", NZ: "Pacific/Auckland",
+  BR: "America/Sao_Paulo", AR: "America/Argentina/Buenos_Aires", CL: "America/Santiago",
+  ZA: "Africa/Johannesburg", EG: "Africa/Cairo", KE: "Africa/Nairobi", NG: "Africa/Lagos",
+  IL: "Asia/Jerusalem", KW: "Asia/Kuwait", KZ: "Asia/Almaty", IR: "Asia/Tehran",
+  EE: "Europe/Tallinn", LV: "Europe/Riga", LT: "Europe/Vilnius", BG: "Europe/Sofia",
+  HR: "Europe/Zagreb", SK: "Europe/Bratislava", SI: "Europe/Ljubljana", RS: "Europe/Belgrade",
+  CO: "America/Bogota", VE: "America/Caracas", MA: "Africa/Casablanca", MM: "Asia/Yangon",
+  HU: "Europe/Budapest",
+};
+const localTime = (utcTime: string, country: string | null): string => {
+  const tz = country ? COUNTRY_TZ[country.toUpperCase()] : null;
+  if (!tz) return new Date(utcTime).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" });
+  try { return new Date(utcTime).toLocaleString("zh-CN", { timeZone: tz }); } catch { return new Date(utcTime).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" }); }
+};
+
   const [limit, setLimit] = useState(20);
   const totalPages = Math.ceil(total / limit);
 
@@ -161,14 +188,15 @@ export default function AdminVisitorsPage() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("page_count")}>页面数{sortArrow("page_count")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("total_visits")}>累计访问{sortArrow("total_visits")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("first_visit")}>停留时长{sortArrow("first_visit")}</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("last_visit")}>最近访问{sortArrow("last_visit")}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("last_visit")}>最近访问(北京){sortArrow("last_visit")}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">当地时间</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={9} className="px-4 py-8 text-center text-text-muted">加载中...</td></tr>
+                <tr><td colSpan={10} className="px-4 py-8 text-center text-text-muted">加载中...</td></tr>
               ) : visitors.length === 0 ? (
-                <tr><td colSpan={9} className="px-4 py-8 text-center text-text-muted">暂无访客数据</td></tr>
+                <tr><td colSpan={10} className="px-4 py-8 text-center text-text-muted">暂无访客数据</td></tr>
               ) : (
                 visitors.map((v, i) => (
                   <tr key={`${v.ip}-${i}`} className="border-b border-border/30 hover:bg-bg-card-hover/50 transition-colors">
@@ -190,6 +218,9 @@ export default function AdminVisitorsPage() {
                     <td className="px-4 py-3 text-text-secondary text-xs">{duration(v.first_visit, v.last_visit)}</td>
                     <td className="px-4 py-3 text-text-muted text-xs whitespace-nowrap">
                       {new Date(v.last_visit).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}
+                    </td>
+                    <td className="px-4 py-3 text-text-muted text-xs whitespace-nowrap">
+                      {localTime(v.last_visit, v.country)}
                     </td>
                   </tr>
                 ))
