@@ -155,10 +155,10 @@ const localTime = (utcTime: string, country: string | null): string => {
           <option value="mobile">📱 手机</option>
           <option value="tablet">📋 平板</option>
         </select>
+        <input type="text" placeholder="来源..." value={source} onChange={(e) => { setSource(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent/50 w-32" />
         <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent/50" />
         <span className="text-xs text-text-muted">至</span>
         <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent/50" />
-        <input type="text" placeholder="来源..." value={source} onChange={(e) => { setSource(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent/50 w-32" />
         {(search || country || dateFrom || dateTo || device || source) && (
           <button onClick={() => { setSearch(""); setCountry(""); setDateFrom(""); setDateTo(""); setDevice(""); setSource(""); setPage(1); }} className="text-xs text-text-muted hover:text-text-primary">清除筛选</button>
         )}
