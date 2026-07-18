@@ -87,7 +87,7 @@ export function AdminDashboard({ messages }: { messages: DashboardMessages }) {
         {profile?.last_login_at && (
           <div className="flex items-center gap-4 text-xs text-text-muted">
             <span title={profile.last_login_at}>
-              上次登录：{new Date(profile.last_login_at).toLocaleString("zh-CN")}
+              上次登录：{new Date(profile.last_login_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}
             </span>
             {profile.last_login_country && (
               <span>📍 {profile.last_login_country}</span>

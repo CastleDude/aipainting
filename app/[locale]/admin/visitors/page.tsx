@@ -150,7 +150,7 @@ export default function AdminVisitorsPage() {
                     <td className="px-4 py-3 text-text-secondary text-xs font-medium">{v.total_visits || v.page_count}</td>
                     <td className="px-4 py-3 text-text-secondary text-xs">{duration(v.first_visit, v.last_visit)}</td>
                     <td className="px-4 py-3 text-text-muted text-xs whitespace-nowrap">
-                      {new Date(v.last_visit).toLocaleString("zh-CN")}
+                      {new Date(v.last_visit).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}
                     </td>
                   </tr>
                 ))
