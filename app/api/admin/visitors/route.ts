@@ -53,11 +53,11 @@ export async function GET(req: NextRequest) {
       }
     }
     if (dateFrom) {
-      where += ` AND v.created_at >= $${paramIdx++}`;
+      where += ` AND DATE(v.created_at AT TIME ZONE 'Asia/Shanghai') >= $${paramIdx++}`;
       params.push(dateFrom);
     }
     if (dateTo) {
-      where += ` AND v.created_at <= $${paramIdx++}::timestamp + interval '1 day'`;
+      where += ` AND DATE(v.created_at AT TIME ZONE 'Asia/Shanghai') <= $${paramIdx++}`;
       params.push(dateTo);
     }
 
