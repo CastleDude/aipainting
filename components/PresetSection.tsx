@@ -564,7 +564,7 @@ function PresetModal({
         <div className="flex flex-1 overflow-y-auto">
           {/* Left column: upload — hidden for greeting card */}
           {preset.requiresImage && (
-          <div className="shrink-0 border-r border-border/20 p-4 flex flex-col gap-3 w-[240px]">
+          <div className="shrink-0 border-r border-border/20 p-3 sm:p-4 flex flex-col gap-2 sm:gap-3 w-[120px] sm:w-[240px]">
             {preset.requiresImage ? (
               <>
                 {/* Main image — square */}
@@ -574,11 +574,11 @@ function PresetModal({
                     <button onClick={() => { setImagePreview(null); setImageBase64(null); }} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px] hover:bg-red-500">✕</button>
                   </div>
                 ) : (
-                  <button onClick={() => fileInputRef.current?.click()} className="mx-auto rounded-xl border-2 border-dashed border-border/50 hover:border-accent/40 hover:bg-bg-secondary/50 transition-all flex flex-col items-center justify-center gap-2 text-text-muted hover:text-accent cursor-pointer w-full aspect-square">
-                    <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <button onClick={() => fileInputRef.current?.click()} className="mx-auto rounded-xl border-2 border-dashed border-border/50 hover:border-accent/40 hover:bg-bg-secondary/50 transition-all flex flex-col items-center justify-center gap-1 sm:gap-2 text-text-muted hover:text-accent cursor-pointer w-full aspect-square">
+                    <svg className="h-6 sm:h-8 w-6 sm:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
-                    <span className="text-xs text-center px-2">{messages.upload_hint}</span>
+                    <span className="text-[10px] sm:text-xs text-center px-1">{messages.upload_hint}</span>
                   </button>
                 )}
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
