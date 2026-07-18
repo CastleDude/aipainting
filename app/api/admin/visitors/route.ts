@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
         CASE
         WHEN COUNT(v.user_id) > 0 THEN '会员'
         WHEN MAX(v.user_agent) ~* 'bot|crawler|spider|scraper|curl|wget|python|go-http' THEN '🤖爬虫'
-        WHEN MAX(v.user_agent) ~ 'X11.*Linux.*Chrome' AND MAX(v.user_agent) !~ 'bot|crawler' THEN '⚠疑似爬虫'
+        WHEN MAX(v.user_agent) ~ 'X11.*Linux.*Chrome/1[0-4][0-9]' THEN '⚠疑似爬虫'
         WHEN (SELECT COUNT(DISTINCT DATE(created_at)) FROM visitor_logs WHERE ip = v.ip) > 1 THEN '回头客'
         ELSE '新访客'
       END AS visit_type,

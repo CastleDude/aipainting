@@ -86,7 +86,7 @@ export async function getRealtimeStats(): Promise<{
   // Exclude admin IPs
   const adminIPs = await pool.query("SELECT last_login_ip FROM profiles WHERE role = 'admin' AND last_login_ip IS NOT NULL");
   const excludeIPs = adminIPs.rows.map((r: any) => r.last_login_ip).filter(Boolean);
-  const botExclude = " AND (user_agent IS NULL OR (user_agent !~* 'bot|crawler|spider|scraper|curl|wget|python|go-http' AND user_agent !~ 'X11.*Linux.*Chrome.*Chrome/1[0-4][0-9]'))";
+  const botExclude = " AND (user_agent IS NULL OR (user_agent !~* 'bot|crawler|spider|scraper|curl|wget|python|go-http' AND user_agent !~ 'X11.*Linux.*Chrome/1[0-4][0-9]'))";
   const ipExclude = excludeIPs.length > 0 ? `AND ip NOT IN (${excludeIPs.map((_: string, i: number) => `$${i + 1}`).join(",")})` : "";
   const ipParams = excludeIPs.length > 0 ? excludeIPs : [];
 
