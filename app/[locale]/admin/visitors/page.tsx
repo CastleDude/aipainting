@@ -20,6 +20,7 @@ function parseReferrer(ref: string | null): string {
   try {
     const url = new URL(ref);
     const host = url.hostname.replace(/^www\./, "");
+    if (host.includes("aipainting.top")) return "站内跳转";
     if (host.includes("google.com")) return "🔍 Google";
     if (host.includes("x.com") || host.includes("twitter.com")) return "🐦 X";
     if (host.includes("facebook.com")) return "📘 Facebook";
