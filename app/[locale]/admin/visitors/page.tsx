@@ -65,7 +65,7 @@ export default function AdminVisitorsPage() {
   };
   const countryZh = (code: string | null) => code ? (COUNTRY_ZH[code.toUpperCase()] ? `${code} ${COUNTRY_ZH[code.toUpperCase()]}` : code) : "-";
 
-  const limit = 20;
+  const [limit, setLimit] = useState(20);
   const totalPages = Math.ceil(total / limit);
 
   const fetchVisitors = useCallback(async () => {
@@ -85,7 +85,7 @@ export default function AdminVisitorsPage() {
       setTotal(data.total || 0);
     } catch {}
     setLoading(false);
-  }, [page, search, country, dateFrom, dateTo, device, sortBy, sortOrder]);
+  }, [page, limit, search, country, dateFrom, dateTo, device, sortBy, sortOrder]);
 
   useEffect(() => { fetchVisitors(); }, [fetchVisitors]);
 
@@ -108,16 +108,25 @@ export default function AdminVisitorsPage() {
         <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent/50" />
         <span className="text-xs text-text-muted">至</span>
         <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent/50" />
-        {(search || country || dateFrom || dateTo) && (
-          <button onClick={() => { setSearch(""); setCountry(""); setDateFrom(""); setDateTo(""); setPage(1); }} className="text-xs text-text-muted hover:text-text-primary">清除筛选</button>
+        {(search || country || dateFrom || dateTo || device) && (
+          <button onClick={() => { setSearch(""); setCountry(""); setDateFrom(""); setDateTo(""); setDevice(""); setPage(1); }} className="text-xs text-text-muted hover:text-text-primary">清除筛选</button>
         )}
+        <div className="ml-auto flex items-center gap-2 text-xs text-text-muted">
+          每页
+          <select value={limit} onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }} className="rounded border border-border bg-bg-card px-2 py-1 text-xs text-text-primary outline-none">
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
+          条
+        </div>
       </div>
 
       <div className="rounded-xl border border-border/50 bg-bg-card overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-auto max-h-[70vh]">
           <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border/50 bg-bg-secondary/50">
+            <thead className="sticky top-0 z-10">
+              <tr className="border-b border-border/50 bg-bg-secondary">
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("ip")}>IP 地址{sortArrow("ip")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("country")}>国家{sortArrow("country")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">设备/浏览器</th>
