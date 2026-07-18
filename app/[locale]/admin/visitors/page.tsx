@@ -61,7 +61,7 @@ export default function AdminVisitorsPage() {
   const sortArrow = (col: string) => sortBy === col ? (sortOrder === "asc" ? " ▲" : " ▼") : "";
 
   const COUNTRY_ZH: Record<string, string> = {
-    AF:"阿富汗",AL:"阿尔巴尼亚",AR:"阿根廷",AU:"澳大利亚",AT:"奥地利",BE:"比利时",BR:"巴西",CA:"加拿大",CL:"智利",CN:"中国",CO:"哥伦比亚",CZ:"捷克",DK:"丹麦",EG:"埃及",EE:"爱沙尼亚",FI:"芬兰",FR:"法国",DE:"德国",GR:"希腊",HK:"香港",IN:"印度",ID:"印度尼西亚",IE:"爱尔兰",IL:"以色列",IT:"意大利",JP:"日本",KR:"韩国",MY:"马来西亚",MX:"墨西哥",NL:"荷兰",NZ:"新西兰",NG:"尼日利亚",NO:"挪威",PH:"菲律宾",PL:"波兰",PT:"葡萄牙",RU:"俄罗斯",SA:"沙特阿拉伯",SG:"新加坡",ZA:"南非",ES:"西班牙",SE:"瑞典",CH:"瑞士",TW:"台湾",TH:"泰国",TR:"土耳其",UA:"乌克兰",AE:"阿联酋",GB:"英国",US:"美国",VN:"越南",
+    AF:"阿富汗",AL:"阿尔巴尼亚",AR:"阿根廷",AU:"澳大利亚",AT:"奥地利",BD:"孟加拉国",BE:"比利时",BG:"保加利亚",BR:"巴西",CA:"加拿大",CH:"瑞士",CL:"智利",CN:"中国",CO:"哥伦比亚",CZ:"捷克",DE:"德国",DK:"丹麦",EE:"爱沙尼亚",EG:"埃及",ES:"西班牙",FI:"芬兰",FR:"法国",GB:"英国",GR:"希腊",HK:"香港",HU:"匈牙利",ID:"印度尼西亚",IE:"爱尔兰",IL:"以色列",IN:"印度",IR:"伊朗",IT:"意大利",JP:"日本",KE:"肯尼亚",KR:"韩国",KW:"科威特",KZ:"哈萨克斯坦",LT:"立陶宛",LV:"拉脱维亚",MA:"摩洛哥",MD:"摩尔多瓦",MM:"缅甸",MX:"墨西哥",MY:"马来西亚",NG:"尼日利亚",NL:"荷兰",NO:"挪威",NP:"尼泊尔",NZ:"新西兰",PH:"菲律宾",PK:"巴基斯坦",PL:"波兰",PT:"葡萄牙",QA:"卡塔尔",RO:"罗马尼亚",RS:"塞尔维亚",RU:"俄罗斯",SA:"沙特阿拉伯",SE:"瑞典",SG:"新加坡",SI:"斯洛文尼亚",SK:"斯洛伐克",TH:"泰国",TR:"土耳其",TW:"台湾",UA:"乌克兰",AE:"阿联酋",US:"美国",VE:"委内瑞拉",VN:"越南",ZA:"南非",
   };
   const countryZh = (code: string | null) => code ? (COUNTRY_ZH[code.toUpperCase()] ? `${code} ${COUNTRY_ZH[code.toUpperCase()]}` : code) : "-";
 
