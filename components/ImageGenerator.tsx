@@ -529,9 +529,11 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
               if (statusData.generationIds) setGenerationIds(statusData.generationIds);
               if (typeof statusData.credits === "number") {
                 setLocalCredits(statusData.credits);
+                if (!profile) window.dispatchEvent(new CustomEvent("guest-credits-update", { detail: statusData.credits }));
                 refreshProfile();
               } else if (typeof statusData.credits === "number") {
                 setLocalCredits(statusData.credits);
+                if (!profile) window.dispatchEvent(new CustomEvent("guest-credits-update", { detail: statusData.credits }));
                 refreshProfile();
               }
               refreshProfile();
@@ -565,6 +567,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
       if (data.generationIds) setGenerationIds(data.generationIds);
       if (typeof data.credits === "number") {
         setLocalCredits(data.credits);
+        if (!profile) window.dispatchEvent(new CustomEvent("guest-credits-update", { detail: data.credits }));
         await refreshProfile();
       }
       refreshProfile();
@@ -906,11 +909,9 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
 
         <div className="flex items-center gap-2">
           {/* Credit cost */}
-          {profile && (
-            <span className="text-xs text-text-muted whitespace-nowrap">
-              {(messages.credit_cost || "消耗 [[COUNT]] 积分").replace("[[COUNT]]", String(numImages * (MODEL_COST_MULTIPLIER[model] || 1)))}
-            </span>
-          )}
+          <span className="text-xs text-text-muted whitespace-nowrap">
+            {(messages.credit_cost || "消耗 [[COUNT]] 积分").replace("[[COUNT]]", String(numImages * (MODEL_COST_MULTIPLIER[model] || 1)))}
+          </span>
           {/* Generate button */}
         <button
           data-generate-btn
