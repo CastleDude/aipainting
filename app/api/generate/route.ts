@@ -354,7 +354,14 @@ export async function POST(req: NextRequest) {
       };
 
       enqueueJob(job, genFn);
-      return NextResponse.json({ jobId: job.id, status: "pending" });
+      const jobResponse = NextResponse.json({ jobId: job.id, status: "pending" });
+      // Guest: persist credits cookie even for async jobs
+      if (!authUser && guestData) {
+        jobResponse.cookies.set("guest_credits", JSON.stringify(guestData), {
+          maxAge: 86400, path: "/", sameSite: "lax",
+        });
+      }
+      return jobResponse;
     }
 
     let images: string[];
