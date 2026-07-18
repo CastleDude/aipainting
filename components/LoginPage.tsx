@@ -249,9 +249,8 @@ export function LoginPage({ locale, messages }: LoginPageProps) {
                   <input
                     type="text"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => { const v = e.target.value; let w = 0, r = ""; for (const c of v) { const cw = /[一-鿿　-〿＀-￯぀-ゟ゠-ヿ가-힯]/.test(c) ? 2 : 1; if (w + cw > 30) break; w += cw; r += c; } setName(r); }}
                     placeholder={messages.name_placeholder}
-                    maxLength={30}
                     className="w-full rounded-xl border border-border bg-bg-secondary px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none transition-colors focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
                   />
                 </div>

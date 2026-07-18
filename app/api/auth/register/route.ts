@@ -5,11 +5,13 @@ import pool from "@/lib/db";
 export async function POST(req: NextRequest) {
   try {
     const { email, password, name } = await req.json();
+    // Visual width: CJK = 2, ASCII = 1, max 30 (≈ 15 Chinese chars)
+    const visualWidth = (s: string) => { let w = 0; for (const c of s) w += /[一-鿿　-〿＀-￯぀-ゟ゠-ヿ가-힯]/.test(c) ? 2 : 1; return w; };
     if (!email || !password || password.length < 6) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
-    if (name && name.length > 30) {
-      return NextResponse.json({ error: "Name must be 30 characters or less" }, { status: 400 });
+    if (name && visualWidth(name) > 30) {
+      return NextResponse.json({ error: "Name too long (max 15 Chinese or 30 English characters)" }, { status: 400 });
     }
 
     const existing = await pool.query("SELECT id FROM profiles WHERE email = $1", [email.toLowerCase()]);
