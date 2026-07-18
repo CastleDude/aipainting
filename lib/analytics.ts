@@ -79,9 +79,9 @@ export async function getDailyStats(days: number = 7): Promise<DailyStats[]> {
 
 export async function getRealtimeStats(): Promise<{
   todayVisits: number;
+  todayIpCount: number;
   todayCountries: number;
   onlineNow: number;
-  totalVisits: number;
 }> {
   const [todayR, onlineR, todayIpR] = await Promise.all([
     pool.query("SELECT COUNT(*)::int AS visits, COUNT(DISTINCT country)::int AS countries FROM visitor_logs WHERE DATE(created_at) = CURRENT_DATE"),
