@@ -34,9 +34,9 @@ function parseBrowser(ua: string | null): string {
 
 function duration(min: string, max: string): string {
   const ms = new Date(max).getTime() - new Date(min).getTime();
-  if (ms < 60000) return "<1分钟";
-  if (ms < 3600000) return `${Math.round(ms / 60000)}分钟`;
-  return `${Math.round(ms / 3600000)}小时`;
+  const minutes = Math.max(1, Math.round(ms / 60000));
+  if (minutes < 60) return `${minutes}分钟`;
+  return `${Math.floor(minutes / 60)}小时${minutes % 60}分钟`;
 }
 
 export default function AdminVisitorsPage() {
