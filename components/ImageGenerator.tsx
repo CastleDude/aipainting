@@ -980,6 +980,14 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
         </div>
       )}
 
+      {/* Guest registration prompt */}
+      {!profile && (
+        <div className="mt-3 flex items-center justify-between rounded-xl border border-accent/20 bg-accent/5 px-4 py-2.5">
+          <p className="text-xs text-text-secondary">{messages.guest_banner || "注册免费获得每日 10 积分 · 解锁全部模型"}</p>
+          <a href="/login" className="rounded-lg bg-accent px-3 py-1 text-xs font-medium text-white hover:bg-accent-hover transition-colors shrink-0 ml-3">注册/登录</a>
+        </div>
+      )}
+
       {/* Error */}
       {error && (
         <div className="mt-5 mx-auto max-w-lg">
@@ -992,6 +1000,12 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
             )}
           >
             <p>{error.message}</p>
+            {error.code === "guest_quota_exhausted" && (
+              <div className="mt-2 flex items-center justify-center gap-2">
+                <a href="/login" className="rounded-lg bg-accent px-4 py-1.5 text-xs font-semibold text-white hover:bg-accent-hover transition-colors">注册/登录</a>
+                <span className="text-text-muted">免费获得每日 10 积分</span>
+              </div>
+            )}
             {error.code === "region_blocked" && (
               <button
                 onClick={() => { setModel("schnell"); setError(null); }}
