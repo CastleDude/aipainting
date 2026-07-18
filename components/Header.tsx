@@ -184,7 +184,7 @@ export function Header({ locale, messages, loginModalMessages }: HeaderProps) {
 
             <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-bg-card border border-border/50 px-2.5 py-1 text-xs text-text-secondary" suppressHydrationWarning>
               <img src="/images/score.png" alt="" className="h-3.5 w-3.5" />
-              {!user ? (messages.guest_credits || `每日免费 [[COUNT]]/5 积分`).replace("[[COUNT]]", String(headerGuestCredits)) : profile ? (profile.tier === "free" ? messages.daily_credits : messages.credits_remaining).replace("[[COUNT]]", String(profile.credits)) : "..."}
+              {!user ? `每日免费 ${headerGuestCredits}/5 积分` : profile ? (profile.tier === "free" ? messages.daily_credits : messages.credits_remaining).replace("[[COUNT]]", String(profile.credits)) : "..."}
             </span>
 
             {loading ? (
