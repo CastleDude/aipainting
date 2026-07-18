@@ -78,6 +78,7 @@ export default function AdminVisitorsPage() {
   const [dateTo, setDateTo] = useState("");
   const [device, setDevice] = useState("");
   const [source, setSource] = useState("");
+  const [visitorType, setVisitorType] = useState("");
   const [sortBy, setSortBy] = useState("last_visit");
   const [sortOrder, setSortOrder] = useState("desc");
 
@@ -133,6 +134,7 @@ const localTime = (utcTime: string, country: string | null): string => {
       if (dateTo) params.set("dateTo", dateTo);
       if (device) params.set("device", device);
       if (source) params.set("source", source);
+      if (visitorType) params.set("visitorType", visitorType);
       params.set("sortBy", sortBy);
       params.set("sortOrder", sortOrder);
       const res = await fetch(`/api/admin/visitors?${params}`);
@@ -141,7 +143,7 @@ const localTime = (utcTime: string, country: string | null): string => {
       setTotal(data.total || 0);
     } catch {}
     setLoading(false);
-  }, [page, limit, search, country, dateFrom, dateTo, device, source, sortBy, sortOrder]);
+  }, [page, limit, search, country, dateFrom, dateTo, device, source, visitorType, sortBy, sortOrder]);
 
   useEffect(() => { fetchVisitors(); }, [fetchVisitors]);
 
@@ -166,6 +168,12 @@ const localTime = (utcTime: string, country: string | null): string => {
           <option value="desktop">💻 电脑</option>
           <option value="mobile">📱 手机</option>
           <option value="tablet">📋 平板</option>
+        </select>
+        <select value={visitorType} onChange={(e) => { setVisitorType(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent/50">
+          <option value="">全部类型</option>
+          <option value="member">会员</option>
+          <option value="returning">回头客</option>
+          <option value="new">新访客</option>
         </select>
         <div className="relative w-32">
           <input type="text" placeholder="来源..." value={source} onChange={(e) => { setSource(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card pl-3 pr-7 py-1.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent/50 w-full" />
@@ -196,7 +204,7 @@ const localTime = (utcTime: string, country: string | null): string => {
             <thead className="sticky top-0 z-10">
               <tr className="border-b border-border/50 bg-bg-secondary">
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("ip")}>IP 地址{sortArrow("ip")}</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">类型</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("visit_type")}>类型{sortArrow("visit_type")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("country")}>国家{sortArrow("country")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">设备/浏览器</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("referrer")}>来源{sortArrow("referrer")}</th>

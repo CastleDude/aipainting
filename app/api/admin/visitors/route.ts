@@ -16,10 +16,18 @@ export async function GET(req: NextRequest) {
     const country = url.searchParams.get("country")?.trim() || "";
     const device = url.searchParams.get("device")?.trim() || "";
     const source = url.searchParams.get("source")?.trim() || "";
+    const visitorType = url.searchParams.get("visitorType")?.trim() || "";
     const dateFrom = url.searchParams.get("dateFrom")?.trim() || "";
     const dateTo = url.searchParams.get("dateTo")?.trim() || "";
     const sortBy = url.searchParams.get("sortBy") || "last_visit";
-    const allowedSorts = ["ip", "country", "page_count", "credits_used", "total_visits", "first_visit", "last_visit", "referrer"];
+    let having = "";
+    if (visitorType) {
+      having = visitorType === "member" ? "HAVING COUNT(v.user_id) > 0"
+        : visitorType === "returning" ? "HAVING COUNT(v.user_id) = 0 AND (SELECT COUNT(DISTINCT DATE(created_at)) FROM visitor_logs WHERE ip = v.ip) > 1"
+        : "HAVING COUNT(v.user_id) = 0 AND (SELECT COUNT(DISTINCT DATE(created_at)) FROM visitor_logs WHERE ip = v.ip) <= 1";
+    }
+
+    const allowedSorts = ["ip", "country", "page_count", "credits_used", "total_visits", "first_visit", "last_visit", "referrer", "visit_type"];
     const safeSortBy = allowedSorts.includes(sortBy) ? sortBy : "last_visit";
     const sortOrder = url.searchParams.get("sortOrder") === "asc" ? "ASC" : "DESC";
 
@@ -88,7 +96,8 @@ export async function GET(req: NextRequest) {
       FROM visitor_logs v
       ${where}
       GROUP BY v.ip, DATE(v.created_at)
-      ORDER BY ${safeSortBy === "ip" ? "v.ip" : safeSortBy === "country" ? "MAX(v.country)" : safeSortBy === "page_count" ? "COUNT(*)" : safeSortBy === "credits_used" ? "COALESCE(SUM(v.credits_used),0)" : safeSortBy === "total_visits" ? "(SELECT COUNT(*)::int FROM visitor_logs WHERE ip = v.ip)" : safeSortBy === "first_visit" ? "EXTRACT(epoch FROM MAX(v.created_at) - MIN(v.created_at))" : safeSortBy === "referrer" ? "(SELECT vl2.referrer FROM visitor_logs vl2 WHERE vl2.ip = v.ip ORDER BY vl2.created_at LIMIT 1)" : "MAX(v.created_at)"} ${sortOrder}
+      ${having}
+      ORDER BY ${safeSortBy === "ip" ? "v.ip" : safeSortBy === "country" ? "MAX(v.country)" : safeSortBy === "page_count" ? "COUNT(*)" : safeSortBy === "credits_used" ? "COALESCE(SUM(v.credits_used),0)" : safeSortBy === "total_visits" ? "(SELECT COUNT(*)::int FROM visitor_logs WHERE ip = v.ip)" : safeSortBy === "first_visit" ? "EXTRACT(epoch FROM MAX(v.created_at) - MIN(v.created_at))" : safeSortBy === "referrer" ? "(SELECT vl2.referrer FROM visitor_logs vl2 WHERE vl2.ip = v.ip ORDER BY vl2.created_at LIMIT 1)" : safeSortBy === "visit_type" ? "COUNT(v.user_id) DESC" : "MAX(v.created_at)"} ${sortOrder}
       LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
 
     const [dataResult, countResult] = await Promise.all([
