@@ -9,6 +9,7 @@ interface Visitor {
   user_agent: string | null;
   referrer: string | null;
   last_visit: string;
+  visit_type: string;
   first_visit: string;
   page_count: number;
   credits_used: number;
@@ -195,6 +196,7 @@ const localTime = (utcTime: string, country: string | null): string => {
             <thead className="sticky top-0 z-10">
               <tr className="border-b border-border/50 bg-bg-secondary">
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("ip")}>IP 地址{sortArrow("ip")}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">类型</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("country")}>国家{sortArrow("country")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">设备/浏览器</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("referrer")}>来源{sortArrow("referrer")}</th>
@@ -208,13 +210,16 @@ const localTime = (utcTime: string, country: string | null): string => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={10} className="px-4 py-8 text-center text-text-muted">加载中...</td></tr>
+                <tr><td colSpan={11} className="px-4 py-8 text-center text-text-muted">加载中...</td></tr>
               ) : visitors.length === 0 ? (
-                <tr><td colSpan={10} className="px-4 py-8 text-center text-text-muted">暂无访客数据</td></tr>
+                <tr><td colSpan={11} className="px-4 py-8 text-center text-text-muted">暂无访客数据</td></tr>
               ) : (
                 visitors.map((v, i) => (
                   <tr key={`${v.ip}-${i}`} className="border-b border-border/30 hover:bg-bg-card-hover/50 transition-colors">
                     <td className="px-4 py-3 text-text-primary text-xs font-mono">{v.ip}</td>
+                    <td className="px-4 py-3 text-xs">
+                      <span className={v.visit_type === "回头客" ? "text-amber-400" : "text-text-muted"}>{v.visit_type}</span>
+                    </td>
                     <td className="px-4 py-3 text-text-secondary text-xs">
                       {countryZh(v.country)}
                     </td>
