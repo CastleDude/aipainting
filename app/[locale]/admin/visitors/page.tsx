@@ -174,6 +174,7 @@ const localTime = (utcTime: string, country: string | null): string => {
           <option value="member">会员</option>
           <option value="returning">回头客</option>
           <option value="new">新访客</option>
+          <option value="bot">🤖爬虫/疑似</option>
         </select>
         <div className="relative w-32">
           <input type="text" placeholder="来源..." value={source} onChange={(e) => { setSource(e.target.value); setPage(1); }} className="rounded-lg border border-border bg-bg-card pl-3 pr-7 py-1.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent/50 w-full" />
