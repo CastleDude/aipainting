@@ -50,6 +50,20 @@ export default function AdminVisitorsPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [device, setDevice] = useState("");
+  const [sortBy, setSortBy] = useState("last_visit");
+  const [sortOrder, setSortOrder] = useState("desc");
+
+  const toggleSort = (col: string) => {
+    if (sortBy === col) setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    else { setSortBy(col); setSortOrder("desc"); }
+    setPage(1);
+  };
+  const sortArrow = (col: string) => sortBy === col ? (sortOrder === "asc" ? " ▲" : " ▼") : "";
+
+  const COUNTRY_ZH: Record<string, string> = {
+    AF:"阿富汗",AL:"阿尔巴尼亚",AR:"阿根廷",AU:"澳大利亚",AT:"奥地利",BE:"比利时",BR:"巴西",CA:"加拿大",CL:"智利",CN:"中国",CO:"哥伦比亚",CZ:"捷克",DK:"丹麦",EG:"埃及",EE:"爱沙尼亚",FI:"芬兰",FR:"法国",DE:"德国",GR:"希腊",HK:"香港",IN:"印度",ID:"印度尼西亚",IE:"爱尔兰",IL:"以色列",IT:"意大利",JP:"日本",KR:"韩国",MY:"马来西亚",MX:"墨西哥",NL:"荷兰",NZ:"新西兰",NG:"尼日利亚",NO:"挪威",PH:"菲律宾",PL:"波兰",PT:"葡萄牙",RU:"俄罗斯",SA:"沙特阿拉伯",SG:"新加坡",ZA:"南非",ES:"西班牙",SE:"瑞典",CH:"瑞士",TW:"台湾",TH:"泰国",TR:"土耳其",UA:"乌克兰",AE:"阿联酋",GB:"英国",US:"美国",VN:"越南",
+  };
+  const countryZh = (code: string | null) => code ? (COUNTRY_ZH[code.toUpperCase()] ? `${code} ${COUNTRY_ZH[code.toUpperCase()]}` : code) : "-";
 
   const limit = 20;
   const totalPages = Math.ceil(total / limit);
@@ -63,6 +77,8 @@ export default function AdminVisitorsPage() {
       if (dateFrom) params.set("dateFrom", dateFrom);
       if (dateTo) params.set("dateTo", dateTo);
       if (device) params.set("device", device);
+      params.set("sortBy", sortBy);
+      params.set("sortOrder", sortOrder);
       const res = await fetch(`/api/admin/visitors?${params}`);
       const data = await res.json();
       setVisitors(data.visitors || []);
@@ -102,14 +118,14 @@ export default function AdminVisitorsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border/50 bg-bg-secondary/50">
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">IP 地址</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">国家</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("ip")}>IP 地址{sortArrow("ip")}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("country")}>国家{sortArrow("country")}</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">设备/浏览器</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">积分消耗</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">页面数</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">累计访问</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">停留时长</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">最近访问</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("credits_used")}>积分消耗{sortArrow("credits_used")}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("page_count")}>页面数{sortArrow("page_count")}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("total_visits")}>累计访问{sortArrow("total_visits")}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("first_visit")}>停留时长{sortArrow("first_visit")}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text-primary select-none" onClick={() => toggleSort("last_visit")}>最近访问{sortArrow("last_visit")}</th>
               </tr>
             </thead>
             <tbody>
@@ -122,7 +138,7 @@ export default function AdminVisitorsPage() {
                   <tr key={`${v.ip}-${i}`} className="border-b border-border/30 hover:bg-bg-card-hover/50 transition-colors">
                     <td className="px-4 py-3 text-text-primary text-xs font-mono">{v.ip}</td>
                     <td className="px-4 py-3 text-text-secondary text-xs">
-                      {v.country || "-"}
+                      {countryZh(v.country)}
                     </td>
                     <td className="px-4 py-3 text-text-secondary text-xs">
                       {parseDevice(v.user_agent)} · {parseBrowser(v.user_agent)}

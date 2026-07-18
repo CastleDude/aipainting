@@ -17,6 +17,8 @@ export async function GET(req: NextRequest) {
     const device = url.searchParams.get("device")?.trim() || "";
     const dateFrom = url.searchParams.get("dateFrom")?.trim() || "";
     const dateTo = url.searchParams.get("dateTo")?.trim() || "";
+    const sortBy = url.searchParams.get("sortBy") || "last_visit";
+    const sortOrder = url.searchParams.get("sortOrder") === "asc" ? "ASC" : "DESC";
 
     let where = "WHERE v.ip IS NOT NULL";
     const params: (string | number)[] = [];
@@ -61,7 +63,7 @@ export async function GET(req: NextRequest) {
       FROM visitor_logs v
       ${where}
       GROUP BY v.ip, DATE(v.created_at)
-      ORDER BY MAX(v.created_at) DESC
+      ORDER BY ${sortBy === "ip" ? "v.ip" : sortBy === "country" ? "MAX(v.country)" : sortBy === "page_count" ? "COUNT(*)" : sortBy === "credits_used" ? "COALESCE(SUM(v.credits_used),0)" : sortBy === "total_visits" ? "(SELECT COUNT(*)::int FROM visitor_logs WHERE ip = v.ip)" : sortBy === "first_visit" ? "MIN(v.created_at)" : "MAX(v.created_at)"} ${sortOrder}
       LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
 
     const [dataResult, countResult] = await Promise.all([
