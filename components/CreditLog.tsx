@@ -82,11 +82,14 @@ export function CreditLog({ onBack, messages }: CreditLogProps) {
 
   const inferCategory = (item: LogEntry): string => {
     if (item.category) return item.category;
-    if (item.amount > 0 && item.reason.includes("bonus")) return "bonus";
-    if (item.amount > 0 && (item.reason.includes("credit") || item.reason.includes("reset") || item.reason.includes("积分"))) return "daily";
-    if (item.amount > 0 && item.reason.toLowerCase().includes("tier")) return "recharge";
+    const r = item.reason?.toLowerCase() || "";
+    if (item.amount > 0 && (r.includes("bonus") || r.includes("赠送") || r.includes("首充"))) return "bonus";
+    if (item.amount > 0 && (r.includes("daily") || r.includes("发放") || r.includes("积分") || r.includes("credit") || r.includes("reset"))) return "daily";
+    if (item.amount > 0 && (r.includes("recharge") || r.includes("充值") || r.includes("tier") || r.includes("套餐") || r.includes("购买"))) return "recharge";
+    if (item.amount > 0 && (r.includes("adjust") || r.includes("调整"))) return "adjust";
+    if (item.amount < 0 && (r.includes("expire") || r.includes("过期") || r.includes("清零"))) return "expire";
     if (item.amount < 0) return "consume";
-    return "";
+    return item.amount > 0 ? "daily" : "consume";
   };
 
   const tierConfig = getTierConfig(tier);
@@ -127,18 +130,23 @@ export function CreditLog({ onBack, messages }: CreditLogProps) {
                   <td className="px-4 py-2.5">
                     {(() => {
                       const cat = inferCategory(item);
-                      const isPositive = cat === "recharge" || cat === "bonus" || cat === "daily" || cat === "adjust";
+                      const colors: Record<string, string> = {
+                        recharge: "bg-purple-500/15 text-purple-400",
+                        bonus: "bg-pink-500/15 text-pink-400",
+                        daily: "bg-green-500/15 text-green-400",
+                        consume: "bg-blue-500/15 text-blue-400",
+                        expire: "bg-gray-500/15 text-gray-400",
+                        adjust: "bg-amber-500/15 text-amber-400",
+                      };
                       return (
-                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                          isPositive ? "bg-green-500/15 text-green-400" : cat === "consume" ? "bg-blue-500/15 text-blue-400" : "bg-text-muted/15 text-text-muted"
-                        }`}>
+                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${colors[cat] || "bg-text-muted/15 text-text-muted"}`}>
                           {CATEGORY_NAMES[cat] || "-"}
                         </span>
                       );
                     })()}
                   </td>
                   <td className="px-4 py-2.5 text-text-muted text-xs whitespace-nowrap">
-                    {new Date(item.created_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}
+                    {new Date(item.created_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                   </td>
                   <td className="px-4 py-2.5 text-text-secondary text-xs">{item.reason}</td>
                   <td className="px-4 py-2.5 font-medium text-xs whitespace-nowrap">
