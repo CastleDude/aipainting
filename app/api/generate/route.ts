@@ -14,6 +14,19 @@ import { checkContentModeration, trackBlockedAttempt } from "@/lib/moderation";
 // Default negative prompt for quality boost (EasyNegative equivalent concepts)
 const DEFAULT_NEGATIVE = "blurry, low quality, distorted, watermark, text, signature, bad anatomy, deformed, disfigured, extra fingers, mutated";
 
+// IP-anchored guest credit tracking (server memory, resets at midnight, max ~10k entries)
+const guestIpCredits = new Map<string, { date: string; used: number }>();
+setInterval(() => {
+  const today = new Date().toISOString().slice(0, 10);
+  for (const [key, entry] of guestIpCredits) {
+    if (entry.date !== today) guestIpCredits.delete(key);
+  }
+  if (guestIpCredits.size > 10000) {
+    const keys = Array.from(guestIpCredits.keys()).slice(0, guestIpCredits.size - 10000);
+    for (const k of keys) guestIpCredits.delete(k);
+  }
+}, 60 * 60 * 1000); // Cleanup every hour
+
 // ── Describe an image via Gemini Vision ──
 async function describeImage(base64: string): Promise<string | null> {
   try {
@@ -223,13 +236,22 @@ export async function POST(req: NextRequest) {
     // ── Credit result (populated below) ──
     let creditResult: { credits?: number } | undefined;
 
-    // ── Guest credit limit (5 credits/day, tracked via cookie) ──
+    // ── Guest credit limit (5 credits/day, IP-anchored to prevent cookie bypass) ──
     let guestData: { date: string; credits: number } | undefined;
     if (!authUser) {
       const GUEST_DAILY = 5;
       const cookieName = "guest_credits";
       const today = new Date().toISOString().slice(0, 10);
       const cookieVal = req.cookies.get(cookieName)?.value;
+
+      // IP-anchored credit tracking: store used credits by IP (resets at midnight)
+      const ipKey = `guest:${clientIp}:${today}`;
+      if (!guestIpCredits.has(ipKey) || guestIpCredits.get(ipKey)?.date !== today) {
+        guestIpCredits.set(ipKey, { date: today, used: 0 });
+      }
+      const ipEntry = guestIpCredits.get(ipKey)!;
+
+      // Cookie-based tracking (for client-side UX display)
       try {
         guestData = cookieVal ? JSON.parse(decodeURIComponent(cookieVal)) : { date: today, credits: GUEST_DAILY };
       } catch {
@@ -238,14 +260,18 @@ export async function POST(req: NextRequest) {
       if (guestData!.date !== today) {
         guestData = { date: today, credits: GUEST_DAILY };
       }
+
       const guestCost = computeDeduction(numImages || 1, model, creditMultiplier);
-      if (guestData!.credits < guestCost) {
+      // IP-anchored: user can't bypass by clearing cookies
+      if (ipEntry.used + guestCost > GUEST_DAILY) {
         return NextResponse.json(
           { error: "今日免费次数已用完，请注册登录后继续使用", code: "guest_quota_exhausted" },
           { status: 402 },
         );
       }
-      guestData!.credits -= guestCost;
+      ipEntry.used += guestCost;
+      guestData!.credits = Math.min(guestData!.credits, GUEST_DAILY - ipEntry.used);
+      guestData!.credits = Math.max(0, guestData!.credits);
       creditResult = { credits: guestData!.credits };
     }
 
