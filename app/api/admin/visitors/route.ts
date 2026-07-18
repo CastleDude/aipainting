@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
         (SELECT vl2.referrer FROM visitor_logs vl2 WHERE vl2.ip = v.ip AND vl2.referrer IS NOT NULL AND vl2.referrer != '' AND vl2.referrer NOT LIKE '%aipainting.top%' ORDER BY vl2.created_at LIMIT 1),
         (SELECT vl2.referrer FROM visitor_logs vl2 WHERE vl2.ip = v.ip AND vl2.referrer IS NOT NULL AND vl2.referrer != '' ORDER BY vl2.created_at LIMIT 1)
       ) AS referrer,
-        CASE WHEN EXISTS (SELECT 1 FROM profiles WHERE last_login_ip = v.ip) THEN '会员' WHEN (SELECT COUNT(DISTINCT DATE(created_at)) FROM visitor_logs WHERE ip = v.ip) > 1 THEN '回头客' ELSE '新访客' END AS visit_type,
+        CASE WHEN MAX(v.user_id) IS NOT NULL THEN '会员' WHEN (SELECT COUNT(DISTINCT DATE(created_at)) FROM visitor_logs WHERE ip = v.ip) > 1 THEN '回头客' ELSE '新访客' END AS visit_type,
         MAX(v.created_at) AS last_visit,
         MIN(v.created_at) AS first_visit,
         COUNT(*)::int AS page_count,

@@ -48,6 +48,13 @@ export async function GET(req: NextRequest) {
           [ip, country, profile.id],
         );
         profile.last_login_at = new Date().toISOString();
+        // Tag visitor_logs with user_id for this IP
+        if (ip) {
+          await pool.query(
+            "UPDATE visitor_logs SET user_id = $1 WHERE ip = $2 AND user_id IS NULL",
+            [profile.id, ip],
+          );
+        }
       } catch { /* columns may not exist yet — skip */ }
       profile.last_login_ip = ip;
       profile.last_login_country = country;
