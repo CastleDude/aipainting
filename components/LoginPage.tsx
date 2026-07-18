@@ -251,6 +251,7 @@ export function LoginPage({ locale, messages }: LoginPageProps) {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder={messages.name_placeholder}
+                    maxLength={30}
                     className="w-full rounded-xl border border-border bg-bg-secondary px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none transition-colors focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
                   />
                 </div>

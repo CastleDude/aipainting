@@ -8,6 +8,9 @@ export async function POST(req: NextRequest) {
     if (!email || !password || password.length < 6) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
+    if (name && name.length > 30) {
+      return NextResponse.json({ error: "Name must be 30 characters or less" }, { status: 400 });
+    }
 
     const existing = await pool.query("SELECT id FROM profiles WHERE email = $1", [email.toLowerCase()]);
     if (existing.rows.length > 0) {
