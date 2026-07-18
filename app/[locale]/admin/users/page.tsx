@@ -259,7 +259,7 @@ export default function AdminUsersPage() {
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-text-primary font-medium">{u.name || "-"}</span>
+                      <span className="text-text-primary font-medium truncate max-w-[140px] inline-block align-bottom" title={(u.name?.length || 0) > 30 ? u.name : undefined}>{u.name || "-"}</span>
                     </td>
                     <td className="px-4 py-3 text-text-secondary">{u.email}</td>
                     <td className="px-4 py-3">
