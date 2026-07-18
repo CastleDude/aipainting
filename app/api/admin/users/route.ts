@@ -83,7 +83,9 @@ export async function PATCH(req: NextRequest) {
 
     // Log manual credit adjustment
     if ("credits" in updates) {
-      logCreditChange(userId, 0, "adjust", `管理员手动调整积分至 ${updates.credits}`);
+      const old = await pool.query("SELECT credits FROM profiles WHERE id = $1", [userId]);
+      const delta = Number(updates.credits) - Number(old.rows[0]?.credits || 0);
+      if (delta !== 0) logCreditChange(userId, delta, "adjust", `管理员手动调整积分至 ${updates.credits}`);
     }
 
     return NextResponse.json({ success: true });

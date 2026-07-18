@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import pool from "@/lib/db";
+import { logCreditChange } from "@/lib/credit-logs";
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,6 +29,7 @@ export async function POST(req: NextRequest) {
       [email.toLowerCase(), name || email.split("@")[0], passwordHash, country],
     );
 
+    logCreditChange(user.id, 10, "daily", "新用户注册初始积分");
     return NextResponse.json({ ok: true, user: { id: user.id, email: user.email, name: user.name, tier: user.tier, credits: user.credits, country: user.country } });
   } catch (e) {
     console.error("[register]", e instanceof Error ? e.message : e);
