@@ -319,7 +319,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
 
   const [prompt, setPrompt] = useState("");
   const [negativePrompt, setNegativePrompt] = useState("blurry, low quality, distorted, watermark, text, signature, bad anatomy, deformed, disfigured, extra fingers, mutated, plastic skin, smooth skin, 3d render, CGI, cartoon, doll-like, porcelain skin, wax figure, airbrushed");
-  const [model, setModel] = useState("sdxl");
+  const [model, setModel] = useState("schnell");
   const [multiplier, setMultiplier] = useState(1);
   const [lastPresetId, setLastPresetId] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState("1:1");
