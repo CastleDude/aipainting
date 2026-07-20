@@ -191,6 +191,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Please enter a prompt", code: "empty_prompt" }, { status: 400 });
     }
 
+    // ── Auto-translate non-English prompts to English ──
+    let finalPrompt = prompt;
+    const asciiCount = [...prompt].filter((c) => c >= " " && c <= "~").length;
+    if (asciiCount / prompt.length < 0.7 && process.env.OPENROUTER_API_KEY) {
+      try {
+        const tRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}` },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [{ role: "system", content: "Translate to natural fluent English for image generation. Output ONLY the translated text." }, { role: "user", content: prompt }],
+            temperature: 0.3, max_tokens: 500,
+          }),
+        });
+        const tData = await tRes.json();
+        const translated = tData?.choices?.[0]?.message?.content?.trim();
+        if (translated && translated !== prompt) finalPrompt = translated;
+      } catch { /* fallback to original */ }
+    }
+
     // ── Describe second image via Gemini Vision ──
     let image2Desc: string | null = null;
     if (imageBase64_2) {
@@ -322,10 +342,10 @@ export async function POST(req: NextRequest) {
       const genFn = async () => {
         let genImages: string[];
         if (RUNWARE_MODELS.has(model)) {
-          genImages = await generateRunware(`${prompt.trim()}${styleHint}. ${QUALITY_SUFFIX}`, model, aspectRatio, numImages, negativePrompt, imageBase64);
+          genImages = await generateRunware(`${finalPrompt.trim()}${styleHint}. ${QUALITY_SUFFIX}`, model, aspectRatio, numImages, negativePrompt, imageBase64);
         } else {
           const arHint = ``;
-          const fullPrompt = `${prompt.trim()}${styleHint}. ${QUALITY_SUFFIX}`;
+          const fullPrompt = `${finalPrompt.trim()}${styleHint}. ${QUALITY_SUFFIX}`;
           genImages = await generateOpenRouter(model, fullPrompt, negativePrompt, aspectRatio, numImages, imageBase64);
         }
         if (genImages.length === 0) throw Object.assign(new Error("No images returned"), { code: "no_output" });
@@ -343,7 +363,7 @@ export async function POST(req: NextRequest) {
                 try {
                   const { rows: [inserted] } = await pool.query(
                     "INSERT INTO generations (user_id, prompt, model, image_url, thumb_url, is_public) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
-                    [saveUser.id, prompt.trim(), model, url, genThumbMap.get(url) ?? null, isPublic || false],
+                    [saveUser.id, finalPrompt.trim(), model, url, genThumbMap.get(url) ?? null, isPublic || false],
                   );
                   saved++;
                   if (inserted) savedIds.push(inserted.id);
@@ -382,11 +402,11 @@ export async function POST(req: NextRequest) {
     if (RUNWARE_MODELS.has(model)) {
       // For img2img with two photos: first = inputImage, second = described via Gemini, embedded in prompt
       const img2Hint = image2Desc ? ` Second reference image description: ${image2Desc}.` : "";
-      images = await generateRunware(`${prompt.trim()}${styleHint}${img2Hint}. ${QUALITY_SUFFIX}`, model, aspectRatio, genN, negativePrompt, imageBase64);
+      images = await generateRunware(`${finalPrompt.trim()}${styleHint}${img2Hint}. ${QUALITY_SUFFIX}`, model, aspectRatio, genN, negativePrompt, imageBase64);
     } else {
       // For OpenRouter models, embed aspect ratio in the prompt
       const arHint = ``;
-      const fullPrompt = `${prompt.trim()}${styleHint}. ${QUALITY_SUFFIX}`;
+      const fullPrompt = `${finalPrompt.trim()}${styleHint}. ${QUALITY_SUFFIX}`;
       images = await generateOpenRouter(model, fullPrompt, negativePrompt, aspectRatio, genN, imageBase64 || imageBase64_2);
     }
 
@@ -412,7 +432,7 @@ export async function POST(req: NextRequest) {
             try {
               const { rows: [inserted] } = await pool.query(
                 "INSERT INTO generations (user_id, prompt, model, image_url, thumb_url, is_public) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
-                [saveUser.id, prompt.trim(), model, url, thumbMap.get(url) ?? null, isPublic || false],
+                [saveUser.id, finalPrompt.trim(), model, url, thumbMap.get(url) ?? null, isPublic || false],
               );
               saved++;
               if (inserted) savedIds.push(inserted.id);
@@ -466,7 +486,7 @@ export async function POST(req: NextRequest) {
         const prevItems: Array<{ id: string; prompt: string; model: string; image_url: string; is_public: boolean; created_at: string }> = prevCookie ? JSON.parse(decodeURIComponent(prevCookie)) : [];
         const newItems = images.map((url: string) => ({
           id: crypto.randomUUID(),
-          prompt: prompt.trim(),
+          prompt: finalPrompt.trim(),
           model,
           image_url: url,
           is_public: isPublic || false,
