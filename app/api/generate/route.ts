@@ -382,7 +382,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        return { id: job.id, status: "completed" as const, images: genImages, credits: creditResult?.credits, saved, generationIds: savedIds, createdAt: job.createdAt };
+        return { id: job.id, status: "completed" as const, images: genImages, credits: creditResult?.credits, saved, generationIds: savedIds, createdAt: job.createdAt, translated: finalPrompt !== prompt ? finalPrompt : undefined };
       };
 
       enqueueJob(job, genFn);
@@ -456,7 +456,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const result: { images: string[]; credits?: number; saved?: number; generationIds?: string[]; multiplier?: number } = { images };
+    const result: { images: string[]; credits?: number; saved?: number; generationIds?: string[]; multiplier?: number; translated?: string } = { images };
+    if (finalPrompt !== prompt) result.translated = finalPrompt;
     if (creditMultiplier > 1) result.multiplier = creditMultiplier;
     if (creditResult?.credits !== undefined) result.credits = creditResult.credits;
     if (saved > 0) { result.saved = saved; result.generationIds = savedIds; }

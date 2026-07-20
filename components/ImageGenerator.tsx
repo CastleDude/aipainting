@@ -526,6 +526,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
             const statusData = await statusRes.json();
             if (statusData.status === "completed") {
               setImages(statusData.images || []);
+              if (statusData.translated) setPrompt(statusData.translated);
               if (statusData.generationIds) setGenerationIds(statusData.generationIds);
               if (typeof statusData.credits === "number") {
                 setLocalCredits(statusData.credits);
@@ -560,6 +561,7 @@ export function ImageGenerator({ messages, children }: ImageGeneratorProps) {
 
       // Sync mode (fast)
       setImages(data.images);
+      if (data.translated) setPrompt(data.translated);
       if (data.generationIds) setGenerationIds(data.generationIds);
       if (typeof data.credits === "number") {
         setLocalCredits(data.credits);
